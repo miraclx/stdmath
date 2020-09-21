@@ -530,6 +530,7 @@ mod tests {
         );
     }
     #[test]
+    #[allow(non_snake_case)]
     fn test_ramanujansPI() {
         assert_eq!(ramanujansPI(0), 3.1415927300133055);
         assert_eq!(ramanujansPI(1), 3.1415926535897936);
