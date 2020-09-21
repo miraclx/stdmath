@@ -73,6 +73,45 @@ where
     1_usize + sigma(T::one(), val, |n| n.into().log10()).floor() as usize
 }
 
+pub enum Method {
+    Repeat,
+    NoRepeat,
+}
+
+#[inline]
+pub fn combination<T, R>(n: T, r: T, method: Method) -> R
+where
+    T: One + std::iter::Step + Zero + Copy + std::ops::Add<Output = T> + std::ops::Sub<Output = T>,
+    R: One
+        + From<T>
+        + Zero
+        + std::ops::Mul<Output = R>
+        + std::ops::Div<Output = R>
+        + std::iter::Product,
+{
+    match method {
+        _ if r > n => R::zero(), // FIXME!
+        Method::NoRepeat if n == r || r == T::zero() => R::one(),
+        Method::NoRepeat => {
+            let top = factorial::<T, R>(n);
+
+            let fact_r_ = factorial::<T, R>(r);
+            let fact_nr = factorial::<T, R>(n - r);
+
+            top / (fact_r_ * fact_nr)
+        }
+        Method::Repeat if r == T::zero() => R::zero(),
+        Method::Repeat => {
+            let top = factorial::<T, R>(n + r - T::one());
+
+            let fact_r_ = factorial::<T, R>(r);
+            let fact_n1 = factorial::<T, R>(n - T::one());
+
+            top / (fact_r_ * fact_n1)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -108,5 +147,17 @@ mod tests {
         assert_eq!(factorial_count(9u8), 6);
         assert_eq!(factorial_count(10u8), 7);
         assert_eq!(factorial_count(34u8), 39);
+    }
+    #[test]
+    fn test_combination() {
+        assert_eq!(combination::<u8, u8>(0, 0, Method::NoRepeat), 1);
+        assert_eq!(combination::<u8, u8>(5, 0, Method::NoRepeat), 1);
+        assert_eq!(combination::<u8, u8>(0, 5, Method::NoRepeat), 0);
+        assert_eq!(combination::<u8, u8>(5, 3, Method::NoRepeat), 10);
+
+        assert_eq!(combination::<u8, u8>(0, 0, Method::Repeat), 0);
+        assert_eq!(combination::<u8, u8>(5, 0, Method::Repeat), 0);
+        assert_eq!(combination::<u8, u8>(0, 5, Method::Repeat), 0);
+        assert_eq!(combination::<u8, u64>(5, 3, Method::Repeat), 35);
     }
 }
