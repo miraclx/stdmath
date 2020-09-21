@@ -393,6 +393,7 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
     result
 }
 
+#[allow(non_snake_case)]
 pub fn ramanujansPI(end: u8) -> f64 {
     let part_1 = 8.0_f64.sqrt() / 9801.0;
     let part_2 = sigma(0, end, |n| {
