@@ -186,6 +186,19 @@ where
     })
 }
 
+pub fn pascals(n: u32) -> Vec<Vec<u32>> {
+    let mut result = vec![vec![1], vec![1, 1]];
+    for row in 2..n as usize {
+        let mut vec = vec![1, 0];
+        for col in 1..row {
+            vec[col] = result[row - 1][col] + result[row - 1][col - 1];
+            vec.push(1);
+        }
+        result.push(vec);
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -250,5 +263,33 @@ mod tests {
     fn test_binomial() {
         assert_eq!(binomial::<u8, u32>(7, 10, 5), u32::pow(7 + 10, 5));
         assert_eq!(binomial::<u8, u32>(2, 5, 2), u32::pow(2 + 5, 2));
+    }
+    #[test]
+    fn test_pascals() {
+        assert_eq!(
+            pascals(5),
+            vec![
+                vec![1],
+                vec![1, 1],
+                vec![1, 2, 1],
+                vec![1, 3, 3, 1],
+                vec![1, 4, 6, 4, 1],
+            ]
+        );
+        assert_eq!(
+            pascals(10),
+            vec![
+                vec![1],
+                vec![1, 1],
+                vec![1, 2, 1],
+                vec![1, 3, 3, 1],
+                vec![1, 4, 6, 4, 1],
+                vec![1, 5, 10, 10, 5, 1],
+                vec![1, 6, 15, 20, 15, 6, 1],
+                vec![1, 7, 21, 35, 35, 21, 7, 1],
+                vec![1, 8, 28, 56, 70, 56, 28, 8, 1],
+                vec![1, 9, 36, 84, 126, 126, 84, 36, 9, 1]
+            ]
+        );
     }
 }
