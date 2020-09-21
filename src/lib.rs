@@ -65,6 +65,14 @@ where
     )
 }
 
+#[inline]
+pub fn factorial_count<T>(val: T) -> usize
+where
+    T: One + std::iter::Step + Into<f32>,
+{
+    1_usize + sigma(T::one(), val, |n| n.into().log10()).floor() as usize
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -91,5 +99,14 @@ mod tests {
         assert_eq!(factorial::<u8, u16>(6), 720);
         assert_eq!(factorial::<u8, u32>(9), 362880);
         assert_eq!(factorial::<u8, u32>(10), 3628800);
+    }
+    #[test]
+    fn test_factorial_count() {
+        assert_eq!(factorial_count(0u8), 1);
+        assert_eq!(factorial_count(1u8), 1);
+        assert_eq!(factorial_count(6u8), 3);
+        assert_eq!(factorial_count(9u8), 6);
+        assert_eq!(factorial_count(10u8), 7);
+        assert_eq!(factorial_count(34u8), 39);
     }
 }
