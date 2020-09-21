@@ -298,6 +298,25 @@ where
     }
 }
 
+/// Returns the binomial expansion of the equation `(a + b) ^ n`
+///
+/// # Equivalent Representation
+///
+/// `bin(a, b, n) = ∑(0 → n) [r => nCr * a ^ (n - r) * b ^ r]`
+///
+/// where [`nCr`] is combination without repetition
+///
+/// # Examples
+///
+/// ```
+/// use math::binomial;
+///
+/// assert_eq!(binomial::<u8, u32>(7, 10, 5), u32::pow(7 + 10, 5));
+/// assert_eq!(binomial::<u8, u32>(2, 5, 2), u32::pow(2 + 5, 2));
+/// ```
+///
+/// [`nCr`]: ./fn.combination.html
+
 #[inline]
 pub fn binomial<T, R>(a: T, b: T, n: T) -> R
 where
