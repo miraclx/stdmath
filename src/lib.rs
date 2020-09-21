@@ -159,6 +159,33 @@ where
     }
 }
 
+#[inline]
+pub fn binomial<T, R>(a: T, b: T, n: T) -> R
+where
+    T: One
+        + std::iter::Step
+        + Into<u32>
+        + Zero
+        + Copy
+        + std::ops::Add<Output = T>
+        + std::ops::Sub<Output = T>,
+    R: One
+        + From<T>
+        + Zero
+        + Pow<Output = R>
+        + std::ops::Mul<Output = R>
+        + std::ops::Div<Output = R>
+        + std::iter::Sum
+        + std::iter::Product,
+{
+    sigma(T::zero(), n, |r| {
+        let comb = combination::<T, R>(n, r, Method::NoRepeat);
+        let a_nr = R::from(a).pow((n - r).into());
+        let b_r_ = R::from(b).pow(r.into());
+        comb * a_nr * b_r_
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -218,5 +245,10 @@ mod tests {
         assert_eq!(permutation::<u8, u8>(5, 0, Method::Repeat), 1);
         assert_eq!(permutation::<u8, u8>(0, 5, Method::Repeat), 0);
         assert_eq!(permutation::<u8, u8>(5, 3, Method::Repeat), 125);
+    }
+    #[test]
+    fn test_binomial() {
+        assert_eq!(binomial::<u8, u32>(7, 10, 5), u32::pow(7 + 10, 5));
+        assert_eq!(binomial::<u8, u32>(2, 5, 2), u32::pow(2 + 5, 2));
     }
 }
