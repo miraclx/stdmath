@@ -61,12 +61,12 @@ where
 }
 
 #[inline]
-pub fn product<T, R>(min: T, max: T, func: impl Fn(T) -> R) -> R
+pub fn product<T, R>(start: T, stop: T, func: impl Fn(T) -> R) -> R
 where
     T: std::iter::Step,
     R: std::iter::Product,
 {
-    (min..=max).map(func).product()
+    (start..=stop).map(func).product()
 }
 
 #[inline]
