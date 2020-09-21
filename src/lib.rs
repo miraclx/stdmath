@@ -199,6 +199,17 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
     result
 }
 
+pub fn ramanujansPI(end: u8) -> f64 {
+    let part_1 = 8.0_f64.sqrt() / 9801.0;
+    let part_2 = sigma(0, end, |n| {
+        let n = n as u32;
+        let top = (factorial::<_, u128>(4 * n) as f64) * ((26390 * n + 1103) as f64);
+        let base = (factorial::<_, u128>(n) as f64).powi(4) * 396.0_f64.powf((4 * n) as f64);
+        top / base
+    });
+    1.0 / (part_1 * part_2)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -291,5 +302,13 @@ mod tests {
                 vec![1, 9, 36, 84, 126, 126, 84, 36, 9, 1]
             ]
         );
+    }
+    #[test]
+    fn test_ramanujansPI() {
+        assert_eq!(ramanujansPI(0), 3.1415927300133055);
+        assert_eq!(ramanujansPI(1), 3.1415926535897936);
+        assert_eq!(ramanujansPI(2), 3.141592653589793);
+        assert_eq!(ramanujansPI(3), 3.141592653589793);
+        assert_eq!(ramanujansPI(4), 3.141592653589793);
     }
 }
