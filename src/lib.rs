@@ -52,12 +52,12 @@ bulk_impl_traits!(@ (f32, f64) => (0.0, 1.0));
 bulk_impl_traits!((i128, u128) => (0, 1));
 
 #[inline]
-pub fn sigma<T, R>(start: T, end: T, func: impl Fn(T) -> R) -> R
+pub fn sigma<T, R>(start: T, stop: T, func: impl Fn(T) -> R) -> R
 where
     T: std::iter::Step,
     R: std::iter::Sum,
 {
-    (start..=end).map(func).sum()
+    (start..=stop).map(func).sum()
 }
 
 #[inline]
