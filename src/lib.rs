@@ -156,6 +156,22 @@ where
     )
 }
 
+/// Returns the number of digits of a factorial computation
+///
+/// # Equivalent Representation
+///
+/// `fact_count(val) = ∑(1 → val) [n => ⌊log10(n)⌋ + 1]`
+///
+/// # Examples
+///
+/// ```
+/// use math::{factorial, factorial_count};
+///
+/// let fact = factorial::<u8, u32>(10);
+/// let len = format!("{}", fact).len();
+/// assert_eq!(len, factorial_count(10u8));
+/// ```
+
 #[inline]
 pub fn factorial_count<T>(val: T) -> usize
 where
