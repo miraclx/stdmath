@@ -185,6 +185,31 @@ pub enum Method {
     NoRepeat,
 }
 
+/// Returns the computed combination `nCr`
+///
+/// # Equivalent Representations
+///
+/// method             | representation
+/// ------------------ | --------------
+/// without repetition | `comb(n, r) = n! / (r! * (n - r)!)!`
+/// with repetition    | `comb(n, r) = (n + r - 1)! / (r! * (n - 1)!)`
+///
+/// # Examples
+///
+/// ```
+/// use math::{combination, Method};
+///
+/// assert_eq!(combination::<u8, u8>(0, 0, Method::NoRepeat), 1);
+/// assert_eq!(combination::<u8, u8>(5, 0, Method::NoRepeat), 1);
+/// assert_eq!(combination::<u8, u8>(0, 5, Method::NoRepeat), 0);
+/// assert_eq!(combination::<u8, u8>(5, 3, Method::NoRepeat), 10);
+///
+/// assert_eq!(combination::<u8, u8>(0, 0, Method::Repeat), 0);
+/// assert_eq!(combination::<u8, u8>(5, 0, Method::Repeat), 0);
+/// assert_eq!(combination::<u8, u8>(0, 5, Method::Repeat), 0);
+/// assert_eq!(combination::<u8, u64>(5, 3, Method::Repeat), 35);
+/// ```
+
 #[inline]
 pub fn combination<T, R>(n: T, r: T, method: Method) -> R
 where
