@@ -393,6 +393,26 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
     result
 }
 
+/// Returns the value of PI using Ramanujan’s Formula
+///
+/// # Equivalent Representation
+///
+/// `π = 1 / ((√8 / 9801) * ∑(0 → ∞) [n => ((4n)! / (n! ^ 4)) * ((26390n + 1103) / (396 ^ 4n))])`
+///
+/// # Examples
+///
+/// ```
+/// use math::ramanujansPI;
+///
+/// assert_eq!(ramanujansPI(0), 3.1415927300133055);
+/// assert_eq!(ramanujansPI(1), 3.1415926535897936);
+/// assert_eq!(ramanujansPI(2), 3.141592653589793);
+/// assert_eq!(ramanujansPI(3), 3.141592653589793);
+/// assert_eq!(ramanujansPI(4), 3.141592653589793);
+/// ```
+///
+/// [`nCr`]: ./fn.combination.html
+
 #[allow(non_snake_case)]
 pub fn ramanujansPI(end: u8) -> f64 {
     let part_1 = 8.0_f64.sqrt() / 9801.0;
