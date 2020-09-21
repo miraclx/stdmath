@@ -1,5 +1,10 @@
 #![feature(step_trait)]
 
+pub trait Pow {
+    type Output;
+    fn pow(self, exp: u32) -> Self::Output;
+}
+
 pub trait Zero: Sized + std::ops::Add<Self, Output = Self> {
     fn zero() -> Self;
 }
@@ -8,28 +13,41 @@ pub trait One: Sized + std::ops::Mul<Self, Output = Self> {
 }
 
 macro_rules! bulk_impl_traits {
-  ($type:ty, $zero:expr, $one:expr) => {
-      impl Zero for $type {
-          #[inline]
-          fn zero() -> Self {
-              $zero
-          }
-      }
-      impl One for $type {
-          #[inline]
-          fn one() -> Self {
-              $one
-          }
-      }
-  };
-  (($($type:ty),+) => ($zero:expr, $one:expr)) => {
-      $(bulk_impl_traits!($type, $zero, $one);)+
-  };
-}
+    (@ $type:ty, $zero:expr, $one:expr) => {
+        impl Zero for $type {
+            #[inline]
+            fn zero() -> Self {
+                $zero
+            }
+        }
+        impl One for $type {
+            #[inline]
+            fn one() -> Self {
+                $one
+            }
+        }
+    };
+    ($type:ty, $zero:expr, $one:expr) => {
+        bulk_impl_traits!(@ $type, $zero, $one);
+        impl Pow for $type {
+            type Output = Self;
+            #[inline]
+            fn pow(self, exp: u32) -> Self {
+                <$type>::pow(self, exp)
+            }
+        }
+    };
+    (($($type:ty),+) => ($zero:expr, $one:expr)) => {
+        $(bulk_impl_traits!($type, $zero, $one);)+
+    };
+    (@ ($($type:ty),+) => ($zero:expr, $one:expr)) => {
+        $(bulk_impl_traits!(@ $type, $zero, $one);)+
+    };
+  }
 
 bulk_impl_traits!((i8, i16, i32, i64, isize) => (0, 1));
 bulk_impl_traits!((u8, u16, u32, u64, usize) => (0, 1));
-bulk_impl_traits!((f32, f64) => (0.0, 1.0));
+bulk_impl_traits!(@ (f32, f64) => (0.0, 1.0));
 #[cfg(has_i128)]
 bulk_impl_traits!((i128, u128) => (0, 1));
 
