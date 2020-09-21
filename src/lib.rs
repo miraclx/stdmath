@@ -403,6 +403,7 @@ pub fn ramanujansPI(end: u8) -> f64 {
     1.0 / (part_1 * part_2)
 }
 
+#[cfg(has_i128)]
 pub fn chudnovskyPI(end: u8) -> f64 {
     if end > 2 {
         panic!("max value expected: 2");
