@@ -125,6 +125,23 @@ where
     (start..=stop).map(func).product()
 }
 
+/// Returns the computed factorial of a number
+///
+/// # Equivalent Representation
+///
+/// `fact(val) = val! = ∏(1 → val) [x => x]`
+///
+/// # Examples
+///
+/// ```
+/// use math::factorial;
+///
+/// assert_eq!(factorial::<u8, u8>(0), 1);
+/// assert_eq!(factorial::<u8, u8>(1), 1);
+/// assert_eq!(factorial::<u8, u16>(6), 720);
+/// assert_eq!(factorial::<u8, u32>(10), 3628800);
+/// ```
+
 #[inline]
 pub fn factorial<T, R>(val: T) -> R
 where
