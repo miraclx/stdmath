@@ -425,6 +425,38 @@ pub fn ramanujansPI(end: u8) -> f64 {
     1.0 / (part_1 * part_2)
 }
 
+pub fn chudnovskyPI(end: u8) -> f64 {
+    if end > 2 {
+        panic!("max value expected: 2");
+    }
+    let part_1 = 1.0 / (53360.0 * 640320.0_f64.sqrt());
+    let part_2 = sigma(0, end, |n| {
+        let top_a = match n % 2 {
+            1 => -1.0,
+            0 => 1.0,
+            _ => unreachable!(),
+        };
+        let n = n as u128;
+        let top_b = factorial::<u128, u128>(6 * n); // 29 bits
+        let top_c = 13591409 + (545140134 * n); // 31 bits
+        let base_a = factorial::<u128, u128>(n).pow(3) * factorial::<u128, u128>(3 * n); // 13 bits
+        let base_b = 640320_u128.pow(3 * n as u32); // 116 bits
+        // println!("top_a: {}", top_a);
+        // println!("top_b: {}", top_b);
+        // println!("top_c: {}", top_c);
+        // println!("base_a: {}", base_a);
+        // println!("base_b: {}", base_b);
+        // let top: u128 = top_a * top_b * top_c; // 59 bits
+        // let base: u128 = base_a * base_b;      // 129 bits
+        let res = top_a as f64 * (top_b as f64 / base_a as f64) * (top_c as f64 / base_b as f64);
+        // println!("result: {}", res);
+        res
+    });
+    // println!("part_1: {}", part_1);
+    // println!("part_2: {}", part_2);
+    part_1 * part_2
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
