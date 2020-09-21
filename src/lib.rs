@@ -130,6 +130,35 @@ where
     }
 }
 
+#[inline]
+pub fn permutation<T, R>(n: T, r: T, method: Method) -> R
+where
+    T: One
+        + std::iter::Step
+        + Into<u32>
+        + Zero
+        + Copy
+        + std::ops::Sub<Output = T>
+        + std::cmp::PartialEq,
+    R: One + From<T> + Zero + Pow<Output = R> + std::ops::Div<Output = R> + std::iter::Product,
+{
+    if r == T::zero() {
+        R::one()
+    } else if n == T::zero() {
+        R::zero()
+    } else {
+        match method {
+            Method::NoRepeat => {
+                let fact_n_ = factorial::<T, R>(n);
+                let fact_nr = factorial::<T, R>(n - r);
+
+                fact_n_ / fact_nr
+            }
+            Method::Repeat => R::from(n).pow(r.into()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -177,5 +206,17 @@ mod tests {
         assert_eq!(combination::<u8, u8>(5, 0, Method::Repeat), 0);
         assert_eq!(combination::<u8, u8>(0, 5, Method::Repeat), 0);
         assert_eq!(combination::<u8, u64>(5, 3, Method::Repeat), 35);
+    }
+    #[test]
+    fn test_permutation() {
+        assert_eq!(permutation::<u8, u8>(0, 0, Method::NoRepeat), 1);
+        assert_eq!(permutation::<u8, u8>(5, 0, Method::NoRepeat), 1);
+        assert_eq!(permutation::<u8, u8>(0, 5, Method::NoRepeat), 0);
+        assert_eq!(permutation::<u8, u8>(5, 3, Method::NoRepeat), 60);
+
+        assert_eq!(permutation::<u8, u8>(0, 0, Method::Repeat), 1);
+        assert_eq!(permutation::<u8, u8>(5, 0, Method::Repeat), 1);
+        assert_eq!(permutation::<u8, u8>(0, 5, Method::Repeat), 0);
+        assert_eq!(permutation::<u8, u8>(5, 3, Method::Repeat), 125);
     }
 }
