@@ -51,28 +51,6 @@ bulk_impl_traits!(@ (f32, f64) => (0.0, 1.0));
 #[cfg(has_i128)]
 bulk_impl_traits!((i128, u128) => (0, 1));
 
-// struct ThreadPool<T>;
-
-// impl<T> ThreadPool<T> {
-//     fn new(capacity: u8) -> Self {
-//         let mut _threads = Vec::with_capacity(capacity as usize);
-//         let (sender, reciever) = mpsc::channel::<T>();
-//         let reciever = Arc::new(Mutex::new(reciever));
-//         for index in 0..capacity {
-//             let reciever = reciever.clone();
-//             let thread = thread::spawn(move || loop {
-//                 let task = reciever.lock().unwrap().recv() {
-//                     Ok(task) => task(),
-//                     Err(_) => break;
-//                 };
-//                 task();
-//             });
-//         }
-//         ThreadPool
-//     }
-//     // pool.handle([1,2,3], |x| x * 2) -> [2,4,6]
-// }
-
 /// Returns the summation of functionally transformed items from a range
 ///
 /// # Equivalent Representation
