@@ -99,6 +99,23 @@ where
     (start..=stop).map(func).sum()
 }
 
+/// Returns the product of functionally transformed items from a range
+///
+/// # Equivalent Representation
+///
+/// `product(start, stop, func) = ∏(start → stop) [func]`
+///
+/// # Examples
+///
+/// ```
+/// use math::product;
+///
+/// assert_eq!(product(0, 0, |x| x), 0);
+/// assert_eq!(product(1, 1, |x| x), 1);
+/// assert_eq!(product(1, 10, |x| x), 3628800);
+/// assert_eq!(product(1, 10, |x| u64::pow(x, 2)), 13168189440000);
+/// ```
+
 #[inline]
 pub fn product<T, R>(start: T, stop: T, func: impl Fn(T) -> R) -> R
 where
