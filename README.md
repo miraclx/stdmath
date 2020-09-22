@@ -22,23 +22,17 @@ A collection of useful mathematical methods implemented in Rust
 
 ### Combination ([docs][combination])
 
-#### without repetition
-
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="\frac{n!}{(r!\times(n-r)!)!}">
-
-#### with repetition
-
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="\frac{(n+r-1)!}{r!\times(n-1)!}">
+method             | representation
+------------------ | :------------:
+without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="\frac{n!}{(r!\times(n-r)!)!}">
+with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="\frac{(n+r-1)!}{r!\times(n-1)!}">
 
 ### Permutation ([docs][permutation])
 
-#### without repetition
-
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="\frac{n!}{(n-r)!}">
-
-#### with repetition
-
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+n%5Er" alt="n^r">
+method             | representation
+------------------ | :------------:
+without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="\frac{n!}{(n-r)!}">
+with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+n%5Er" alt="n^r">
 
 ### Binomial ([docs][binomial])
 
