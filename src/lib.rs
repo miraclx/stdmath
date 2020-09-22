@@ -360,8 +360,6 @@ where
 ///     ]
 /// );
 /// ```
-///
-/// [`nCr`]: ./fn.combination.html
 
 pub fn pascals(n: u32) -> Vec<Vec<u32>> {
     let mut result = vec![vec![1], vec![1, 1]];
@@ -393,8 +391,6 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
 /// assert_eq!(ramanujansPI(3), 3.141592653589793);
 /// assert_eq!(ramanujansPI(4), 3.141592653589793);
 /// ```
-///
-/// [`nCr`]: ./fn.combination.html
 
 #[allow(non_snake_case)]
 pub fn ramanujansPI(end: u8) -> f64 {
