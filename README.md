@@ -2,6 +2,8 @@
 
 A collection of useful mathematical methods implemented in Rust
 
+![CI](https://github.com/miraclx/stdmath/workflows/CI/badge.svg) ![Apache 2.0](https://img.shields.io/github/license/miraclx/stdmath)
+
 ## Methods
 
 ### Sigma ([docs][sigma])
