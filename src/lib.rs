@@ -1,13 +1,17 @@
 #![feature(step_trait)]
 
+/// Trait for pow-supported numbers.
 pub trait Pow {
     type Output;
     fn pow(self, exp: u32) -> Self::Output;
 }
 
+/// Defines a additive identity element for Self.
 pub trait Zero: Sized + std::ops::Add<Self, Output = Self> {
     fn zero() -> Self;
 }
+
+/// Defines a multiplicative identity element for Self.
 pub trait One: Sized + std::ops::Mul<Self, Output = Self> {
     fn one() -> Self;
 }
@@ -158,6 +162,7 @@ where
     1_usize + sigma(T::one(), val, |n| n.into().log10()).floor() as usize
 }
 
+/// Method by which to process combinatorics
 pub enum Method {
     Repeat,
     NoRepeat,
