@@ -1,5 +1,5 @@
 [package]
-name = "math"
+name = "stdmath"
 version = "0.1.0"
 authors = ["Miraclx <omiraculous@gmail.com>"]
 edition = "2018"
