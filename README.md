@@ -14,7 +14,7 @@ A collection of useful mathematical methods implemented in Rust
 
 ### Factorial ([docs][factorial])
 
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cprod_%7Bx%3D1%7D%5E%7Bval%7Dx" alt="\prod_{x=1}^{val}x">
+<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+val%21+%3D+%5Cprod_%7Bx%3D1%7D%5E%7Bval%7Dx" alt="val! = \prod_{x=1}^{val}x">
 
 ### Factorial Count ([docs][factorial_count])
 
@@ -24,19 +24,19 @@ A collection of useful mathematical methods implemented in Rust
 
 method             | representation
 ------------------ | :------------:
-without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="\frac{n!}{(r!\times(n-r)!)!}">
-with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="\frac{(n+r-1)!}{r!\times(n-1)!}">
+without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%3D+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="{}^nC_r = \frac{n!}{(r!\times(n-r)!)!}">
+with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%3D+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="{}^nC_r = \frac{(n+r-1)!}{r!\times(n-1)!}">
 
 ### Permutation ([docs][permutation])
 
 method             | representation
 ------------------ | :------------:
-without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="\frac{n!}{(n-r)!}">
-with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+n%5Er" alt="n^r">
+without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnP_r+%3D+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="{}^nP_r = \frac{n!}{(n-r)!}">
+with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnP_r+%3D+n%5Er" alt="{}^nP_r = n^r">
 
 ### Binomial ([docs][binomial])
 
-<img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%5Ctimes%7Ba%5E%7Bn-r%7D%7D%5Ctimes%7Bb%5Er%7D" alt="{}^nC_r \times{a^{n-r}}\times{b^r}">
+<img src= "https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%28a%2Bb%29%5En+%3D+%5Csum_%7Br%3D0%7D%5E%7Bn%7D%7B%7D%5EnC_r+%5Ctimes%7Ba%5E%7Bn-r%7D%7D%5Ctimes%7Bb%5Er%7D" alt="(a+b)^n = \sum_{r=0}^{n}{}^nC_r \times{a^{n-r}}\times{b^r}">
 
 ### Pascals Triangle ([docs][pascals])
 

@@ -119,7 +119,7 @@ where
 ///
 /// # Mathematical Representation
 ///
-/// <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cprod_%7Bx%3D1%7D%5E%7Bval%7Dx" alt="\prod_{x=1}^{val}x">
+/// <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+val%21+%3D+%5Cprod_%7Bx%3D1%7D%5E%7Bval%7Dx" alt="val! = \prod_{x=1}^{val}x">
 ///
 /// # Equivalent Representation
 ///
@@ -190,8 +190,8 @@ pub enum Method {
 ///
 /// method             | mathematical representation | equivalent representation
 /// ------------------ | :-------------------------: | -------------------------
-/// without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="\frac{n!}{(r!\times(n-r)!)!}"> | `comb(n, r) = n! / (r! * (n - r)!)!`
-/// with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="\frac{(n+r-1)!}{r!\times(n-1)!}"> | `comb(n, r) = (n + r - 1)! / (r! * (n - 1)!)`
+/// without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%3D+%5Cfrac%7Bn%21%7D%7B%28r%21%5Ctimes%28n-r%29%21%29%21%7D" alt="{}^nC_r = \frac{n!}{(r!\times(n-r)!)!}"> | `comb(n, r) = n! / (r! * (n - r)!)!`
+/// with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%3D+%5Cfrac%7B%28n%2Br-1%29%21%7D%7Br%21%5Ctimes%28n-1%29%21%7D" alt="{}^nC_r = \frac{(n+r-1)!}{r!\times(n-1)!}"> | `comb(n, r) = (n + r - 1)! / (r! * (n - 1)!)`
 ///
 /// # Examples
 ///
@@ -249,8 +249,8 @@ where
 ///
 /// method             | mathematical representation | equivalent representation
 /// ------------------ | :-------------------------: | -------------------------
-/// without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="\frac{n!}{(n-r)!}"> | `perm(n, r) = n! / (n - r)!`
-/// with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+n%5Er" alt="n^r"> | `perm(n, r) = n ^ r`
+/// without repetition | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnP_r+%3D+%5Cfrac%7Bn%21%7D%7B%28n-r%29%21%7D" alt="{}^nP_r = \frac{n!}{(n-r)!}"> | `perm(n, r) = n! / (n - r)!`
+/// with repetition    | <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnP_r+%3D+n%5Er" alt="{}^nP_r = n^r"> | `perm(n, r) = n ^ r`
 ///
 /// # Examples
 ///
@@ -301,7 +301,7 @@ where
 ///
 /// # Mathematical Representation
 ///
-/// <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%7B%7D%5EnC_r+%5Ctimes%7Ba%5E%7Bn-r%7D%7D%5Ctimes%7Bb%5Er%7D" alt="{}^nC_r \times{a^{n-r}}\times{b^r}">
+/// <img src= "https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%28a%2Bb%29%5En+%3D+%5Csum_%7Br%3D0%7D%5E%7Bn%7D%7B%7D%5EnC_r+%5Ctimes%7Ba%5E%7Bn-r%7D%7D%5Ctimes%7Bb%5Er%7D" alt="(a+b)^n = \sum_{r=0}^{n}{}^nC_r \times{a^{n-r}}\times{b^r}">
 ///
 /// # Equivalent Representation
 ///
