@@ -63,26 +63,26 @@ bulk_impl_traits!((i128, u128) => (0, 1));
 ///
 /// # Equivalent Representation
 ///
-/// `sigma(start, stop, func) = ∑(start → stop) [func]`
+/// `sigma(start..=stop, func) = ∑(start → stop) [func]`
 ///
 /// # Examples
 ///
 /// ```
-/// use math::sigma;
+/// use stdmath::sigma;
 ///
-/// assert_eq!(sigma(0, 0, |x| x), 0);
-/// assert_eq!(sigma(1, 1, |x| x), 1);
-/// assert_eq!(sigma(1, 10, |x| x), 55);
-/// assert_eq!(sigma(1, 10, |x| u32::pow(x, 2)), 385);
+/// assert_eq!(sigma(0..=0, |x| x), 0);
+/// assert_eq!(sigma(1..=1, |x| x), 1);
+/// assert_eq!(sigma(1..=10, |x| x), 55);
+/// assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)), 385);
 /// ```
 
 #[inline]
-pub fn sigma<T, R>(start: T, stop: T, func: impl Fn(T) -> R) -> R
+pub fn sigma<T, R>(range: std::ops::RangeInclusive<T>, func: impl Fn(T) -> R) -> R
 where
     T: std::iter::Step,
     R: std::iter::Sum,
 {
-    (start..=stop).map(func).sum()
+    range.map(func).sum()
 }
 
 /// Returns the product of functionally transformed items from a range
@@ -93,26 +93,26 @@ where
 ///
 /// # Equivalent Representation
 ///
-/// `product(start, stop, func) = ∏(start → stop) [func]`
+/// `product(start..=stop, func) = ∏(start → stop) [func]`
 ///
 /// # Examples
 ///
 /// ```
-/// use math::product;
+/// use stdmath::product;
 ///
-/// assert_eq!(product(0, 0, |x| x), 0);
-/// assert_eq!(product(1, 1, |x| x), 1);
-/// assert_eq!(product(1, 10, |x| x), 3628800);
-/// assert_eq!(product(1, 10, |x| u64::pow(x, 2)), 13168189440000);
+/// assert_eq!(product(0..=0, |x| x), 0);
+/// assert_eq!(product(1..=1, |x| x), 1);
+/// assert_eq!(product(1..=10, |x| x), 3628800);
+/// assert_eq!(product(1..=10, |x| u64::pow(x, 2)), 13168189440000);
 /// ```
 
 #[inline]
-pub fn product<T, R>(start: T, stop: T, func: impl Fn(T) -> R) -> R
+pub fn product<T, R>(range: std::ops::RangeInclusive<T>, func: impl Fn(T) -> R) -> R
 where
     T: std::iter::Step,
     R: std::iter::Product,
 {
-    (start..=stop).map(func).product()
+    range.map(func).product()
 }
 
 /// Returns the computed factorial of a number
@@ -128,7 +128,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use math::factorial;
+/// use stdmath::factorial;
 ///
 /// assert_eq!(factorial::<u8, u8>(0), 1);
 /// assert_eq!(factorial::<u8, u8>(1), 1);
@@ -143,8 +143,7 @@ where
     R: From<T> + std::iter::Product,
 {
     product(
-        One::one(),
-        val,
+        One::one()..=val,
         #[inline]
         |x| x.into(),
     )
@@ -163,7 +162,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use math::{factorial, factorial_count};
+/// use stdmath::{factorial, factorial_count};
 ///
 /// let fact = factorial::<u8, u32>(10);
 /// let len = format!("{}", fact).len();
@@ -175,7 +174,7 @@ pub fn factorial_count<T>(val: T) -> usize
 where
     T: One + std::iter::Step + Into<f32>,
 {
-    1_usize + sigma(T::one(), val, |n| n.into().log10()).floor() as usize
+    1_usize + sigma(T::one()..=val, |n| n.into().log10()).floor() as usize
 }
 
 /// Method by which to process combinatorics
@@ -196,7 +195,7 @@ pub enum Method {
 /// # Examples
 ///
 /// ```
-/// use math::{combination, Method};
+/// use stdmath::{combination, Method};
 ///
 /// assert_eq!(combination::<u8, u8>(0, 0, Method::NoRepeat), 1);
 /// assert_eq!(combination::<u8, u8>(5, 0, Method::NoRepeat), 1);
@@ -255,7 +254,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use math::{permutation, Method};
+/// use stdmath::{permutation, Method};
 ///
 /// assert_eq!(permutation::<u8, u8>(0, 0, Method::NoRepeat), 1);
 /// assert_eq!(permutation::<u8, u8>(5, 0, Method::NoRepeat), 1);
@@ -312,7 +311,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use math::binomial;
+/// use stdmath::binomial;
 ///
 /// assert_eq!(binomial::<u8, u32>(7, 10, 5), u32::pow(7 + 10, 5));
 /// assert_eq!(binomial::<u8, u32>(2, 5, 2), u32::pow(2 + 5, 2));
@@ -339,7 +338,7 @@ where
         + std::iter::Sum
         + std::iter::Product,
 {
-    sigma(T::zero(), n, |r| {
+    sigma(T::zero()..=n, |r| {
         let comb = combination::<T, R>(n, r, Method::NoRepeat);
         let a_nr = R::from(a).pow((n - r).into());
         let b_r_ = R::from(b).pow(r.into());
@@ -352,7 +351,7 @@ where
 /// # Examples
 ///
 /// ```
-/// use math::pascals;
+/// use stdmath::pascals;
 ///
 /// assert_eq!(
 ///     pascals(5),
@@ -407,7 +406,7 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
 /// # Examples
 ///
 /// ```
-/// use math::ramanujansPI;
+/// use stdmath::ramanujansPI;
 ///
 /// assert_eq!(ramanujansPI(0), 3.1415927300133055);
 /// assert_eq!(ramanujansPI(1), 3.1415926535897936);
@@ -419,7 +418,7 @@ pub fn pascals(n: u32) -> Vec<Vec<u32>> {
 #[allow(non_snake_case)]
 pub fn ramanujansPI(end: u8) -> f64 {
     let part_1 = 8.0_f64.sqrt() / 9801.0;
-    let part_2 = sigma(0, end, |n| {
+    let part_2 = sigma(0..=end, |n| {
         let n = n as u32;
         let top = (factorial::<_, u128>(4 * n) as f64) * ((26390 * n + 1103) as f64);
         let base = (factorial::<_, u128>(n) as f64).powi(4) * 396.0_f64.powf((4 * n) as f64);
@@ -434,7 +433,7 @@ pub fn chudnovskyPI(end: u8) -> f64 {
         panic!("max value expected: 2");
     }
     let part_1 = 1.0 / (53360.0 * 640320.0_f64.sqrt());
-    let part_2 = sigma(0, end, |n| {
+    let part_2 = sigma(0..=end, |n| {
         let top_a = match n % 2 {
             1 => -1.0,
             0 => 1.0,
@@ -467,17 +466,17 @@ mod tests {
 
     #[test]
     fn test_sigma() {
-        assert_eq!(sigma(0, 0, |x| x), 0);
-        assert_eq!(sigma(1, 1, |x| x), 1);
-        assert_eq!(sigma(1, 10, |x| x), 55);
-        assert_eq!(sigma(1, 10, |x| u32::pow(x, 2)), 385);
+        assert_eq!(sigma(0..=0, |x| x), 0);
+        assert_eq!(sigma(1..=1, |x| x), 1);
+        assert_eq!(sigma(1..=10, |x| x), 55);
+        assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)), 385);
     }
     #[test]
     fn test_product() {
-        assert_eq!(product(0, 0, |x| x), 0);
-        assert_eq!(product(1, 1, |x| x), 1);
-        assert_eq!(product(1, 10, |x| x), 3628800);
-        assert_eq!(product(1, 10, |x| u64::pow(x, 2)), 13168189440000);
+        assert_eq!(product(0..=0, |x| x), 0);
+        assert_eq!(product(1..=1, |x| x), 1);
+        assert_eq!(product(1..=10, |x| x), 3628800);
+        assert_eq!(product(1..=10, |x| u64::pow(x, 2)), 13168189440000);
     }
     #[test]
     fn test_factorial() {
