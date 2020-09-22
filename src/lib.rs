@@ -59,7 +59,7 @@ bulk_impl_traits!((i128, u128) => (0, 1));
 ///
 /// # Equivalent Representation
 ///
-/// `sigma(start, stop, func) = ∑(min → max) [func]`
+/// `sigma(start, stop, func) = ∑(start → stop) [func]`
 ///
 /// # Examples
 ///
