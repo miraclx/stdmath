@@ -27,7 +27,9 @@ jobs:
         default: true
 
     - name: Build Documentation
-      run: cargo doc --workspace --no-deps
+      run: |
+        cargo doc --workspace --no-deps
+        echo '<meta http-equiv=refresh content=0;url=stdmath/index.html>' > ./target/doc/index.html
 
     - name: Deploy Docs
       uses: peaceiris/actions-gh-pages@v3
