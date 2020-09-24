@@ -99,13 +99,13 @@ macro_rules! define_ranged_struct {
             where
                 T: std::iter::Step,
                 R: $worktrait,
-                F: Fn(T) -> R + Sized;
+                F: Fn(T) -> R;
 
             impl<T, R, F> $name<T, R, F>
             where
                 T: std::iter::Step,
                 R: $worktrait,
-                F: Fn(T) -> R + Sized,
+                F: Fn(T) -> R,
             {
                 #[cfg(not(feature = "cache"))]
                 pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
@@ -171,7 +171,7 @@ macro_rules! define_ranged_struct {
             where
                 T: std::iter::Step + std::fmt::Debug,
                 R: $worktrait,
-                F: Fn(T) -> R + Sized,
+                F: Fn(T) -> R,
             {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     write!(f, "{}({:?}→{:?})[\u{1d453}]", $sign, self.0.start(), self.0.end())
@@ -189,7 +189,7 @@ macro_rules! impl_arith {
             where
                 T: std::iter::Step,
                 R: $worktrait + std::ops::$trait<Output = R>,
-                F: Fn(T) -> R + Sized,
+                F: Fn(T) -> R,
             {
                 type Output = R;
                 fn $method(self, rhs: R) -> Self::Output {
@@ -201,7 +201,7 @@ macro_rules! impl_arith {
             where
                 T: std::iter::Step + Send + Sync,
                 R: $worktrait + std::ops::$trait<Output = R> + Send,
-                F: Fn(T) -> R + Sized + Sync,
+                F: Fn(T) -> R + Sync,
             {
                 type Output = R;
                 fn $method(self, rhs: R) -> Self::Output {
@@ -229,7 +229,7 @@ where
         + std::iter::Step
         + std::cmp::Ord,
     R: Copy + std::iter::Product,
-    F: Fn(T) -> R + Sized,
+    F: Fn(T) -> R,
 {
     type Output = Self;
     /// proposition | representation                    | result        | representation
@@ -274,7 +274,7 @@ pub fn product<T, R, F>(range: std::ops::RangeInclusive<T>, func: F) -> Product<
 where
     T: std::iter::Step,
     R: Copy + std::iter::Product,
-    F: Fn(T) -> R + Sized,
+    F: Fn(T) -> R,
 {
     Product::new(range, func)
 }
