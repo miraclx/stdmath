@@ -109,6 +109,17 @@ where
     }
 }
 
+impl<T, R, F> std::fmt::Debug for Product<T, R, F>
+where
+    T: std::iter::Step + std::fmt::Debug,
+    R: Copy + std::iter::Product,
+    F: Fn(T) -> R + Sized,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "∏({:?}→{:?})[\u{1d453}]", self.0.start(), self.0.end())
+    }
+}
+
 impl<T, R, F> std::ops::Div for Product<T, R, F>
 where
     T: One
