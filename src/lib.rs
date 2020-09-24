@@ -85,6 +85,30 @@ where
     range.map(func).sum()
 }
 
+pub struct Product<T, R, F>(std::ops::RangeInclusive<T>, F, std::cell::Cell<Option<R>>)
+where
+    T: std::iter::Step,
+    R: std::iter::Product,
+    F: Fn(T) -> R + Sized;
+
+impl<T, R, F> Product<T, R, F>
+where
+    T: std::iter::Step,
+    R: Copy + std::iter::Product,
+    F: Fn(T) -> R + Sized,
+{
+    pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
+        Self(range, func, std::cell::Cell::new(None))
+    }
+    pub fn compute(&self) -> R {
+        self.2.get().unwrap_or_else(|| {
+            let val = (self.0).clone().map(|val| (self.1)(val)).product();
+            self.2.set(Some(val));
+            val
+        })
+    }
+}
+
 /// Returns the product of functionally transformed items from a range
 ///
 /// # Mathematical Representation
