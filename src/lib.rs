@@ -107,6 +107,21 @@ where
             val
         })
     }
+    #[cfg(feature = "rayon")]
+    pub fn compute_par(&self) -> R
+    where
+        T: Send + Sync,
+        R: Send,
+        F: Sync,
+    {
+        use rayon::prelude::*;
+        self.2.get().unwrap_or_else(|| {
+            let func = &self.1;
+            let val = self.0.clone().par_bridge().map(|val| func(val)).product();
+            self.2.set(Some(val));
+            val
+        })
+    }
 }
 
 impl<T, R, F> std::fmt::Debug for Product<T, R, F>
