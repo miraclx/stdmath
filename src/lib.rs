@@ -1,5 +1,8 @@
 #![feature(step_trait)]
 
+#[cfg(feature = "concurrency")]
+use rayon::prelude::*;
+
 /// Trait for pow-supported numbers.
 pub trait Pow {
     type Output;
@@ -123,7 +126,6 @@ macro_rules! define_ranged_struct {
                     R: Send,
                     F: Sync,
                 {
-                    use rayon::prelude::*;
                     let func = &self.1;
                     self.0.clone().par_bridge().map(func).$workmethod()
                 }
