@@ -5,3 +5,8 @@ authors = ["Miraclx <omiraculous@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+rayon = {version = "1.4.0", optional = true}
+
+[features]
+cache = []
+concurrency = ["rayon"]

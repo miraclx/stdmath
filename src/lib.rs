@@ -85,7 +85,11 @@ where
     range.map(func).sum()
 }
 
-pub struct Product<T, R, F>(std::ops::RangeInclusive<T>, F, std::cell::Cell<Option<R>>)
+pub struct Product<T, R, F>(
+    std::ops::RangeInclusive<T>,
+    F,
+    #[cfg(feature = "cache")] std::cell::Cell<Option<R>>,
+)
 where
     T: std::iter::Step,
     R: std::iter::Product,
@@ -94,30 +98,64 @@ where
 impl<T, R, F> Product<T, R, F>
 where
     T: std::iter::Step,
-    R: Copy + std::iter::Product,
+    R: std::iter::Product,
     F: Fn(T) -> R + Sized,
 {
+    #[cfg(not(feature = "cache"))]
+    pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
+        Self(range, func)
+    }
+    #[cfg(feature = "cache")]
     pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
         Self(range, func, std::cell::Cell::new(None))
     }
+    fn _compute(&self) -> R {
+        (self.0).clone().map(|val| (self.1)(val)).product()
+    }
+    #[cfg(not(feature = "cache"))]
     pub fn compute(&self) -> R {
+        self._compute()
+    }
+    #[cfg(feature = "cache")]
+    pub fn compute(&self) -> R
+    where
+        R: Copy,
+    {
         self.2.get().unwrap_or_else(|| {
-            let val = (self.0).clone().map(|val| (self.1)(val)).product();
+            let val = self._compute();
             self.2.set(Some(val));
             val
         })
     }
-    #[cfg(feature = "rayon")]
-    pub fn compute_par(&self) -> R
+    #[cfg(feature = "concurrency")]
+    fn _compute_par(&self) -> R
     where
         T: Send + Sync,
         R: Send,
         F: Sync,
     {
         use rayon::prelude::*;
+        let func = &self.1;
+        self.0.clone().par_bridge().map(func).product()
+    }
+    #[cfg(all(feature = "concurrency", not(feature = "cache")))]
+    pub fn compute_par(&self) -> R
+    where
+        T: Send + Sync,
+        R: Send,
+        F: Sync,
+    {
+        self._compute_par()
+    }
+    #[cfg(all(feature = "concurrency", feature = "cache"))]
+    pub fn compute_par(&self) -> R
+    where
+        T: Send + Sync,
+        R: Copy + Send,
+        F: Sync,
+    {
         self.2.get().unwrap_or_else(|| {
-            let func = &self.1;
-            let val = self.0.clone().par_bridge().map(|val| func(val)).product();
+            let val = self._compute();
             self.2.set(Some(val));
             val
         })
@@ -185,12 +223,13 @@ where
 /// ```
 
 #[inline]
-pub fn product<T, R>(range: std::ops::RangeInclusive<T>, func: impl Fn(T) -> R) -> R
+pub fn product<T, R, F>(range: std::ops::RangeInclusive<T>, func: F) -> Product<T, R, F>
 where
     T: std::iter::Step,
-    R: std::iter::Product,
+    R: Copy + std::iter::Product,
+    F: Fn(T) -> R + Sized,
 {
-    range.map(func).product()
+    Product::new(range, func)
 }
 
 /// Returns the computed factorial of a number
@@ -215,10 +254,10 @@ where
 /// ```
 
 #[inline]
-pub fn factorial<T, R>(val: T) -> R
+pub fn factorial<T, R>(val: T) -> Product<T, R, impl Fn(T) -> R>
 where
     T: One + std::iter::Step,
-    R: From<T> + std::iter::Product,
+    R: Copy + From<T> + std::iter::Product,
 {
     product(
         One::one()..=val,
