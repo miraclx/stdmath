@@ -109,14 +109,26 @@ where
     pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
         Self(range, func, std::cell::Cell::new(None))
     }
+    #[cfg(not(feature = "concurrency"))]
     fn _compute(&self) -> R {
         (self.0).clone().map(|val| (self.1)(val)).product()
     }
-    #[cfg(not(feature = "cache"))]
+    #[cfg(feature = "concurrency")]
+    fn _compute(&self) -> R
+    where
+        T: Send + Sync,
+        R: Send,
+        F: Sync,
+    {
+        use rayon::prelude::*;
+        let func = &self.1;
+        self.0.clone().par_bridge().map(func).product()
+    }
+    #[cfg(not(any(feature = "cache", feature = "concurrency")))]
     pub fn compute(&self) -> R {
         self._compute()
     }
-    #[cfg(feature = "cache")]
+    #[cfg(all(feature = "cache", not(feature = "concurrency")))]
     pub fn compute(&self) -> R
     where
         R: Copy,
@@ -127,28 +139,17 @@ where
             val
         })
     }
-    #[cfg(feature = "concurrency")]
-    fn _compute_par(&self) -> R
-    where
-        T: Send + Sync,
-        R: Send,
-        F: Sync,
-    {
-        use rayon::prelude::*;
-        let func = &self.1;
-        self.0.clone().par_bridge().map(func).product()
-    }
     #[cfg(all(feature = "concurrency", not(feature = "cache")))]
-    pub fn compute_par(&self) -> R
+    pub fn compute(&self) -> R
     where
         T: Send + Sync,
         R: Send,
         F: Sync,
     {
-        self._compute_par()
+        self._compute()
     }
     #[cfg(all(feature = "concurrency", feature = "cache"))]
-    pub fn compute_par(&self) -> R
+    pub fn compute(&self) -> R
     where
         T: Send + Sync,
         R: Copy + Send,
