@@ -85,94 +85,138 @@ where
     range.map(func).sum()
 }
 
-pub struct Product<T, R, F>(
-    std::ops::RangeInclusive<T>,
-    F,
-    #[cfg(feature = "cache")] std::cell::Cell<Option<R>>,
-)
-where
-    T: std::iter::Step,
-    R: std::iter::Product,
-    F: Fn(T) -> R + Sized;
+macro_rules! define_ranged_struct {
+    ($(($name:ident [$sign:tt] @ ($worktrait:path => $workmethod:ident))),+) => {
+        $(
+            pub struct $name<T, R, F>(
+                std::ops::RangeInclusive<T>,
+                F,
+                #[cfg(feature = "cache")] std::cell::Cell<Option<R>>,
+            )
+            where
+                T: std::iter::Step,
+                R: $worktrait,
+                F: Fn(T) -> R + Sized;
 
-impl<T, R, F> Product<T, R, F>
-where
-    T: std::iter::Step,
-    R: std::iter::Product,
-    F: Fn(T) -> R + Sized,
-{
-    #[cfg(not(feature = "cache"))]
-    pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
-        Self(range, func)
-    }
-    #[cfg(feature = "cache")]
-    pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
-        Self(range, func, std::cell::Cell::new(None))
-    }
-    #[cfg(not(feature = "concurrency"))]
-    fn _compute(&self) -> R {
-        (self.0).clone().map(|val| (self.1)(val)).product()
-    }
-    #[cfg(feature = "concurrency")]
-    fn _compute(&self) -> R
-    where
-        T: Send + Sync,
-        R: Send,
-        F: Sync,
-    {
-        use rayon::prelude::*;
-        let func = &self.1;
-        self.0.clone().par_bridge().map(func).product()
-    }
-    #[cfg(not(any(feature = "cache", feature = "concurrency")))]
-    pub fn compute(&self) -> R {
-        self._compute()
-    }
-    #[cfg(all(feature = "cache", not(feature = "concurrency")))]
-    pub fn compute(&self) -> R
-    where
-        R: Copy,
-    {
-        self.2.get().unwrap_or_else(|| {
-            let val = self._compute();
-            self.2.set(Some(val));
-            val
-        })
-    }
-    #[cfg(all(feature = "concurrency", not(feature = "cache")))]
-    pub fn compute(&self) -> R
-    where
-        T: Send + Sync,
-        R: Send,
-        F: Sync,
-    {
-        self._compute()
-    }
-    #[cfg(all(feature = "concurrency", feature = "cache"))]
-    pub fn compute(&self) -> R
-    where
-        T: Send + Sync,
-        R: Copy + Send,
-        F: Sync,
-    {
-        self.2.get().unwrap_or_else(|| {
-            let val = self._compute();
-            self.2.set(Some(val));
-            val
-        })
-    }
+            impl<T, R, F> $name<T, R, F>
+            where
+                T: std::iter::Step,
+                R: $worktrait,
+                F: Fn(T) -> R + Sized,
+            {
+                #[cfg(not(feature = "cache"))]
+                pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
+                    Self(range, func)
+                }
+                #[cfg(feature = "cache")]
+                pub fn new(range: std::ops::RangeInclusive<T>, func: F) -> Self {
+                    Self(range, func, std::cell::Cell::new(None))
+                }
+                #[cfg(not(feature = "concurrency"))]
+                fn _compute(&self) -> R {
+                    (self.0).clone().map(|val| (self.1)(val)).$workmethod()
+                }
+                #[cfg(feature = "concurrency")]
+                fn _compute(&self) -> R
+                where
+                    T: Send + Sync,
+                    R: Send,
+                    F: Sync,
+                {
+                    use rayon::prelude::*;
+                    let func = &self.1;
+                    self.0.clone().par_bridge().map(func).$workmethod()
+                }
+                #[cfg(not(any(feature = "cache", feature = "concurrency")))]
+                pub fn compute(&self) -> R {
+                    self._compute()
+                }
+                #[cfg(all(feature = "cache", not(feature = "concurrency")))]
+                pub fn compute(&self) -> R
+                where
+                    R: Copy,
+                {
+                    self.2.get().unwrap_or_else(|| {
+                        let val = self._compute();
+                        self.2.set(Some(val));
+                        val
+                    })
+                }
+                #[cfg(all(feature = "concurrency", not(feature = "cache")))]
+                pub fn compute(&self) -> R
+                where
+                    T: Send + Sync,
+                    R: Send,
+                    F: Sync,
+                {
+                    self._compute()
+                }
+                #[cfg(all(feature = "concurrency", feature = "cache"))]
+                pub fn compute(&self) -> R
+                where
+                    T: Send + Sync,
+                    R: Copy + Send,
+                    F: Sync,
+                {
+                    self.2.get().unwrap_or_else(|| {
+                        let val = self._compute();
+                        self.2.set(Some(val));
+                        val
+                    })
+                }
+            }
+            impl<T, R, F> std::fmt::Debug for $name<T, R, F>
+            where
+                T: std::iter::Step + std::fmt::Debug,
+                R: $worktrait,
+                F: Fn(T) -> R + Sized,
+            {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    write!(f, "{}({:?}→{:?})[\u{1d453}]", $sign, self.0.start(), self.0.end())
+                }
+            }
+        )+
+    };
 }
 
-impl<T, R, F> std::fmt::Debug for Product<T, R, F>
-where
-    T: std::iter::Step + std::fmt::Debug,
-    R: std::iter::Product,
-    F: Fn(T) -> R + Sized,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "∏({:?}→{:?})[\u{1d453}]", self.0.start(), self.0.end())
-    }
+macro_rules! impl_arith {
+    ($type:ident @ $worktrait:path => $(($trait:ident [$op:tt] $method:ident)),+) => {
+        $(
+            #[cfg(not(feature = "concurrency"))]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step,
+                R: $worktrait + std::ops::$trait<Output = R>,
+                F: Fn(T) -> R + Sized,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+            #[cfg(feature = "concurrency")]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step + Send + Sync,
+                R: $worktrait + std::ops::$trait<Output = R> + Send,
+                F: Fn(T) -> R + Sized + Sync,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+        )+
+    };
 }
+
+define_ranged_struct!(
+    (Sigma ["∑"] @ (std::iter::Sum => sum)),
+    (Product ["∏"] @ (std::iter::Product => product)
+));
+
+impl_arith!(Sigma @ std::iter::Sum => (Add [+] add), (Sub [-] sub), (Mul [*] mul), (Div [/] div));
+impl_arith!(Product @ std::iter::Product => (Add [+] add), (Sub [-] sub), (Mul [*] mul), (Div [/] div));
 
 impl<T, R, F> std::ops::Div for Product<T, R, F>
 where
@@ -201,39 +245,6 @@ where
         }
     }
 }
-
-macro_rules! impl_arith {
-    ($type:ident @ $(($trait:ident [$op:tt] $method:ident)),+) => {
-        $(
-            #[cfg(not(feature = "concurrency"))]
-            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
-            where
-                T: std::iter::Step,
-                R: std::iter::Product + std::ops::$trait<Output = R>,
-                F: Fn(T) -> R + Sized,
-            {
-                type Output = R;
-                fn $method(self, rhs: R) -> Self::Output {
-                    self.compute() $op rhs
-                }
-            }
-            #[cfg(feature = "concurrency")]
-            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
-            where
-                T: std::iter::Step + Send + Sync,
-                R: std::iter::Product + std::ops::$trait<Output = R> + Send,
-                F: Fn(T) -> R + Sized + Sync,
-            {
-                type Output = R;
-                fn $method(self, rhs: R) -> Self::Output {
-                    self.compute() $op rhs
-                }
-            }
-        )+
-    };
-}
-
-impl_arith!(Product @ (Add [+] add), (Sub [-] sub), (Mul [*] mul), (Div [/] div));
 
 /// Returns the product of functionally transformed items from a range
 ///
