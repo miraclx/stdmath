@@ -166,7 +166,7 @@ where
 impl<T, R, F> std::fmt::Debug for Product<T, R, F>
 where
     T: std::iter::Step + std::fmt::Debug,
-    R: Copy + std::iter::Product,
+    R: std::iter::Product,
     F: Fn(T) -> R + Sized,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
