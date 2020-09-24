@@ -177,6 +177,16 @@ macro_rules! define_ranged_struct {
                     write!(f, "{}({:?}→{:?})[\u{1d453}]", $sign, self.0.start(), self.0.end())
                 }
             }
+            impl<T, R, F> PartialEq<R> for $name<T, R, F>
+            where
+                T: std::iter::Step,
+                R: $worktrait + PartialEq,
+                F: Fn(T) -> R,
+            {
+                fn eq(&self, other: &R) -> bool {
+                    self.compute() == *other
+                }
+            }
         )+
     };
 }
