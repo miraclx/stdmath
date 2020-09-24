@@ -109,6 +109,34 @@ where
     }
 }
 
+impl<T, R, F> std::ops::Div for Product<T, R, F>
+where
+    T: One
+        + Copy
+        + std::ops::Sub<Output = T>
+        + std::ops::Add<Output = T>
+        + std::iter::Step
+        + std::cmp::Ord,
+    R: Copy + std::iter::Product,
+    F: Fn(T) -> R + Sized,
+{
+    type Output = Self;
+    /// proposition | representation                    | result        | representation
+    /// ----------- | --------------------------------- | ------------- | --------------
+    /// `(4! / 2!)` | `Product(1..=4) / Product(1..=2)` | `4 ✕ 3`       | `Product(3..=4)`
+    /// `(2! / 4!)` | `Product(1..=2) / Product(1..=3)` | `1 / (4 ✕ 3)` | `1 / Product(3..=4)`
+    /// `(4! / 4!)` | `Product(1..=4) / Product(1..=4)` | `1`           | `Product(1..=1)`
+    fn div(self, rhs: Self) -> Self::Output {
+        let my_end = *self.0.end();
+        let your_end = *rhs.0.end();
+        match my_end.cmp(&your_end) {
+            std::cmp::Ordering::Less => Self::new(my_end + T::one()..=your_end, self.1),
+            std::cmp::Ordering::Equal => Self::new(T::one()..=T::one(), self.1),
+            std::cmp::Ordering::Greater => Self::new(your_end + T::one()..=my_end, self.1),
+        }
+    }
+}
+
 /// Returns the product of functionally transformed items from a range
 ///
 /// # Mathematical Representation
