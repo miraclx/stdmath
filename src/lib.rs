@@ -202,6 +202,39 @@ where
     }
 }
 
+macro_rules! impl_arith {
+    ($type:ident @ $(($trait:ident [$op:tt] $method:ident)),+) => {
+        $(
+            #[cfg(not(feature = "concurrency"))]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step,
+                R: std::iter::Product + std::ops::$trait<Output = R>,
+                F: Fn(T) -> R + Sized,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+            #[cfg(feature = "concurrency")]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step + Send + Sync,
+                R: std::iter::Product + std::ops::$trait<Output = R> + Send,
+                F: Fn(T) -> R + Sized + Sync,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+        )+
+    };
+}
+
+impl_arith!(Product @ (Add [+] add), (Sub [-] sub), (Mul [*] mul), (Div [/] div));
+
 /// Returns the product of functionally transformed items from a range
 ///
 /// # Mathematical Representation
