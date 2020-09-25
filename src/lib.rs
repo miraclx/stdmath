@@ -187,10 +187,22 @@ macro_rules! define_ranged_struct {
                     <R as std::fmt::Display>::fmt(&self.compute(), f)
                 }
             }
+            #[cfg(not(feature = "cache"))]
             impl<T, R, F> PartialEq<R> for $name<T, R, F>
             where
                 T: std::iter::Step,
                 R: $worktrait + PartialEq,
+                F: Fn(T) -> R,
+            {
+                fn eq(&self, other: &R) -> bool {
+                    self.compute() == *other
+                }
+            }
+            #[cfg(feature = "cache")]
+            impl<T, R, F> PartialEq<R> for $name<T, R, F>
+            where
+                T: std::iter::Step,
+                R: Copy + $worktrait + PartialEq,
                 F: Fn(T) -> R,
             {
                 fn eq(&self, other: &R) -> bool {
