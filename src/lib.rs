@@ -177,6 +177,16 @@ macro_rules! define_ranged_struct {
                     write!(f, "{}({:?}→{:?})[\u{1d453}]", $sign, self.0.start(), self.0.end())
                 }
             }
+            impl<T, R, F> std::fmt::Display for $name<T, R, F>
+            where
+                T: std::iter::Step,
+                R: $worktrait + std::fmt::Display,
+                F: Fn(T) -> R,
+            {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    <R as std::fmt::Display>::fmt(&self.compute(), f)
+                }
+            }
             impl<T, R, F> PartialEq<R> for $name<T, R, F>
             where
                 T: std::iter::Step,
