@@ -216,7 +216,7 @@ macro_rules! define_ranged_struct {
 macro_rules! impl_arith {
     ($type:ident @ $worktrait:path => $(($trait:ident [$op:tt] $method:ident)),+) => {
         $(
-            #[cfg(not(feature = "concurrency"))]
+            #[cfg(not(any(feature = "cache", feature = "concurrency")))]
             impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
             where
                 T: std::iter::Step,
@@ -228,11 +228,35 @@ macro_rules! impl_arith {
                     self.compute() $op rhs
                 }
             }
-            #[cfg(feature = "concurrency")]
+            #[cfg(all(feature = "cache", not(feature = "concurrency")))]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step,
+                R: Copy + $worktrait + std::ops::$trait<Output = R>,
+                F: Fn(T) -> R,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+            #[cfg(all(feature = "concurrency", not(feature = "cache")))]
             impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
             where
                 T: std::iter::Step + Send + Sync,
                 R: $worktrait + std::ops::$trait<Output = R> + Send,
+                F: Fn(T) -> R + Sync,
+            {
+                type Output = R;
+                fn $method(self, rhs: R) -> Self::Output {
+                    self.compute() $op rhs
+                }
+            }
+            #[cfg(all(feature = "concurrency", feature = "cache"))]
+            impl<T, R, F> std::ops::$trait<R> for $type<T, R, F>
+            where
+                T: std::iter::Step + Send + Sync,
+                R: Copy + $worktrait + std::ops::$trait<Output = R> + Send,
                 F: Fn(T) -> R + Sync,
             {
                 type Output = R;
