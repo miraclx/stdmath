@@ -42,3 +42,16 @@ where
         }
     }
 }
+pub trait ExcludedIteratorExt: Iterator
+where
+    Self: Sized,
+{
+    fn exclude<Rhs: Iterator<Item = Self::Item>>(self, rhs: Rhs) -> ExcludedIterator<Self, Rhs>
+    where
+        Self::Item: Eq + Hash,
+    {
+        ExcludedIterator::new(self, rhs)
+    }
+}
+
+impl<I> ExcludedIteratorExt for I where I: Iterator {}
