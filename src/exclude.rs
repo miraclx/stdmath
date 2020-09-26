@@ -1,5 +1,29 @@
 use std::{collections::HashMap, hash::Hash};
 
+pub struct OverflowedIterator<T> {
+    inner: HashMap<T, usize>,
+}
+
+impl<T> Iterator for OverflowedIterator<T>
+where
+    T: Copy + Eq + Hash,
+{
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut result = None;
+        for (key, count) in self.inner.iter_mut() {
+            *count -= 1;
+            result = Some((*key, *count));
+            break;
+        }
+        let (val, count) = result?;
+        if count == 0 {
+            self.inner.remove(&val);
+        }
+        Some(val)
+    }
+}
+
 pub struct ExcludedIterator<B, C: Iterator> {
     base: B,
     ctrl: HashMap<C::Item, usize>,
@@ -13,6 +37,9 @@ impl<B, C: Iterator> ExcludedIterator<B, C> {
         let mut _ctrl = HashMap::new();
         ctrl.for_each(|item| *_ctrl.entry(item).or_default() += 1);
         ExcludedIterator { base, ctrl: _ctrl }
+    }
+    pub fn get_overflow(self) -> OverflowedIterator<C::Item> {
+        OverflowedIterator { inner: self.ctrl }
     }
 }
 
