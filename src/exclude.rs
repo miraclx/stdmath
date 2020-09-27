@@ -1,26 +1,40 @@
 use std::{collections::HashMap, hash::Hash};
 
-pub struct OverflowedIterator<T> {
-    inner: HashMap<T, usize>,
+pub struct OverflowedIterator<I, T> {
+    inner: I,
+    cursor: Option<(T, usize)>,
 }
 
-impl<T> Iterator for OverflowedIterator<T>
+impl<I: Iterator, T> OverflowedIterator<I, T> {
+    pub fn new<F>(map: F) -> Self
+    where
+        F: IntoIterator<Item = (T, usize), IntoIter = I>,
+        I: Iterator<Item = (T, usize)>,
+    {
+        OverflowedIterator {
+            inner: map.into_iter(),
+            cursor: None,
+        }
+    }
+}
+
+impl<I: Iterator, T> Iterator for OverflowedIterator<I, T>
 where
-    T: Copy + Eq + Hash,
+    T: Copy + Eq,
+    I: Iterator<Item = (T, usize)>,
 {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        let mut result = None;
-        for (key, count) in self.inner.iter_mut() {
-            *count -= 1;
-            result = Some((*key, *count));
-            break;
+        loop {
+            if let Some((key, ref mut val)) = self.cursor {
+                *val -= 1;
+                if *val == 0 {
+                    self.cursor = self.inner.next();
+                }
+                return Some(key);
+            }
+            self.cursor = Some(self.inner.next()?);
         }
-        let (val, count) = result?;
-        if count == 0 {
-            self.inner.remove(&val);
-        }
-        Some(val)
     }
 }
 
