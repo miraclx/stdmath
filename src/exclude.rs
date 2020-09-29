@@ -58,6 +58,13 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
             transformer: |x| x,
         }
     }
+    pub fn with_transformer<V>(self, transform: fn(C::Item) -> V) -> ExcludedIterator<B, C, V> {
+        ExcludedIterator {
+            base: self.base,
+            ctrl: self.ctrl,
+            transformer: transform,
+        }
+    }
     pub fn get_overflow(self) -> OverflowedIterator<C::Item> {
         OverflowedIterator { inner: self.ctrl }
     }
