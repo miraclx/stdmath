@@ -38,37 +38,43 @@ where
     }
 }
 
-pub struct ExcludedIterator<B, C: Iterator> {
+pub struct ExcludedIterator<B, C: Iterator, R> {
     base: B,
     ctrl: HashMap<C::Item, usize>,
+    transformer: fn(C::Item) -> R,
 }
 
-impl<B, C: Iterator> ExcludedIterator<B, C> {
+impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
     pub fn new(base: B, ctrl: C) -> Self
     where
+        C: Iterator<Item = R>,
         C::Item: Eq + Hash,
     {
         let mut _ctrl = HashMap::new();
         ctrl.for_each(|item| *_ctrl.entry(item).or_default() += 1);
-        ExcludedIterator { base, ctrl: _ctrl }
+        ExcludedIterator {
+            base,
+            ctrl: _ctrl,
+            transformer: |x| x,
+        }
     }
     pub fn get_overflow(self) -> OverflowedIterator<C::Item> {
         OverflowedIterator { inner: self.ctrl }
     }
 }
 
-impl<B, C, T> Iterator for ExcludedIterator<B, C>
+impl<B, C, T, R> Iterator for ExcludedIterator<B, C, R>
 where
     B: Iterator<Item = T>,
     C: Iterator<Item = T>,
     T: Eq + Hash,
 {
-    type Item = T;
+    type Item = R;
     fn next(&mut self) -> Option<Self::Item> {
         'top: loop {
             let val = self.base.next()?;
             if self.ctrl.len() == 0 {
-                return Some(val);
+                return Some((self.transformer)(val));
             } else {
                 match self.ctrl.get_mut(&val) {
                     Some(count) => {
@@ -77,7 +83,7 @@ where
                             self.ctrl.remove(&val);
                         }
                     }
-                    None => break 'top Some(val),
+                    None => break 'top Some((self.transformer)(val)),
                 }
             }
         }
@@ -88,7 +94,10 @@ where
     Self: Sized,
 {
     type Item: Sized;
-    fn exclude<Rhs: Iterator<Item = Self::Item>>(self, rhs: Rhs) -> ExcludedIterator<Self, Rhs>
+    fn exclude<Rhs: Iterator<Item = Self::Item>>(
+        self,
+        rhs: Rhs,
+    ) -> ExcludedIterator<Self, Rhs, Self::Item>
     where
         Self::Item: Eq + Hash,
     {
