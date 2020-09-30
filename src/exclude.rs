@@ -78,7 +78,7 @@ where
 {
     type Item = R;
     fn next(&mut self) -> Option<Self::Item> {
-        'top: loop {
+        loop {
             let val = self.base.next()?;
             if self.ctrl.len() == 0 {
                 return Some((self.transformer)(val));
@@ -90,7 +90,7 @@ where
                             self.ctrl.remove(&val);
                         }
                     }
-                    None => break 'top Some((self.transformer)(val)),
+                    None => return Some((self.transformer)(val)),
                 }
             }
         }
