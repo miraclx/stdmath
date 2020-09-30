@@ -1,4 +1,7 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{
+    collections::{hash_map::IntoIter, HashMap},
+    hash::Hash,
+};
 
 pub struct OverflowedIterator<I, T> {
     inner: I,
@@ -38,10 +41,19 @@ where
     }
 }
 
+pub enum OverflowStatus<T, R> {
+    Excluded,
+    Included(
+        fn(T) -> R,
+        Option<OverflowedIterator<IntoIter<T, usize>, T>>,
+    ),
+}
+
 pub struct ExcludedIterator<B, C: Iterator, R> {
     base: B,
     ctrl: Option<HashMap<C::Item, usize>>,
     transformer: fn(C::Item) -> R,
+    overflow: OverflowStatus<C::Item, R>,
 }
 
 impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
@@ -56,6 +68,7 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
             base,
             ctrl: Some(_ctrl),
             transformer: |x| x,
+            overflow: OverflowStatus::Excluded,
         }
     }
     pub fn with_transformer<V>(self, transform: fn(C::Item) -> V) -> ExcludedIterator<B, C, V> {
@@ -63,6 +76,7 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
             base: self.base,
             ctrl: self.ctrl,
             transformer: transform,
+            overflow: OverflowStatus::Excluded,
         }
     }
     pub fn get_overflow(self) -> OverflowedIterator<C::Item> {
