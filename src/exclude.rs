@@ -82,6 +82,24 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
     pub fn get_overflow(self) -> OverflowedIterator<C::Item> {
         OverflowedIterator { inner: self.ctrl }
     }
+    pub fn include_overflow(self) -> ExcludedIterator<B, C, R>
+    where
+        C: Iterator<Item = R>,
+    {
+        ExcludedIterator {
+            overflow: OverflowStatus::Included(|x| x, None),
+            ..self
+        }
+    }
+    pub fn include_overflow_with(
+        self,
+        overflow_handler: fn(C::Item) -> R,
+    ) -> ExcludedIterator<B, C, R> {
+        ExcludedIterator {
+            overflow: OverflowStatus::Included(overflow_handler, None),
+            ..self
+        }
+    }
 }
 
 impl<B, C, T, R> Iterator for ExcludedIterator<B, C, R>
