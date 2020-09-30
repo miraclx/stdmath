@@ -160,3 +160,82 @@ where
 {
     type Item = <I as Iterator>::Item;
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::exclude::*;
+    #[test]
+    fn basic_exclusion() {
+        let exc = ExcludedIterator::new(1..=10, 3..6);
+        assert_eq!(exc.collect::<Vec<_>>(), vec![1, 2, 6, 7, 8, 9, 10]);
+    }
+    #[test]
+    fn exclusion_by_iterator_extension() {
+        assert_eq!(
+            (1..=10).exclude(3..6).collect::<Vec<_>>(),
+            vec![1, 2, 6, 7, 8, 9, 10]
+        );
+        assert_eq!(
+            (1..=10).exclude(3..6).exclude(7..10).collect::<Vec<_>>(),
+            vec![1, 2, 6, 10]
+        );
+    }
+    #[test]
+    fn test_counted_iter() {
+        use std::collections::HashMap;
+        let list: HashMap<&str, usize> = [("a", 1), ("b", 2), ("c", 3)].iter().copied().collect();
+        let mut items = OverflowedIterator::new(list).collect::<Vec<_>>();
+        items.sort();
+        assert_eq!(items, vec!["a", "b", "b", "c", "c", "c"]);
+    }
+    #[test]
+    fn exclusion_overflow() {
+        let mut exc = ((3..6).chain(11..=15)).exclude(1..=10);
+        let included = exc.by_ref().collect::<Vec<_>>();
+        let mut overflow = exc.include_overflow().collect::<Vec<_>>();
+        overflow.sort();
+        assert_eq!(included, vec![11, 12, 13, 14, 15]);
+        assert_eq!(overflow, vec![1, 2, 6, 7, 8, 9, 10]);
+    }
+    #[test]
+    fn exclusion_transform() {
+        assert_eq!(
+            (1..=10)
+                .exclude(4..=8u8)
+                .with_transformer(|val| val as f32)
+                .collect::<Vec<_>>(),
+            vec![1.0, 2.0, 3.0, 9.0, 10.0]
+        );
+    }
+    #[test]
+    fn exclusion_with_overflow() {
+        let mut list = ((3..=6).chain(11..=15))
+            .exclude(1..=10)
+            .include_overflow()
+            .collect::<Vec<_>>();
+        list.sort();
+        assert_eq!(list, [1, 2, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+    }
+    #[test]
+    fn exclusion_with_overflow_with() {
+        let mut list = ((3..=6).chain(11..=15u8))
+            .exclude(1..=10)
+            .include_overflow_with(|val| val.pow(2))
+            .collect::<Vec<_>>();
+        list.sort();
+        assert_eq!(list, vec![1, 4, 11, 12, 13, 14, 15, 49, 64, 81, 100]);
+    }
+    #[test]
+    fn exclusion_transform_with_overflow() {
+        // (3 * 4 * 5 * 6) / 10!
+        //   = 1 / (1 * 2 * 7 * 8 * 9 * 10)
+        assert_eq!(
+            (3..=6)
+                .exclude(1..=10u8)
+                .with_transformer(|val| val as f32)
+                .include_overflow_with(|val| 1.0 / val as f32)
+                .product::<f32>(),
+            0.00009920636
+        );
+    }
+}
