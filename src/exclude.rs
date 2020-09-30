@@ -40,7 +40,7 @@ where
 
 pub struct ExcludedIterator<B, C: Iterator, R> {
     base: B,
-    ctrl: HashMap<C::Item, usize>,
+    ctrl: Option<HashMap<C::Item, usize>>,
     transformer: fn(C::Item) -> R,
 }
 
@@ -54,7 +54,7 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
         ctrl.for_each(|item| *_ctrl.entry(item).or_default() += 1);
         ExcludedIterator {
             base,
-            ctrl: _ctrl,
+            ctrl: Some(_ctrl),
             transformer: |x| x,
         }
     }
@@ -80,14 +80,14 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             let val = self.base.next()?;
-            if self.ctrl.len() == 0 {
+            if self.ctrl.as_ref()?.len() == 0 {
                 return Some((self.transformer)(val));
             } else {
-                match self.ctrl.get_mut(&val) {
+                match self.ctrl.as_mut()?.get_mut(&val) {
                     Some(count) => {
                         *count -= 1;
                         if *count == 0 {
-                            self.ctrl.remove(&val);
+                            self.ctrl.as_mut()?.remove(&val);
                         }
                     }
                     None => return Some((self.transformer)(val)),
