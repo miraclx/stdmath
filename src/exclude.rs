@@ -4,18 +4,18 @@ use std::{
 };
 
 pub struct OverflowedIterator<I, T> {
-    inner: Option<I>,
+    inner: I,
     cursor: Option<(T, usize)>,
 }
 
 impl<I: Iterator, T> OverflowedIterator<I, T> {
-    pub fn new<F>(map: Option<F>) -> Self
+    pub fn new<F>(map: F) -> Self
     where
         F: IntoIterator<Item = (T, usize), IntoIter = I>,
         I: Iterator<Item = (T, usize)>,
     {
         OverflowedIterator {
-            inner: map.map(|map| map.into_iter()),
+            inner: map.into_iter(),
             cursor: None,
         }
     }
@@ -32,11 +32,11 @@ where
             if let Some((key, ref mut val)) = self.cursor {
                 *val -= 1;
                 if *val == 0 {
-                    self.cursor = self.inner.as_mut()?.next();
+                    self.cursor = self.inner.next();
                 }
                 return Some(key);
             }
-            self.cursor = Some(self.inner.as_mut()?.next()?);
+            self.cursor = Some(self.inner.next()?);
         }
     }
 }
@@ -131,7 +131,7 @@ where
                     OverflowStatus::Excluded => return None,
                     OverflowStatus::Included(ref handle, ref mut map) => match map {
                         None => {
-                            *map = Some(OverflowedIterator::new(self.ctrl.take()));
+                            *map = Some(OverflowedIterator::new(self.ctrl.take()?));
                         }
                         Some(iter) => return Some(handle(iter.next()?)),
                     },
