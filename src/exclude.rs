@@ -88,25 +88,37 @@ impl<B, C, T, R> Iterator for ExcludedIterator<B, C, R>
 where
     B: Iterator<Item = T>,
     C: Iterator<Item = T>,
-    T: Eq + Hash,
+    T: Copy + Eq + Hash,
 {
     type Item = R;
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let val = self.base.next()?;
-            if self.ctrl.as_ref()?.len() == 0 {
-                return Some((self.transformer)(val));
-            } else {
-                match self.ctrl.as_mut()?.get_mut(&val) {
-                    Some(count) => {
-                        *count -= 1;
-                        if *count == 0 {
-                            self.ctrl.as_mut()?.remove(&val);
+            match self.base.next() {
+                Some(val) => {
+                    if self.ctrl.as_ref()?.len() == 0 {
+                        return Some((self.transformer)(val));
+                    } else {
+                        match self.ctrl.as_mut()?.get_mut(&val) {
+                            Some(count) => {
+                                *count -= 1;
+                                if *count == 0 {
+                                    self.ctrl.as_mut()?.remove(&val);
+                                }
+                            }
+                            None => return Some((self.transformer)(val)),
                         }
                     }
-                    None => return Some((self.transformer)(val)),
                 }
-            }
+                None => match self.overflow {
+                    OverflowStatus::Excluded => return None,
+                    OverflowStatus::Included(ref handle, ref mut map) => match map {
+                        None => {
+                            *map = Some(OverflowedIterator::new(self.ctrl.take()?));
+                        }
+                        Some(iter) => return Some(handle(iter.next()?)),
+                    },
+                },
+            };
         }
     }
 }
