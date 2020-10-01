@@ -110,7 +110,7 @@ where
         loop {
             match self.base.next() {
                 Some(val) => {
-                    if self.ctrl.as_ref()?.len() == 0 {
+                    if self.ctrl.as_ref()?.is_empty() {
                         return Some((self.transformer)(val));
                     } else {
                         match self.ctrl.as_mut()?.get_mut(&val) {
