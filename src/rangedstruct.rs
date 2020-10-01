@@ -88,7 +88,10 @@ where
                 .iter
                 .exclude(rhs.iter)
                 .with_transformer(|val| val)
-                .include_overflow_with(|val| Type::Flipped(val.unwrap())),
+                .include_overflow_with(|val| match val {
+                    Type::Normal(val) => Type::Flipped(val),
+                    Type::Flipped(val) => Type::Normal(val),
+                }),
             func: self.func,
         }
     }
