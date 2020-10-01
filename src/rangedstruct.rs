@@ -63,13 +63,12 @@ where
     pub fn with(iter: I, func: F) -> Self {
         RangedStruct { iter, func }
     }
-    pub fn compute(&mut self) -> R
+    pub fn compute(self) -> R
     where
         R: One + std::ops::Div<Output = R> + std::iter::Product,
     {
         let func = &self.func;
         self.iter
-            .by_ref()
             .map(|val| match val {
                 Type::Normal(val) => func(val),
                 Type::Flipped(val) => R::one() / func(val),
