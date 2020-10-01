@@ -691,7 +691,7 @@ pub fn chudnovskyPI(end: u8) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use super::*;
 
     #[test]
     fn test_sigma() {

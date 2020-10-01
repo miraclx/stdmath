@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use stdmath::{
+use super::{
     exclude::{ExcludedIterator, ExcludedIteratorExt},
     One,
 };

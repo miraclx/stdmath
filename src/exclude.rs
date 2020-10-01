@@ -163,7 +163,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::exclude::*;
+    use super::*;
     #[test]
     fn basic_exclusion() {
         let exc = ExcludedIterator::new(1..=10, 3..6);
