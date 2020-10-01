@@ -12,10 +12,10 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
-    fn unwrap(self) -> T {
+    fn flip(self) -> Self {
         match self {
-            Type::Normal(val) => val,
-            Type::Flipped(val) => val,
+            Type::Normal(val) => Type::Flipped(val),
+            Type::Flipped(val) => Type::Normal(val),
         }
     }
 }
@@ -88,10 +88,7 @@ where
                 .iter
                 .exclude(rhs.iter)
                 .with_transformer(|val| val)
-                .include_overflow_with(|val| match val {
-                    Type::Normal(val) => Type::Flipped(val),
-                    Type::Flipped(val) => Type::Normal(val),
-                }),
+                .include_overflow_with(|val| val.flip()),
             func: self.func,
         }
     }
