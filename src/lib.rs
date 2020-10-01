@@ -701,11 +701,57 @@ mod tests {
         assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)), 385);
     }
     #[test]
+    fn test_sigma_arith() {
+        assert_eq!(sigma(0..=0, |x| x) + 50, 50);
+        assert_eq!(sigma(1..=1, |x| x) * 10, 10);
+        assert_eq!(sigma(1..=10, |x| x) / 5, 11);
+        assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)) - 85, 300);
+    }
+    #[test]
+    fn test_sigma_debug() {
+        assert_eq!(format!("{:?}", sigma(1..=40, |x| x)), "∑(1→40)[𝑓]");
+    }
+    #[test]
     fn test_product() {
         assert_eq!(product(0..=0, |x| x), 0);
         assert_eq!(product(1..=1, |x| x), 1);
         assert_eq!(product(1..=10, |x| x), 3628800);
         assert_eq!(product(1..=10, |x| u64::pow(x, 2)), 13168189440000);
+    }
+    #[test]
+    fn test_product_div_lt() {
+        let func = |x| x;
+        let val1 = product(1..=4, func);
+        let val2 = product(1..=10, func);
+        let res = product(5..=10, func);
+        assert_eq!(val1 / val2, res.compute());
+    }
+    #[test]
+    fn test_product_div_eq() {
+        let func = |x| x;
+        let val1 = product(1..=10, func);
+        let val2 = product(1..=4, func);
+        let res = product(5..=10, func);
+        assert_eq!(val1 / val2, res.compute());
+    }
+    #[test]
+    fn test_product_div_gt() {
+        let func = |x| x;
+        let val1 = product(1..=10, func);
+        let val2 = product(1..=4, func);
+        let res = product(5..=10, func);
+        assert_eq!(val1 / val2, res.compute());
+    }
+    #[test]
+    fn test_product_arith() {
+        assert_eq!(product(0..=0, |x| x) + 50, 50);
+        assert_eq!(product(1..=1, |x| x) * 10, 10);
+        assert_eq!(product(1..=10, |x| x) / 5, 725760);
+        assert_eq!(product(1..=10, |x| u64::pow(x, 2)) - 44000, 13168189396000);
+    }
+    #[test]
+    fn test_product_debug() {
+        assert_eq!(format!("{:?}", product(1..=10, |x| x)), "∏(1→10)[𝑓]");
     }
     #[test]
     fn test_factorial() {
