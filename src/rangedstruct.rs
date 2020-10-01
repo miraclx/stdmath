@@ -42,9 +42,10 @@ pub struct RangedStruct<I, F> {
     func: F,
 }
 
-impl<I, F> RangedStruct<TypedIter<I>, F>
+impl<I, T, F, R> RangedStruct<TypedIter<I>, F>
 where
-    I: Iterator,
+    I: Iterator<Item = T>,
+    F: Fn(T) -> R,
 {
     pub fn new(iter: I, func: F) -> Self {
         Self {
