@@ -330,7 +330,7 @@ where
 pub fn product<T, R, F>(range: std::ops::RangeInclusive<T>, func: F) -> Product<T, R, F>
 where
     T: std::iter::Step,
-    R: Copy + std::iter::Product,
+    R: std::iter::Product,
     F: Fn(T) -> R,
 {
     Product::new(range, func)
@@ -361,7 +361,7 @@ where
 pub fn factorial<T, R>(val: T) -> Product<T, R, impl Fn(T) -> R>
 where
     T: One + std::iter::Step,
-    R: Copy + From<T> + std::iter::Product,
+    R: From<T> + std::iter::Product,
 {
     product(
         One::one()..=val,
@@ -395,7 +395,10 @@ pub fn factorial_count<T>(val: T) -> usize
 where
     T: One + std::iter::Step + Into<f32>,
 {
-    1_usize + sigma(T::one()..=val, |n| n.into().log10()).floor() as usize
+    1_usize
+        + sigma(T::one()..=val, |n| n.into().log10())
+            .compute()
+            .floor() as usize
 }
 
 /// Method by which to process combinatorics
@@ -444,19 +447,20 @@ where
         _ if r > n => R::zero(), // FIXME!
         Method::NoRepeat if n == r || r == T::zero() => R::one(),
         Method::NoRepeat => {
-            let top = factorial::<T, R>(n);
+            let top = factorial::<T, R>(n).compute();
 
-            let fact_r_ = factorial::<T, R>(r);
-            let fact_nr = factorial::<T, R>(n - r);
+            let fact_r_ = factorial::<T, R>(r).compute();
+            let fact_nr = factorial::<T, R>(n - r).compute();
 
             top / (fact_r_ * fact_nr)
+            // top / fact_r_ / fact_nr
         }
         Method::Repeat if r == T::zero() => R::zero(),
         Method::Repeat => {
-            let top = factorial::<T, R>(n + r - T::one());
+            let top = factorial::<T, R>(n + r - T::one()).compute();
 
-            let fact_r_ = factorial::<T, R>(r);
-            let fact_n1 = factorial::<T, R>(n - T::one());
+            let fact_r_ = factorial::<T, R>(r).compute();
+            let fact_n1 = factorial::<T, R>(n - T::one()).compute();
 
             top / (fact_r_ * fact_n1)
         }
@@ -507,8 +511,8 @@ where
     } else {
         match method {
             Method::NoRepeat => {
-                let fact_n_ = factorial::<T, R>(n);
-                let fact_nr = factorial::<T, R>(n - r);
+                let fact_n_ = factorial::<T, R>(n).compute();
+                let fact_nr = factorial::<T, R>(n - r).compute();
 
                 fact_n_ / fact_nr
             }
@@ -565,6 +569,7 @@ where
         let b_r_ = R::from(b).pow(r.into());
         comb * a_nr * b_r_
     })
+    .compute()
 }
 
 /// Returns a vector of vectors of representing n layers of a binomial triangle
@@ -641,10 +646,12 @@ pub fn ramanujansPI(end: u8) -> f64 {
     let part_1 = 8.0_f64.sqrt() / 9801.0;
     let part_2 = sigma(0..=end, |n| {
         let n = n as u32;
-        let top = (factorial::<_, u128>(4 * n) as f64) * ((26390 * n + 1103) as f64);
-        let base = (factorial::<_, u128>(n) as f64).powi(4) * 396.0_f64.powf((4 * n) as f64);
+        let top = (factorial::<_, u128>(4 * n).compute() as f64) * ((26390 * n + 1103) as f64);
+        let base =
+            (factorial::<_, u128>(n).compute() as f64).powi(4) * 396.0_f64.powf((4 * n) as f64);
         top / base
-    });
+    })
+    .compute();
     1.0 / (part_1 * part_2)
 }
 
@@ -661,9 +668,10 @@ pub fn chudnovskyPI(end: u8) -> f64 {
             _ => unreachable!(),
         };
         let n = n as u128;
-        let top_b = factorial::<u128, u128>(6 * n); // 29 bits
+        let top_b = factorial::<u128, u128>(6 * n).compute(); // 29 bits
         let top_c = 13591409 + (545140134 * n); // 31 bits
-        let base_a = factorial::<u128, u128>(n).pow(3) * factorial::<u128, u128>(3 * n); // 13 bits
+        let base_a =
+            factorial::<u128, u128>(n).compute().pow(3) * factorial::<u128, u128>(3 * n).compute(); // 13 bits
         let base_b = 640320_u128.pow(3 * n as u32); // 116 bits
         // println!("top_a: {}", top_a);
         // println!("top_b: {}", top_b);
