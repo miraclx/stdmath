@@ -58,36 +58,6 @@ bulk_impl_traits!(@ (f32, f64) => (0.0, 1.0));
 #[cfg(has_i128)]
 bulk_impl_traits!((i128, u128) => (0, 1));
 
-/// Returns the summation of functionally transformed items from a range
-///
-/// # Mathematical Representation
-///
-/// <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Csum_%7Bstart%7D%5E%7Bstop%7Dfunc" alt="\sum_{start}^{stop}func">
-///
-/// # Equivalent Representation
-///
-/// `sigma(start..=stop, func) = ∑(start → stop) [func]`
-///
-/// # Examples
-///
-/// ```
-/// use stdmath::sigma;
-///
-/// assert_eq!(sigma(0..=0, |x| x), 0);
-/// assert_eq!(sigma(1..=1, |x| x), 1);
-/// assert_eq!(sigma(1..=10, |x| x), 55);
-/// assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)), 385);
-/// ```
-
-#[inline]
-pub fn sigma<T, R>(range: std::ops::RangeInclusive<T>, func: impl Fn(T) -> R) -> R
-where
-    T: std::iter::Step,
-    R: std::iter::Sum,
-{
-    range.map(func).sum()
-}
-
 macro_rules! define_ranged_struct {
     ($(($name:ident [$sign:tt] @ ($worktrait:path => $workmethod:ident))),+) => {
         $(
@@ -302,6 +272,37 @@ where
             std::cmp::Ordering::Greater => Self::new(your_end + T::one()..=my_end, self.1),
         }
     }
+}
+
+/// Returns the summation of functionally transformed items from a range
+///
+/// # Mathematical Representation
+///
+/// <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Csum_%7Bstart%7D%5E%7Bstop%7Dfunc" alt="\sum_{start}^{stop}func">
+///
+/// # Equivalent Representation
+///
+/// `sigma(start..=stop, func) = ∑(start → stop) [func]`
+///
+/// # Examples
+///
+/// ```
+/// use stdmath::sigma;
+///
+/// assert_eq!(sigma(0..=0, |x| x), 0);
+/// assert_eq!(sigma(1..=1, |x| x), 1);
+/// assert_eq!(sigma(1..=10, |x| x), 55);
+/// assert_eq!(sigma(1..=10, |x| u32::pow(x, 2)), 385);
+/// ```
+
+#[inline]
+pub fn sigma<T, R, F>(range: std::ops::RangeInclusive<T>, func: F) -> Sigma<T, R, F>
+where
+    T: std::iter::Step,
+    R: std::iter::Sum,
+    F: Fn(T) -> R,
+{
+    Sigma::new(range, func)
 }
 
 /// Returns the product of functionally transformed items from a range
