@@ -5,7 +5,7 @@ use super::{
     One,
 };
 
-#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug)]
+#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
 pub enum Type<T> {
     Normal(T),
     Flipped(T),
