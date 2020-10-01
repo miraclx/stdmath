@@ -95,3 +95,17 @@ where
         }
     }
 }
+
+impl<B, C, T, F> std::ops::Mul<RangedStruct<C, F>> for RangedStruct<B, F>
+where
+    B: Iterator<Item = Type<T>>,
+    C: Iterator<Item = Type<T>>,
+{
+    type Output = RangedStruct<std::iter::Chain<B, C>, F>;
+    fn mul(self, rhs: RangedStruct<C, F>) -> Self::Output {
+        RangedStruct {
+            iter: self.iter.chain(rhs.iter),
+            func: self.func,
+        }
+    }
+}
