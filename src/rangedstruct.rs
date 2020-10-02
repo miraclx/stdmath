@@ -20,6 +20,30 @@ impl<T> Type<T> {
     }
 }
 
+pub struct FlippedIteratorOfTypes<I: Iterator<Item = Type<T>>, T> {
+    inner: I,
+}
+
+impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I, T> {
+    type Item = Type<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.flip())
+    }
+}
+
+trait Flippable<I: Iterator<Item = Type<T>>, T> {
+    fn flip(self) -> FlippedIteratorOfTypes<I, T>;
+}
+
+impl<I, T> Flippable<I, T> for I
+where
+    I: Iterator<Item = Type<T>>,
+{
+    fn flip(self) -> FlippedIteratorOfTypes<I, T> {
+        FlippedIteratorOfTypes { inner: self }
+    }
+}
+
 #[derive(Clone)]
 pub enum TypedIter<I> {
     Normal(I),
