@@ -185,6 +185,34 @@ mod tests {
         assert_eq!(result.compute(), 0.0000992063492063492);
     }
     #[test]
+    fn div_mixed_compute() {
+        let func = |x| x as f64;
+        let val1 = RangedStruct::new(1..=10, func);
+        let val2 = RangedStruct::new(6..=15, func);
+        let mut result = (val1 / val2).iter.collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Flipped(11),
+                Type::Flipped(12),
+                Type::Flipped(13),
+                Type::Flipped(14),
+                Type::Flipped(15)
+            ]
+        );
+
+        let result = RangedStruct::with(result.iter().cloned(), func);
+        assert_eq!(result.compute(), 0.000333000333000333);
+    }
+    #[test]
     fn div_arbitrarily_compute() {
         let func = |x| x;
         let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
