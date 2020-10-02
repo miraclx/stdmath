@@ -71,9 +71,15 @@ where
     I: Iterator<Item = T>,
     F: Fn(T) -> R,
 {
-    pub fn new(iter: I, func: F) -> Self {
+    pub fn from_normal(iter: I, func: F) -> Self {
         Self {
             iter: TypedIter::Normal(iter),
+            func,
+        }
+    }
+    pub fn from_flipped(iter: I, func: F) -> Self {
+        Self {
+            iter: TypedIter::Flipped(iter),
             func,
         }
     }
@@ -166,7 +172,7 @@ mod tests {
     }
     #[test]
     fn basic_compute() {
-        let val = RangedStruct::new(1..=10u8, |x| x as u32);
+        let val = RangedStruct::from_normal(1..=10u8, |x| x as u32);
         assert_eq!(val.compute(), 3628800);
     }
     #[test]
@@ -176,8 +182,8 @@ mod tests {
         //  = 10080
 
         let func = |x| x as u16;
-        let val1 = RangedStruct::new(1..=10u8, func);
-        let val2 = RangedStruct::new(3..=6u8, func);
+        let val1 = RangedStruct::from_normal(1..=10u8, func);
+        let val2 = RangedStruct::from_normal(3..=6u8, func);
         let result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(
@@ -202,8 +208,8 @@ mod tests {
         //  = 0.00000992063492063492
 
         let func = |x| x as f64;
-        let val1 = RangedStruct::new(1..=10u8, func);
-        let val2 = RangedStruct::new(3..=6u8, func);
+        let val1 = RangedStruct::from_normal(1..=10u8, func);
+        let val2 = RangedStruct::from_normal(3..=6u8, func);
         let mut result = (val2 / val1).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -226,8 +232,8 @@ mod tests {
     #[test]
     fn div_mixed_compute() {
         let func = |x| x as f64;
-        let val1 = RangedStruct::new(1..=10, func);
-        let val2 = RangedStruct::new(6..=15, func);
+        let val1 = RangedStruct::from_normal(1..=10, func);
+        let val2 = RangedStruct::from_normal(6..=15, func);
         let mut result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -257,7 +263,7 @@ mod tests {
         let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
         let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
         let c = a / b;
-        let d = RangedStruct::new((1..=5).chain(1..=5), func);
+        let d = RangedStruct::from_normal((1..=5).chain(1..=5), func);
         let e = c / d;
         let mut result = e.into_iter().collect::<Vec<_>>();
 
