@@ -271,7 +271,7 @@ mod tests {
 
         assert_eq!(result, vec![]);
 
-        let result = RangedStruct::with(result.iter().cloned(), func);
+        let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 1);
     }
 }
