@@ -124,11 +124,12 @@ impl<B, C, T, F> std::ops::Mul<RangedStruct<C, F>> for RangedStruct<B, F>
 where
     B: Iterator<Item = Type<T>>,
     C: Iterator<Item = Type<T>>,
+    T: Eq + Hash,
 {
-    type Output = RangedStruct<std::iter::Chain<B, C>, F>;
+    type Output = RangedStruct<ExcludedIterator<B, FlippedIteratorOfTypes<C, T>, Type<T>>, F>;
     fn mul(self, rhs: RangedStruct<C, F>) -> Self::Output {
         RangedStruct {
-            iter: self.iter.chain(rhs.iter),
+            iter: self.iter.exclude(rhs.iter.flip()),
             func: self.func,
         }
     }
