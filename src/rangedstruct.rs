@@ -135,6 +135,14 @@ where
     }
 }
 
+impl<I: Iterator, F> IntoIterator for RangedStruct<I, F> {
+    type Item = I::Item;
+    type IntoIter = I;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -164,7 +172,7 @@ mod tests {
         let func = |x| x as u16;
         let val1 = RangedStruct::new(1..=10u8, func);
         let val2 = RangedStruct::new(3..=6u8, func);
-        let result = (val1 / val2).iter.collect::<Vec<_>>();
+        let result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(
             result,
@@ -190,7 +198,7 @@ mod tests {
         let func = |x| x as f64;
         let val1 = RangedStruct::new(1..=10u8, func);
         let val2 = RangedStruct::new(3..=6u8, func);
-        let mut result = (val2 / val1).iter.collect::<Vec<_>>();
+        let mut result = (val2 / val1).into_iter().collect::<Vec<_>>();
 
         result.sort();
 
@@ -214,7 +222,7 @@ mod tests {
         let func = |x| x as f64;
         let val1 = RangedStruct::new(1..=10, func);
         let val2 = RangedStruct::new(6..=15, func);
-        let mut result = (val1 / val2).iter.collect::<Vec<_>>();
+        let mut result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
 
@@ -245,7 +253,7 @@ mod tests {
         let c = a / b;
         let d = RangedStruct::new((1..=5).chain(1..=5), func);
         let e = c / d;
-        let mut result = e.iter.collect::<Vec<_>>();
+        let mut result = e.into_iter().collect::<Vec<_>>();
 
         result.sort();
 
