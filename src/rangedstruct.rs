@@ -192,7 +192,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result.iter().cloned(), func);
+        let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 10080);
     }
     #[test]
@@ -220,7 +220,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result.iter().cloned(), func);
+        let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 0.0000992063492063492);
     }
     #[test]
@@ -248,7 +248,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result.iter().cloned(), func);
+        let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 0.000333000333000333);
     }
     #[test]
