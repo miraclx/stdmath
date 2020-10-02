@@ -62,7 +62,7 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
 
 #[derive(Clone)]
 pub struct RangedStruct<I, F> {
-    pub iter: I,
+    iter: I,
     func: F,
 }
 
