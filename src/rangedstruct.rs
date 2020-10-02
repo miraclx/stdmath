@@ -84,8 +84,14 @@ where
     I: Iterator<Item = Type<T>>,
     F: Fn(T) -> R,
 {
-    pub fn with(iter: I, func: F) -> Self {
-        RangedStruct { iter, func }
+    pub fn with<P>(iter: P, func: F) -> Self
+    where
+        P: IntoIterator<Item = Type<T>, IntoIter = I>,
+    {
+        RangedStruct {
+            iter: iter.into_iter(),
+            func,
+        }
     }
     pub fn compute(self) -> R
     where
