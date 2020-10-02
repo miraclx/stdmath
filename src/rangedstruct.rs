@@ -109,3 +109,96 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn type_flip() {
+        let ty = Type::Normal(());
+        assert_eq!(ty, Type::Normal(()));
+        assert_ne!(ty, Type::Flipped(()));
+        assert_eq!(ty.flip(), Type::Flipped(()));
+
+        let ty = Type::Flipped(());
+        assert_eq!(ty, Type::Flipped(()));
+        assert_ne!(ty, Type::Normal(()));
+        assert_eq!(ty.flip(), Type::Normal(()));
+    }
+    #[test]
+    fn basic_compute() {
+        let val = RangedStruct::new(1..=10u8, |x| x as u32);
+        assert_eq!(val.compute(), 3628800);
+    }
+    #[test]
+    fn div_compute() {
+        // (10!) / (3 * 4 * 5 * 6)
+        //  = (1 * 2 * 7 * 8 * 9 * 10)
+        //  = 10080
+
+        let func = |x| x as u16;
+        let val1 = RangedStruct::new(1..=10u8, func);
+        let val2 = RangedStruct::new(3..=6u8, func);
+        let result = (val1 / val2).iter.collect::<Vec<_>>();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(7),
+                Type::Normal(8),
+                Type::Normal(9),
+                Type::Normal(10)
+            ]
+        );
+
+        let result = RangedStruct::with(result.iter().cloned(), func);
+        assert_eq!(result.compute(), 10080);
+    }
+    #[test]
+    fn div_overflow_compute() {
+        // (3 * 4 * 5 * 6) / (10!)
+        //  = 1 / (1 * 2 * 7 * 8 * 9 * 10)
+        //  = 0.00000992063492063492
+
+        let func = |x| x as f64;
+        let val1 = RangedStruct::new(1..=10u8, func);
+        let val2 = RangedStruct::new(3..=6u8, func);
+        let mut result = (val2 / val1).iter.collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Flipped(1),
+                Type::Flipped(2),
+                Type::Flipped(7),
+                Type::Flipped(8),
+                Type::Flipped(9),
+                Type::Flipped(10)
+            ]
+        );
+
+        let result = RangedStruct::with(result.iter().cloned(), func);
+        assert_eq!(result.compute(), 0.0000992063492063492);
+    }
+    #[test]
+    fn div_arbitrarily_compute() {
+        let func = |x| x;
+        let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
+        let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
+        let c = a / b;
+        let d = RangedStruct::new((1..=5).chain(1..=5), func);
+        let e = c / d;
+        let mut result = e.iter.collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(result, vec![]);
+
+        let result = RangedStruct::with(result.iter().cloned(), func);
+        assert_eq!(result.compute(), 1);
+    }
+}
