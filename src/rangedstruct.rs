@@ -176,6 +176,42 @@ mod tests {
         assert_eq!(val.compute(), 3628800);
     }
     #[test]
+    fn custom_compute_mul() {
+        // (4 / 2) * (2 / 4) = 1
+        let func = |x| x;
+        let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
+        let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let result = (part1 * part2).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![]);
+
+        let result = RangedStruct::with(result, func);
+        assert_eq!(result.compute(), 1);
+    }
+    #[test]
+    fn custom_compute_div() {
+        // (4 / 2) / (2 / 4) = (4 * 4) / (2 * 2) = (16 / 4) = 4
+        let func = |x| x as f64;
+        let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
+        let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let mut result = (part1 / part2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(4),
+                Type::Normal(4),
+                Type::Flipped(2),
+                Type::Flipped(2),
+            ]
+        );
+
+        let result = RangedStruct::with(result, func);
+        assert_eq!(result.compute() as u8, 4);
+    }
+    #[test]
     fn div_compute() {
         // (10!) / (3 * 4 * 5 * 6)
         //  = (1 * 2 * 7 * 8 * 9 * 10)
