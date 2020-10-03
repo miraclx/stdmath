@@ -386,6 +386,12 @@ mod tests {
     }
     #[test]
     fn div_arbitrarily_compute() {
+        // c = a * b = (1 * 2 * 3 * 4 * 5) / ((1/1) * (1/2) * (1/3) * (1/4) * (1/5))
+        // c =         (1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
+        // d =         (1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
+        // r = c / d = (1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
+        //          : /(1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
+        // r =         1
         let func = |x| x;
         let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
         let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
