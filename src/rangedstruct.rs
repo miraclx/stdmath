@@ -264,6 +264,9 @@ mod tests {
     }
     #[test]
     fn basic_compute() {
+        // (10!)
+        //  = 3628800
+
         let val = RangedStruct::from_normal(1..=10u8, |x| x as u32);
         assert_eq!(val.compute(), 3628800);
     }
