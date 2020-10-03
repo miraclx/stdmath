@@ -112,13 +112,37 @@ where
         //  Drawback: in the case of a non-float int, 1/x = 0, invalidating the op
         //  e.g: u8:  (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0
         //  e.g: f64: (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0.000333000333000333
+        //
+        // self.iter
+        //     .map(|val| match val {
+        //         Type::Normal(val) => func(val),
+        //         Type::Flipped(val) => R::one() / func(val),
+        //     })
+        //     .product()
 
+        // Method #2
+        //  Single iteration, No allocation: Use an option to keep track of item availability
+        //  Never divide by one if there's an available preceeding value, fixing method #1
+        //  i.e n(1),n(2),f(3),f(4)
+        //     = (1*2)/3/4
+        //  Drawback: in some cases, like in floating-point division, precision can change
+        //  based on the order of digits involved
+        //  e.g: u8:  (1*2*3*4*5)/11/12/13/14/15 = 0
+        //  e.g: f64: (1*2*3*4*5)/11/12/13/14/15 = 0.00033300033300033295
         self.iter
-            .map(|val| match val {
-                Type::Normal(val) => func(val),
-                Type::Flipped(val) => R::one() / func(val),
+            .fold(None, |acc, val| {
+                Some(match val {
+                    Type::Normal(val) => match acc {
+                        Some(acc) => acc * func(val),
+                        None => func(val),
+                    },
+                    Type::Flipped(val) => match acc {
+                        Some(acc) => acc / func(val),
+                        None => R::one() / func(val),
+                    },
+                })
             })
-            .product()
+            .unwrap_or_else(|| R::one())
     }
 }
 
