@@ -398,4 +398,35 @@ mod tests {
         let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 1);
     }
+    #[test]
+    fn mul_compute() {
+        // (1 * 2 * 3 * 4 * 5) * (6 * 7 * 8 * 9 * 10)
+        //  = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10
+        //  = 3628800
+        let func = |x| x;
+        let val1 = RangedStruct::from_normal(1..=5, func);
+        let val2 = RangedStruct::from_normal(6..=10, func);
+        let mut result = (val1 * val2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Normal(6),
+                Type::Normal(7),
+                Type::Normal(8),
+                Type::Normal(9),
+                Type::Normal(10)
+            ]
+        );
+
+        let result = RangedStruct::with(result, func);
+        assert_eq!(result.compute(), 3628800);
+    }
 }
