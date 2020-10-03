@@ -110,6 +110,9 @@ where
         //  i.e n(1),n(2),f(3),f(4)
         //     = (1*2)*(1/3)*(1/4)
         //  Drawback: in the case of a non-float int, 1/x = 0, invalidating the op
+        //  e.g: u8:  (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0
+        //  e.g: f64: (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0.000333000333000333
+
         self.iter
             .map(|val| match val {
                 Type::Normal(val) => func(val),
