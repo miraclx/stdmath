@@ -120,9 +120,9 @@ where
         //     })
         //     .product()
 
-        // Method #2
+        // Method #2 (fixes method #1)
         //  Single iteration, No allocation: Use an option to keep track of item availability
-        //  Never divide by one if there's an available preceeding value, fixing method #1
+        //  Never divide by one if there's an available preceeding value
         //  i.e n(1),n(2),f(3),f(4)
         //     = (1*2)/3/4
         //  Drawback: in some cases, like in floating-point division, precision can change
