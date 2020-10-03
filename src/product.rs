@@ -73,25 +73,25 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
 }
 
 #[derive(Clone)]
-pub struct RangedStruct<I, F> {
+pub struct Product<I, F> {
     iter: I,
     func: F,
 }
 
-impl<I, T, F, R> RangedStruct<TypedIter<I>, F>
+impl<I, T, F, R> Product<TypedIter<I>, F>
 where
     I: Iterator<Item = T>,
     F: Fn(T) -> R,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
-        RangedStruct::with(TypedIter::Normal(iter), func)
+        Product::with(TypedIter::Normal(iter), func)
     }
     pub fn from_flipped(iter: I, func: F) -> Self {
-        RangedStruct::with(TypedIter::Flipped(iter), func)
+        Product::with(TypedIter::Flipped(iter), func)
     }
 }
 
-impl<I, T, F, R> RangedStruct<I, F>
+impl<I, T, F, R> Product<I, F>
 where
     I: Iterator<Item = Type<T>>,
     F: Fn(T) -> R,
@@ -100,7 +100,7 @@ where
     where
         P: IntoIterator<Item = Type<T>, IntoIter = I>,
     {
-        RangedStruct {
+        Product {
             iter: iter.into_iter(),
             func,
         }
@@ -182,15 +182,15 @@ where
     }
 }
 
-impl<B, C, T, F> std::ops::Div<RangedStruct<C, F>> for RangedStruct<B, F>
+impl<B, C, T, F> std::ops::Div<Product<C, F>> for Product<B, F>
 where
     B: Iterator<Item = Type<T>>,
     C: Iterator<Item = Type<T>>,
     T: Eq + Hash,
 {
-    type Output = RangedStruct<ExcludedIterator<B, C, Type<T>>, F>;
-    fn div(self, rhs: RangedStruct<C, F>) -> Self::Output {
-        RangedStruct {
+    type Output = Product<ExcludedIterator<B, C, Type<T>>, F>;
+    fn div(self, rhs: Product<C, F>) -> Self::Output {
+        Product {
             iter: self
                 .iter
                 .exclude(rhs.iter)
@@ -200,15 +200,15 @@ where
     }
 }
 
-impl<B, C, T, F> std::ops::Mul<RangedStruct<C, F>> for RangedStruct<B, F>
+impl<B, C, T, F> std::ops::Mul<Product<C, F>> for Product<B, F>
 where
     B: Iterator<Item = Type<T>>,
     C: Iterator<Item = Type<T>>,
     T: Eq + Hash,
 {
-    type Output = RangedStruct<ExcludedIterator<B, FlippedIteratorOfTypes<C, T>, Type<T>>, F>;
-    fn mul(self, rhs: RangedStruct<C, F>) -> Self::Output {
-        RangedStruct {
+    type Output = Product<ExcludedIterator<B, FlippedIteratorOfTypes<C, T>, Type<T>>, F>;
+    fn mul(self, rhs: Product<C, F>) -> Self::Output {
+        Product {
             iter: self
                 .iter
                 .exclude(rhs.iter.flip())
@@ -218,7 +218,7 @@ where
     }
 }
 
-impl<I: Iterator, F> IntoIterator for RangedStruct<I, F> {
+impl<I: Iterator, F> IntoIterator for Product<I, F> {
     type Item = I::Item;
     type IntoIter = I;
     fn into_iter(self) -> Self::IntoIter {
@@ -267,7 +267,7 @@ mod tests {
         // (10!)
         //  = 3628800
 
-        let val = RangedStruct::from_normal(1..=10u8, |x| x as u32);
+        let val = Product::from_normal(1..=10u8, |x| x as u32);
         assert_eq!(val.compute(), 3628800);
     }
     #[test]
@@ -276,13 +276,13 @@ mod tests {
         //  = 1
 
         let func = |x| x;
-        let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
-        let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let part1 = Product::with(vec![Type::Normal(4), Type::Flipped(2)], func);
+        let part2 = Product::with(vec![Type::Normal(2), Type::Flipped(4)], func);
         let result = (part1 * part2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(result, vec![]);
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 1);
     }
     #[test]
@@ -293,8 +293,8 @@ mod tests {
         //  = 4
 
         let func = |x| x;
-        let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
-        let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let part1 = Product::with(vec![Type::Normal(4), Type::Flipped(2)], func);
+        let part2 = Product::with(vec![Type::Normal(2), Type::Flipped(4)], func);
         let mut result = (part1 / part2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -309,7 +309,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 4);
     }
     #[test]
@@ -319,8 +319,8 @@ mod tests {
         //  = 10080
 
         let func = |x| x as u16;
-        let val1 = RangedStruct::from_normal(1..=10u8, func);
-        let val2 = RangedStruct::from_normal(3..=6u8, func);
+        let val1 = Product::from_normal(1..=10u8, func);
+        let val2 = Product::from_normal(3..=6u8, func);
         let result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(
@@ -335,7 +335,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 10080);
     }
     #[test]
@@ -345,8 +345,8 @@ mod tests {
         //  = 0.00000992063492063492
 
         let func = |x| x as f64;
-        let val1 = RangedStruct::from_normal(1..=10u8, func);
-        let val2 = RangedStruct::from_normal(3..=6u8, func);
+        let val1 = Product::from_normal(1..=10u8, func);
+        let val2 = Product::from_normal(3..=6u8, func);
         let mut result = (val2 / val1).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -363,7 +363,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 0.0000992063492063492);
     }
     #[test]
@@ -373,8 +373,8 @@ mod tests {
         //  = 0.000333000333000333
 
         let func = |x| x as f64;
-        let val1 = RangedStruct::from_normal(1..=10, func);
-        let val2 = RangedStruct::from_normal(6..=15, func);
+        let val1 = Product::from_normal(1..=10, func);
+        let val2 = Product::from_normal(6..=15, func);
         let mut result = (val1 / val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -395,7 +395,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 0.000333000333000333);
     }
     #[test]
@@ -408,15 +408,15 @@ mod tests {
         // r =         1
 
         let func = |x| x;
-        let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
-        let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
+        let a = Product::with(TypedIter::Normal(1..=5), func);
+        let b = Product::with(TypedIter::Flipped(1..=5), func);
         let c = a / b;
-        let d = RangedStruct::from_normal((1..=5).chain(1..=5), func);
+        let d = Product::from_normal((1..=5).chain(1..=5), func);
         let result = (c / d).into_iter().collect::<Vec<_>>();
 
         assert_eq!(result, vec![]);
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 1);
     }
     #[test]
@@ -426,8 +426,8 @@ mod tests {
         //  = 3628800
 
         let func = |x| x;
-        let val1 = RangedStruct::from_normal(1..=5, func);
-        let val2 = RangedStruct::from_normal(6..=10, func);
+        let val1 = Product::from_normal(1..=5, func);
+        let val2 = Product::from_normal(6..=10, func);
         let mut result = (val1 * val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -448,7 +448,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 3628800);
     }
     #[test]
@@ -459,13 +459,13 @@ mod tests {
         //  = 0.14285714285714285
 
         let func = |x| x as f64;
-        let val1 = RangedStruct::from_normal(3..=6, func);
-        let val2 = RangedStruct::from_flipped(3..=7, func);
+        let val1 = Product::from_normal(3..=6, func);
+        let val2 = Product::from_flipped(3..=7, func);
         let result = (val1 * val2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(result, vec![Type::Flipped(7)]);
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 0.14285714285714285);
     }
     #[test]
@@ -476,8 +476,8 @@ mod tests {
         //  = 12
 
         let func = |x| x;
-        let val1 = RangedStruct::from_normal(6..=10, func);
-        let val2 = RangedStruct::from_flipped(3..=7, func);
+        let val1 = Product::from_normal(6..=10, func);
+        let val2 = Product::from_flipped(3..=7, func);
         let mut result = (val1 * val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -494,7 +494,7 @@ mod tests {
             ]
         );
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 12);
     }
     #[test]
@@ -508,10 +508,10 @@ mod tests {
         // r =         1
 
         let func = |x| x;
-        let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
-        let b = RangedStruct::with(TypedIter::Flipped(6..=10), func);
+        let a = Product::with(TypedIter::Normal(1..=5), func);
+        let b = Product::with(TypedIter::Flipped(6..=10), func);
         let c = a * b;
-        let d = RangedStruct::with(
+        let d = Product::with(
             TypedIter::Normal(6..=10).chain(TypedIter::Flipped(1..=5)),
             func,
         );
@@ -519,7 +519,7 @@ mod tests {
 
         assert_eq!(result, vec![]);
 
-        let result = RangedStruct::with(result, func);
+        let result = Product::with(result, func);
         assert_eq!(result.compute(), 1);
     }
 }
