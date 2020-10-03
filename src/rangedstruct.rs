@@ -239,6 +239,27 @@ mod tests {
         assert_eq!(ty.flip(), Type::Normal(()));
     }
     #[test]
+    fn iter_type_flip() {
+        // flip an iterator of types
+        assert_eq!(
+            vec![
+                Type::Normal(5),
+                Type::Flipped(10),
+                Type::Flipped(15),
+                Type::Normal(20)
+            ]
+            .into_iter()
+            .flip()
+            .collect::<Vec<_>>(),
+            vec![
+                Type::Flipped(5),
+                Type::Normal(10),
+                Type::Normal(15),
+                Type::Flipped(20)
+            ]
+        );
+    }
+    #[test]
     fn basic_compute() {
         let val = RangedStruct::from_normal(1..=10u8, |x| x as u32);
         assert_eq!(val.compute(), 3628800);
