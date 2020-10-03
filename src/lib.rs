@@ -4,9 +4,9 @@
 use rayon::prelude::*;
 
 /// Trait for pow-supported numbers.
-pub trait Pow {
+pub trait Pow<RHS> {
     type Output;
-    fn pow(self, exp: u32) -> Self::Output;
+    fn pow(self, exp: RHS) -> Self::Output;
 }
 
 /// Defines a additive identity element for Self.
@@ -36,7 +36,7 @@ macro_rules! bulk_impl_traits {
     };
     ($type:ty, $zero:expr, $one:expr) => {
         bulk_impl_traits!(@ $type, $zero, $one);
-        impl Pow for $type {
+        impl Pow<u32> for $type {
             type Output = Self;
             #[inline]
             fn pow(self, exp: u32) -> Self {
@@ -502,7 +502,7 @@ where
         + Copy
         + std::ops::Sub<Output = T>
         + std::cmp::PartialEq,
-    R: One + From<T> + Zero + Pow<Output = R> + std::ops::Div<Output = R> + std::iter::Product,
+    R: One + From<T> + Zero + Pow<u32, Output = R> + std::ops::Div<Output = R> + std::iter::Product,
 {
     if r == T::zero() {
         R::one()
@@ -557,7 +557,7 @@ where
     R: One
         + From<T>
         + Zero
-        + Pow<Output = R>
+        + Pow<u32, Output = R>
         + std::ops::Mul<Output = R>
         + std::ops::Div<Output = R>
         + std::iter::Sum
