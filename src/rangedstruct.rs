@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn custom_compute_div() {
         // (4 / 2) / (2 / 4) = (4 * 4) / (2 * 2) = (16 / 4) = 4
-        let func = |x| x as f64;
+        let func = |x| x;
         let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
         let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
         let mut result = (part1 / part2).into_iter().collect::<Vec<_>>();
@@ -283,7 +283,7 @@ mod tests {
         );
 
         let result = RangedStruct::with(result, func);
-        assert_eq!(result.compute() as u8, 4);
+        assert_eq!(result.compute(), 4);
     }
     #[test]
     fn div_compute() {
