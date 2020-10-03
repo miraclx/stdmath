@@ -391,10 +391,7 @@ mod tests {
         let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
         let c = a / b;
         let d = RangedStruct::from_normal((1..=5).chain(1..=5), func);
-        let e = c / d;
-        let mut result = e.into_iter().collect::<Vec<_>>();
-
-        result.sort();
+        let result = (c / d).into_iter().collect::<Vec<_>>();
 
         assert_eq!(result, vec![]);
 
