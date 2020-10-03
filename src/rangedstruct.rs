@@ -429,4 +429,20 @@ mod tests {
         let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 3628800);
     }
+    #[test]
+    fn mul_overflow_compute() {
+        // (3 * 4 * 5 * 6) * ((1/3) * (1/4) * (1/5) * (1/6) * (1/7))
+        //  = (3 * 4 * 5 * 6) / (3 * 4 * 5 * 6 * 7)
+        //  = 1 / 7
+        //  = 0.14285714285714285
+        let func = |x| x as f64;
+        let val1 = RangedStruct::from_normal(3..=6, func);
+        let val2 = RangedStruct::from_flipped(3..=7, func);
+        let result = (val1 * val2).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![Type::Flipped(7)]);
+
+        let result = RangedStruct::with(result, func);
+        assert_eq!(result.compute(), 0.14285714285714285);
+    }
 }
