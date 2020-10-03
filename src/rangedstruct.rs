@@ -101,7 +101,7 @@ where
     }
     pub fn compute(self) -> R
     where
-        R: One + std::ops::Div<Output = R> + std::iter::Product,
+        R: One + std::ops::Div<Output = R>,
     {
         let func = &self.func;
 
