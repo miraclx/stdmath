@@ -161,6 +161,7 @@ where
         //  Drawback: double allocations needed to keep track of normal and flipped variants
         //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
         //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
+
         let (normal, flipped): (Vec<Type<T>>, Vec<Type<T>>) =
             self.iter.partition(|val| !val.is_flipped());
         let mut proc = vec![normal, flipped].into_iter().map(|collection| {
