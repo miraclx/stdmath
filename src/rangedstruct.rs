@@ -84,16 +84,10 @@ where
     F: Fn(T) -> R,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
-        Self {
-            iter: TypedIter::Normal(iter),
-            func,
-        }
+        RangedStruct::with(TypedIter::Normal(iter), func)
     }
     pub fn from_flipped(iter: I, func: F) -> Self {
-        Self {
-            iter: TypedIter::Flipped(iter),
-            func,
-        }
+        RangedStruct::with(TypedIter::Flipped(iter), func)
     }
 }
 
