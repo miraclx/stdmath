@@ -18,6 +18,18 @@ impl<T> Type<T> {
             Type::Flipped(val) => Type::Normal(val),
         }
     }
+    fn is_flipped(&self) -> bool {
+        match self {
+            Type::Normal(_) => false,
+            Type::Flipped(_) => true,
+        }
+    }
+    fn unwrap(self) -> T {
+        match self {
+            Type::Normal(val) => val,
+            Type::Flipped(val) => val,
+        }
+    }
 }
 
 pub struct FlippedIteratorOfTypes<I: Iterator<Item = Type<T>>, T> {
@@ -129,20 +141,49 @@ where
         //  based on the order of digits involved
         //  e.g: u8:  (1*2*3*4*5)/11/12/13/14/15 = 0
         //  e.g: f64: (1*2*3*4*5)/11/12/13/14/15 = 0.00033300033300033295
-        self.iter
-            .fold(None, |acc, val| {
-                Some(match val {
-                    Type::Normal(val) => match acc {
+        //
+        // self.iter
+        //     .fold(None, |acc, val| {
+        //         Some(match val {
+        //             Type::Normal(val) => match acc {
+        //                 Some(acc) => acc * func(val),
+        //                 None => func(val),
+        //             },
+        //             Type::Flipped(val) => match acc {
+        //                 Some(acc) => acc / func(val),
+        //                 None => R::one() / func(val),
+        //             },
+        //         })
+        //     })
+        //     .unwrap_or_else(|| R::one())
+
+        // Method #3 (fixes method #2)
+        //  Triple iteration, Two allocations: Localize operations on normal and flipped variants
+        //  Use an option to keep track of item availability on each collection
+        //  Converge finally, after folding each collection on its own kind
+        //  Never divide arbitrarily if there's a valid non-zero, non-one value
+        //  i.e n(1),n(2),f(3),f(4)
+        //     = (1*2)*(3*4)
+        //  Drawback: double allocations needed to keep track of normal and flipped variants
+        //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
+        //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
+        let (normal, flipped): (Vec<Type<T>>, Vec<Type<T>>) =
+            self.iter.partition(|val| !val.is_flipped());
+        let mut proc = vec![normal, flipped].into_iter().map(|collection| {
+            collection
+                .into_iter()
+                .map(|val| val.unwrap())
+                .fold(None, |acc, val| {
+                    Some(match acc {
                         Some(acc) => acc * func(val),
                         None => func(val),
-                    },
-                    Type::Flipped(val) => match acc {
-                        Some(acc) => acc / func(val),
-                        None => R::one() / func(val),
-                    },
+                    })
                 })
-            })
-            .unwrap_or_else(|| R::one())
+                .unwrap_or_else(|| R::one())
+        });
+        let normal = proc.next().unwrap();
+        let flipped = proc.next().unwrap();
+        normal / flipped
     }
 }
 
