@@ -268,7 +268,9 @@ mod tests {
     }
     #[test]
     fn custom_compute_mul() {
-        // (4 / 2) * (2 / 4) = 1
+        // (4 / 2) * (2 / 4)
+        //  = 1
+
         let func = |x| x;
         let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
         let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
@@ -281,7 +283,11 @@ mod tests {
     }
     #[test]
     fn custom_compute_div() {
-        // (4 / 2) / (2 / 4) = (4 * 4) / (2 * 2) = (16 / 4) = 4
+        // (4 / 2) / (2 / 4)
+        //  = (4 * 4) / (2 * 2)
+        //  = (16 / 4)
+        //  = 4
+
         let func = |x| x;
         let part1 = RangedStruct::with(vec![Type::Normal(4), Type::Flipped(2)], func);
         let part2 = RangedStruct::with(vec![Type::Normal(2), Type::Flipped(4)], func);
@@ -361,6 +367,7 @@ mod tests {
         // (1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10) / (6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15)
         //  = (1 * 2 * 3 * 4 * 5) / (11 * 12 * 13 * 14 * 15)
         //  = 0.000333000333000333
+
         let func = |x| x as f64;
         let val1 = RangedStruct::from_normal(1..=10, func);
         let val2 = RangedStruct::from_normal(6..=15, func);
@@ -395,6 +402,7 @@ mod tests {
         // r = c / d = (1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
         //          : /(1 * 2 * 3 * 4 * 5 * 1 * 2 * 3 * 4 * 5)
         // r =         1
+
         let func = |x| x;
         let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
         let b = RangedStruct::with(TypedIter::Flipped(1..=5), func);
@@ -412,6 +420,7 @@ mod tests {
         // (1 * 2 * 3 * 4 * 5) * (6 * 7 * 8 * 9 * 10)
         //  = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10
         //  = 3628800
+
         let func = |x| x;
         let val1 = RangedStruct::from_normal(1..=5, func);
         let val2 = RangedStruct::from_normal(6..=10, func);
@@ -444,6 +453,7 @@ mod tests {
         //  = (3 * 4 * 5 * 6) / (3 * 4 * 5 * 6 * 7)
         //  = 1 / 7
         //  = 0.14285714285714285
+
         let func = |x| x as f64;
         let val1 = RangedStruct::from_normal(3..=6, func);
         let val2 = RangedStruct::from_flipped(3..=7, func);
@@ -460,6 +470,7 @@ mod tests {
         //  = (6 * 7 * 8 * 9 * 10) / (3 * 4 * 5 * 6 * 7)
         //  = (8 * 9 * 10) / (3 * 4 * 5)
         //  = 12
+
         let func = |x| x;
         let val1 = RangedStruct::from_normal(6..=10, func);
         let val2 = RangedStruct::from_flipped(3..=7, func);
@@ -491,6 +502,7 @@ mod tests {
         // r = c * d = ((1 * 2 * 3 * 4 * 5) / (6 * 7 * 8 * 9 * 10))
         //          : *((6 * 7 * 8 * 9 * 10) / (1 * 2 * 3 * 4 * 5))
         // r =         1
+
         let func = |x| x;
         let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
         let b = RangedStruct::with(TypedIter::Flipped(6..=10), func);
