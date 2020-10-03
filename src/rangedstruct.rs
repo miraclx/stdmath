@@ -473,4 +473,28 @@ mod tests {
         let result = RangedStruct::with(result, func);
         assert_eq!(result.compute(), 12);
     }
+    #[test]
+    fn mul_arbitrarily_compute() {
+        // c = a * b = (1 * 2 * 3 * 4 * 5) * ((1/6) * (1/7) * (1/8) * (1/9) * (1/10))
+        // c =         (1 * 2 * 3 * 4 * 5) / (6 * 7 * 8 * 9 * 10)
+        // d =         (6 * 7 * 8 * 9 * 10) * ((1/1) * (1/2) * (1/3) * (1/4) * (1/5))
+        // d =         (6 * 7 * 8 * 9 * 10) / (1 * 2 * 3 * 4 * 5)
+        // r = c * d = ((1 * 2 * 3 * 4 * 5) / (6 * 7 * 8 * 9 * 10))
+        //          : *((6 * 7 * 8 * 9 * 10) / (1 * 2 * 3 * 4 * 5))
+        // r =         1
+        let func = |x| x;
+        let a = RangedStruct::with(TypedIter::Normal(1..=5), func);
+        let b = RangedStruct::with(TypedIter::Flipped(6..=10), func);
+        let c = a * b;
+        let d = RangedStruct::with(
+            TypedIter::Normal(6..=10).chain(TypedIter::Flipped(1..=5)),
+            func,
+        );
+        let result = (c * d).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![]);
+
+        let result = RangedStruct::with(result, func);
+        assert_eq!(result.compute(), 1);
+    }
 }
