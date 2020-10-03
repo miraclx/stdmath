@@ -104,6 +104,12 @@ where
         R: One + std::ops::Div<Output = R> + std::iter::Product,
     {
         let func = &self.func;
+
+        // Method #1
+        //  Single iteration, No allocation: Invert every flipped variant by dividing by 1
+        //  i.e n(1),n(2),f(3),f(4)
+        //     = (1*2)*(1/3)*(1/4)
+        //  Drawback: in the case of a non-float int, 1/x = 0, invalidating the op
         self.iter
             .map(|val| match val {
                 Type::Normal(val) => func(val),
