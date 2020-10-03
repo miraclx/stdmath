@@ -193,7 +193,6 @@ where
             iter: self
                 .iter
                 .exclude(rhs.iter)
-                .with_transformer(|val| val)
                 .include_overflow_with(|val| val.flip()),
             func: self.func,
         }
@@ -209,7 +208,10 @@ where
     type Output = RangedStruct<ExcludedIterator<B, FlippedIteratorOfTypes<C, T>, Type<T>>, F>;
     fn mul(self, rhs: RangedStruct<C, F>) -> Self::Output {
         RangedStruct {
-            iter: self.iter.exclude(rhs.iter.flip()),
+            iter: self
+                .iter
+                .exclude(rhs.iter.flip())
+                .include_overflow_with(|val| val.flip()),
             func: self.func,
         }
     }
