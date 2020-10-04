@@ -157,7 +157,7 @@ where
         //  Converge finally, after folding each collection on its own kind
         //  Never divide arbitrarily if there's a valid non-zero, non-one value
         //  i.e n(1),n(2),f(3),f(4)
-        //     = (1*2)*(3*4)
+        //     = (1*2)/(3*4)
         //  Drawback: double allocations needed to keep track of normal and flipped variants
         //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
         //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
