@@ -161,23 +161,55 @@ where
         //  Drawback: double allocations needed to keep track of normal and flipped variants
         //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
         //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
+        //
+        // let (normal, flipped): (Vec<Type<T>>, Vec<Type<T>>) =
+        //     self.iter.partition(|val| !val.is_flipped());
+        // let mut proc = vec![normal, flipped].into_iter().map(|collection| {
+        //     collection
+        //         .into_iter()
+        //         .map(|val| val.unwrap())
+        //         .fold(None, |acc, val| {
+        //             Some(match acc {
+        //                 Some(acc) => acc * func(val),
+        //                 None => func(val),
+        //             })
+        //         })
+        //         .unwrap_or_else(|| R::one())
+        // });
+        // let normal = proc.next().unwrap();
+        // let flipped = proc.next().unwrap();
+        // normal / flipped
 
-        let (normal, flipped): (Vec<Type<T>>, Vec<Type<T>>) =
-            self.iter.partition(|val| !val.is_flipped());
-        let mut proc = vec![normal, flipped].into_iter().map(|collection| {
-            collection
-                .into_iter()
-                .map(|val| val.unwrap())
-                .fold(None, |acc, val| {
-                    Some(match acc {
-                        Some(acc) => acc * func(val),
-                        None => func(val),
-                    })
-                })
-                .unwrap_or_else(|| R::one())
+        // Method #4 (fixes method #3)
+        //  Single iteration, No allocation: Using a single pass over the inner iterator
+        //  logically identify which branch a computation falls under save computed result
+        //  within that branch. Eliminating the need for two allocations and extra iterations
+        //  i.e n(1),n(2),f(3),f(4)
+        //     = (1*2)/(3*4)
+        //  Drawback: None
+        //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
+        //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
+
+        let (normal, flipped) = self.iter.fold((None, None), |(normal, flipped), val| {
+            let is_flipped = val.is_flipped();
+            let (this, other) = if !is_flipped {
+                (normal, flipped)
+            } else {
+                (flipped, normal)
+            };
+            let this = Some(match this {
+                Some(prev) => prev * func(val.unwrap()),
+                None => func(val.unwrap()),
+            });
+            if !is_flipped {
+                (this, other)
+            } else {
+                (other, this)
+            }
         });
-        let normal = proc.next().unwrap();
-        let flipped = proc.next().unwrap();
+        let normal = normal.unwrap_or_else(|| R::one());
+        let flipped = flipped.unwrap_or_else(|| R::one());
+
         normal / flipped
     }
 }
