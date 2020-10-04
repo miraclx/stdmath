@@ -98,7 +98,7 @@ where
 {
     pub fn with<P>(iter: P, func: F) -> Self
     where
-        P: IntoIterator<Item = Type<T>, IntoIter = I>,
+        P: IntoIterator<Item = I::Item, IntoIter = I>,
     {
         Product {
             iter: iter.into_iter(),

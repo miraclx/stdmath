@@ -11,7 +11,7 @@ pub struct OverflowedIterator<I, T> {
 impl<I: Iterator, T> OverflowedIterator<I, T> {
     pub fn new<F>(map: F) -> Self
     where
-        F: IntoIterator<Item = (T, usize), IntoIter = I>,
+        F: IntoIterator<Item = I::Item, IntoIter = I>,
         I: Iterator<Item = (T, usize)>,
     {
         OverflowedIterator {
