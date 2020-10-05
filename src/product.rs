@@ -30,6 +30,12 @@ impl<T> Type<T> {
             Type::Inverse(val) => val,
         }
     }
+    fn map<P: Fn(T) -> R, R>(self, func: P) -> Type<R> {
+        match self {
+            Type::Normal(val) => Type::Normal(func(val)),
+            Type::Inverse(val) => Type::Inverse(func(val)),
+        }
+    }
 }
 
 pub struct FlippedIteratorOfTypes<I: Iterator<Item = Type<T>>, T> {
