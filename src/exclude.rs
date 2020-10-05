@@ -49,11 +49,18 @@ pub enum OverflowStatus<T, R> {
     ),
 }
 
+#[derive(Clone)]
+pub enum OverflowState<T, R> {
+    Excluded,
+    Included(fn(T) -> R),
+}
+
+#[derive(Clone)]
 pub struct ExcludedIterator<B, C: Iterator, R> {
     base: B,
-    ctrl: Option<HashMap<C::Item, usize>>,
+    ctrl: HashMap<C::Item, usize>,
     transformer: fn(C::Item) -> R,
-    overflow: OverflowStatus<C::Item, R>,
+    overflow: OverflowState<C::Item, R>,
 }
 
 impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
@@ -66,17 +73,19 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
         ctrl.for_each(|item| *_ctrl.entry(item).or_default() += 1);
         ExcludedIterator {
             base,
-            ctrl: Some(_ctrl),
+            ctrl: _ctrl,
+            #[inline]
             transformer: |x| x,
-            overflow: OverflowStatus::Excluded,
+            overflow: OverflowState::Excluded,
         }
     }
     pub fn with_transformer<V>(self, transform: fn(C::Item) -> V) -> ExcludedIterator<B, C, V> {
         ExcludedIterator {
             base: self.base,
             ctrl: self.ctrl,
+            #[inline]
             transformer: transform,
-            overflow: OverflowStatus::Excluded,
+            overflow: OverflowState::Excluded,
         }
     }
     pub fn include_overflow(self) -> ExcludedIterator<B, C, R>
@@ -84,7 +93,10 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
         C: Iterator<Item = R>,
     {
         ExcludedIterator {
-            overflow: OverflowStatus::Included(|x| x, None),
+            overflow: OverflowState::Included(
+                #[inline]
+                |x| x,
+            ),
             ..self
         }
     }
@@ -93,7 +105,7 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
         overflow_handler: fn(C::Item) -> R,
     ) -> ExcludedIterator<B, C, R> {
         ExcludedIterator {
-            overflow: OverflowStatus::Included(overflow_handler, None),
+            overflow: OverflowState::Included(overflow_handler),
             ..self
         }
     }
@@ -110,14 +122,14 @@ where
         loop {
             match self.base.next() {
                 Some(val) => {
-                    if self.ctrl.as_ref()?.is_empty() {
+                    if self.ctrl.is_empty() {
                         return Some((self.transformer)(val));
                     } else {
-                        match self.ctrl.as_mut()?.get_mut(&val) {
+                        match self.ctrl.get_mut(&val) {
                             Some(count) => {
                                 *count -= 1;
                                 if *count == 0 {
-                                    self.ctrl.as_mut()?.remove(&val);
+                                    self.ctrl.remove(&val);
                                 }
                             }
                             None => return Some((self.transformer)(val)),
@@ -125,13 +137,18 @@ where
                     }
                 }
                 None => match self.overflow {
-                    OverflowStatus::Excluded => return None,
-                    OverflowStatus::Included(ref handle, ref mut map) => match map {
-                        None => {
-                            *map = Some(OverflowedIterator::new(self.ctrl.take()?));
+                    OverflowState::Excluded => return None,
+                    OverflowState::Included(handle) => {
+                        let (entry, count) =
+                            self.ctrl.iter_mut().next().map(|(entry, count)| {
+                                *count -= 1;
+                                (*entry, *count)
+                            })?;
+                        if count == 0 {
+                            self.ctrl.remove(&entry);
                         }
-                        Some(iter) => return Some(handle(iter.next()?)),
-                    },
+                        return Some(handle(entry));
+                    }
                 },
             };
         }
