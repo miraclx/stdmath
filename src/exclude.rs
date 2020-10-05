@@ -66,7 +66,7 @@ impl<B, C, T, R> Iterator for ExcludedIterator<B, C, R>
 where
     B: Iterator<Item = T>,
     C: Iterator<Item = T>,
-    T: Copy + Eq + Hash,
+    T: Clone + Eq + Hash,
 {
     type Item = R;
     fn next(&mut self) -> Option<Self::Item> {
@@ -93,7 +93,7 @@ where
                         let (entry, count) =
                             self.ctrl.iter_mut().next().map(|(entry, count)| {
                                 *count -= 1;
-                                (*entry, *count)
+                                (entry.clone(), *count)
                             })?;
                         if count == 0 {
                             self.ctrl.remove(&entry);
