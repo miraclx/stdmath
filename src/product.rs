@@ -8,26 +8,26 @@ use super::{
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
 pub enum Type<T> {
     Normal(T),
-    Flipped(T),
+    Inverse(T),
 }
 
 impl<T> Type<T> {
     fn flip(self) -> Self {
         match self {
-            Type::Normal(val) => Type::Flipped(val),
-            Type::Flipped(val) => Type::Normal(val),
+            Type::Normal(val) => Type::Inverse(val),
+            Type::Inverse(val) => Type::Normal(val),
         }
     }
-    fn is_flipped(&self) -> bool {
+    fn is_inverted(&self) -> bool {
         match self {
             Type::Normal(_) => false,
-            Type::Flipped(_) => true,
+            Type::Inverse(_) => true,
         }
     }
     fn unwrap(self) -> T {
         match self {
             Type::Normal(val) => val,
-            Type::Flipped(val) => val,
+            Type::Inverse(val) => val,
         }
     }
 }
@@ -59,7 +59,7 @@ where
 #[derive(Clone)]
 pub enum TypedIter<I> {
     Normal(I),
-    Flipped(I),
+    Inverse(I),
 }
 
 impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
@@ -67,7 +67,7 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
     fn next(&mut self) -> Option<Self::Item> {
         Some(match self {
             TypedIter::Normal(iter) => Type::Normal(iter.next()?),
-            TypedIter::Flipped(iter) => Type::Flipped(iter.next()?),
+            TypedIter::Inverse(iter) => Type::Inverse(iter.next()?),
         })
     }
 }
@@ -86,8 +86,8 @@ where
     pub fn from_normal(iter: I, func: F) -> Self {
         Product::with(TypedIter::Normal(iter), func)
     }
-    pub fn from_flipped(iter: I, func: F) -> Self {
-        Product::with(TypedIter::Flipped(iter), func)
+    pub fn from_inverse(iter: I, func: F) -> Self {
+        Product::with(TypedIter::Inverse(iter), func)
     }
 }
 
@@ -112,7 +112,7 @@ where
         let func = &self.func;
 
         // Method #1
-        //  Single iteration, No allocation: Invert every flipped variant by dividing by 1
+        //  Single iteration, No allocation: Invert every inverse variant by dividing by 1
         //  i.e n(1),n(2),f(3),f(4)
         //     = (1*2)*(1/3)*(1/4)
         //  Drawback: in the case of a non-float int, 1/x = 0, invalidating the op
@@ -122,7 +122,7 @@ where
         // self.iter
         //     .map(|val| match val {
         //         Type::Normal(val) => func(val),
-        //         Type::Flipped(val) => R::one() / func(val),
+        //         Type::Inverse(val) => R::one() / func(val),
         //     })
         //     .product()
 
@@ -143,7 +143,7 @@ where
         //                 Some(acc) => acc * func(val),
         //                 None => func(val),
         //             },
-        //             Type::Flipped(val) => match acc {
+        //             Type::Inverse(val) => match acc {
         //                 Some(acc) => acc / func(val),
         //                 None => R::one() / func(val),
         //             },
@@ -152,19 +152,19 @@ where
         //     .unwrap_or_else(|| R::one())
 
         // Method #3 (fixes method #2)
-        //  Triple iteration, Two allocations: Localize operations on normal and flipped variants
+        //  Triple iteration, Two allocations: Localize operations on normal and inverse variants
         //  Use an option to keep track of item availability on each collection
         //  Converge finally, after folding each collection on its own kind
         //  Never divide arbitrarily if there's a valid non-zero, non-one value
         //  i.e n(1),n(2),f(3),f(4)
         //     = (1*2)/(3*4)
-        //  Drawback: double allocations needed to keep track of normal and flipped variants
+        //  Drawback: double allocations needed to keep track of normal and inverse variants
         //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
         //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
         //
-        // let (normal, flipped): (Vec<Type<T>>, Vec<Type<T>>) =
-        //     self.iter.partition(|val| !val.is_flipped());
-        // let mut proc = vec![normal, flipped].into_iter().map(|collection| {
+        // let (normal, inverse): (Vec<Type<T>>, Vec<Type<T>>) =
+        //     self.iter.partition(|val| !val.is_inverted());
+        // let mut proc = vec![normal, inverse].into_iter().map(|collection| {
         //     collection
         //         .into_iter()
         //         .map(|val| val.unwrap())
@@ -177,8 +177,8 @@ where
         //         .unwrap_or_else(|| R::one())
         // });
         // let normal = proc.next().unwrap();
-        // let flipped = proc.next().unwrap();
-        // normal / flipped
+        // let inverse = proc.next().unwrap();
+        // normal / inverse
 
         // Method #4 (fixes method #3)
         //  Single iteration, No allocation: Using a single pass over the inner iterator
@@ -190,27 +190,27 @@ where
         //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
         //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
 
-        let (normal, flipped) = self.iter.fold((None, None), |(normal, flipped), val| {
-            let is_flipped = val.is_flipped();
-            let (this, other) = if !is_flipped {
-                (normal, flipped)
+        let (normal, inverse) = self.iter.fold((None, None), |(normal, inverse), val| {
+            let is_inverted = val.is_inverted();
+            let (this, other) = if !is_inverted {
+                (normal, inverse)
             } else {
-                (flipped, normal)
+                (inverse, normal)
             };
             let this = Some(match this {
                 Some(prev) => prev * func(val.unwrap()),
                 None => func(val.unwrap()),
             });
-            if !is_flipped {
+            if !is_inverted {
                 (this, other)
             } else {
                 (other, this)
             }
         });
         let normal = normal.unwrap_or_else(|| R::one());
-        let flipped = flipped.unwrap_or_else(|| R::one());
+        let inverse = inverse.unwrap_or_else(|| R::one());
 
-        normal / flipped
+        normal / inverse
     }
 }
 
@@ -265,11 +265,11 @@ mod tests {
     fn type_flip() {
         let ty = Type::Normal(());
         assert_eq!(ty, Type::Normal(()));
-        assert_ne!(ty, Type::Flipped(()));
-        assert_eq!(ty.flip(), Type::Flipped(()));
+        assert_ne!(ty, Type::Inverse(()));
+        assert_eq!(ty.flip(), Type::Inverse(()));
 
-        let ty = Type::Flipped(());
-        assert_eq!(ty, Type::Flipped(()));
+        let ty = Type::Inverse(());
+        assert_eq!(ty, Type::Inverse(()));
         assert_ne!(ty, Type::Normal(()));
         assert_eq!(ty.flip(), Type::Normal(()));
     }
@@ -279,18 +279,18 @@ mod tests {
         assert_eq!(
             vec![
                 Type::Normal(5),
-                Type::Flipped(10),
-                Type::Flipped(15),
+                Type::Inverse(10),
+                Type::Inverse(15),
                 Type::Normal(20)
             ]
             .into_iter()
             .flip()
             .collect::<Vec<_>>(),
             vec![
-                Type::Flipped(5),
+                Type::Inverse(5),
                 Type::Normal(10),
                 Type::Normal(15),
-                Type::Flipped(20)
+                Type::Inverse(20)
             ]
         );
     }
@@ -308,8 +308,8 @@ mod tests {
         //  = 1
 
         let func = |x| x;
-        let part1 = Product::with(vec![Type::Normal(4), Type::Flipped(2)], func);
-        let part2 = Product::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let part1 = Product::with(vec![Type::Normal(4), Type::Inverse(2)], func);
+        let part2 = Product::with(vec![Type::Normal(2), Type::Inverse(4)], func);
         let result = (part1 * part2).into_iter().collect::<Vec<_>>();
 
         assert_eq!(result, vec![]);
@@ -325,8 +325,8 @@ mod tests {
         //  = 4
 
         let func = |x| x;
-        let part1 = Product::with(vec![Type::Normal(4), Type::Flipped(2)], func);
-        let part2 = Product::with(vec![Type::Normal(2), Type::Flipped(4)], func);
+        let part1 = Product::with(vec![Type::Normal(4), Type::Inverse(2)], func);
+        let part2 = Product::with(vec![Type::Normal(2), Type::Inverse(4)], func);
         let mut result = (part1 / part2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -336,8 +336,8 @@ mod tests {
             vec![
                 Type::Normal(4),
                 Type::Normal(4),
-                Type::Flipped(2),
-                Type::Flipped(2),
+                Type::Inverse(2),
+                Type::Inverse(2),
             ]
         );
 
@@ -386,12 +386,12 @@ mod tests {
         assert_eq!(
             result,
             vec![
-                Type::Flipped(1),
-                Type::Flipped(2),
-                Type::Flipped(7),
-                Type::Flipped(8),
-                Type::Flipped(9),
-                Type::Flipped(10)
+                Type::Inverse(1),
+                Type::Inverse(2),
+                Type::Inverse(7),
+                Type::Inverse(8),
+                Type::Inverse(9),
+                Type::Inverse(10)
             ]
         );
 
@@ -419,11 +419,11 @@ mod tests {
                 Type::Normal(3),
                 Type::Normal(4),
                 Type::Normal(5),
-                Type::Flipped(11),
-                Type::Flipped(12),
-                Type::Flipped(13),
-                Type::Flipped(14),
-                Type::Flipped(15)
+                Type::Inverse(11),
+                Type::Inverse(12),
+                Type::Inverse(13),
+                Type::Inverse(14),
+                Type::Inverse(15)
             ]
         );
 
@@ -441,7 +441,7 @@ mod tests {
 
         let func = |x| x;
         let a = Product::with(TypedIter::Normal(1..=5), func);
-        let b = Product::with(TypedIter::Flipped(1..=5), func);
+        let b = Product::with(TypedIter::Inverse(1..=5), func);
         let c = a / b;
         let d = Product::from_normal((1..=5).chain(1..=5), func);
         let result = (c / d).into_iter().collect::<Vec<_>>();
@@ -492,10 +492,10 @@ mod tests {
 
         let func = |x| x as f64;
         let val1 = Product::from_normal(3..=6, func);
-        let val2 = Product::from_flipped(3..=7, func);
+        let val2 = Product::from_inverse(3..=7, func);
         let result = (val1 * val2).into_iter().collect::<Vec<_>>();
 
-        assert_eq!(result, vec![Type::Flipped(7)]);
+        assert_eq!(result, vec![Type::Inverse(7)]);
 
         let result = Product::with(result, func);
         assert_eq!(result.compute(), 0.14285714285714285);
@@ -509,7 +509,7 @@ mod tests {
 
         let func = |x| x;
         let val1 = Product::from_normal(6..=10, func);
-        let val2 = Product::from_flipped(3..=7, func);
+        let val2 = Product::from_inverse(3..=7, func);
         let mut result = (val1 * val2).into_iter().collect::<Vec<_>>();
 
         result.sort();
@@ -520,9 +520,9 @@ mod tests {
                 Type::Normal(8),
                 Type::Normal(9),
                 Type::Normal(10),
-                Type::Flipped(3),
-                Type::Flipped(4),
-                Type::Flipped(5),
+                Type::Inverse(3),
+                Type::Inverse(4),
+                Type::Inverse(5),
             ]
         );
 
@@ -541,10 +541,10 @@ mod tests {
 
         let func = |x| x;
         let a = Product::with(TypedIter::Normal(1..=5), func);
-        let b = Product::with(TypedIter::Flipped(6..=10), func);
+        let b = Product::with(TypedIter::Inverse(6..=10), func);
         let c = a * b;
         let d = Product::with(
-            TypedIter::Normal(6..=10).chain(TypedIter::Flipped(1..=5)),
+            TypedIter::Normal(6..=10).chain(TypedIter::Inverse(1..=5)),
             func,
         );
         let result = (c * d).into_iter().collect::<Vec<_>>();
