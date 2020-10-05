@@ -38,36 +38,13 @@ impl<T> Type<T> {
     }
 }
 
-pub struct FlippedIteratorOfTypes<I: Iterator<Item = Type<T>>, T> {
-    inner: I,
-}
-
-impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I, T> {
-    type Item = Type<T>;
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(self.inner.next()?.flip())
-    }
-}
-
-trait Flippable<I: Iterator<Item = Type<T>>, T> {
-    fn flip(self) -> FlippedIteratorOfTypes<I, T>;
-}
-
-impl<I, T> Flippable<I, T> for I
-where
-    I: Iterator<Item = Type<T>>,
-{
-    fn flip(self) -> FlippedIteratorOfTypes<I, T> {
-        FlippedIteratorOfTypes { inner: self }
-    }
-}
-
 #[derive(Clone)]
 pub enum TypedIter<I> {
     Normal(I),
     Inverse(I),
 }
 
+// turns an iterator of T's to an iterator of Type<T>'s
 impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
     type Item = Type<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -79,15 +56,91 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
 }
 
 #[derive(Clone)]
-pub struct Product<I, F> {
+pub struct TypedWithIter<I> {
+    inner: I,
+}
+
+// turns an iter of Type<T>'s to an iterator of Type<Box<T>>'s
+impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
+    type Item = Type<Box<T>>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.map(|val| Box::new(val)))
+    }
+}
+
+#[derive(Clone)]
+pub struct FlippedIteratorOfTypes<I> {
+    inner: I,
+}
+
+// turns an iter of Type<T> to an iter of the inverse of each item
+// i.e [Type::Normal(x), Type::Flipped(y)] becomes [Type::Flipped(x), Type::Normal(y)]
+impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I> {
+    type Item = Type<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.flip())
+    }
+}
+
+trait Flippable<I> {
+    fn flip(self) -> FlippedIteratorOfTypes<I>;
+}
+
+// adds the .flip() method to all iterators whose items are Type<T>
+impl<I, T> Flippable<I> for I
+where
+    I: Iterator<Item = Type<T>>,
+{
+    fn flip(self) -> FlippedIteratorOfTypes<I> {
+        FlippedIteratorOfTypes { inner: self }
+    }
+}
+
+pub trait Resolvable {
+    type Result;
+    fn resolve(self) -> Self::Result;
+}
+
+macro_rules! impl_resolve_primitives {
+    ($($type:ty),+) => {
+        $(
+            impl Resolvable for $type {
+                type Result = $type;
+                fn resolve(self) -> $type {
+                    self
+                }
+            }
+        )+
+    };
+}
+
+impl_resolve_primitives!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128);
+
+#[derive(Clone)]
+pub struct Product<I: Iterator, F> {
     iter: I,
     func: F,
 }
 
-impl<I, T, F, R> Product<TypedIter<I>, F>
+impl<I, T, F, R> Resolvable for Product<I, F>
+where
+    I: Iterator<Item = Type<Box<T>>>,
+    F: Fn(<T as Resolvable>::Result) -> R,
+    T: Resolvable,
+    R: One + std::ops::Div<Output = R>,
+{
+    type Result = R;
+    fn resolve(self) -> R {
+        self.compute()
+    }
+}
+
+/// allows creating a Product value from an iterator of primitives
+impl<'a, I, T: 'a, F, R> Product<TypedWithIter<TypedIter<I>>, F>
 where
     I: Iterator<Item = T>,
     F: Fn(T) -> R,
+    T: Resolvable,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
         Product::with(TypedIter::Normal(iter), func)
@@ -97,20 +150,31 @@ where
     }
 }
 
-impl<I, T, F, R> Product<I, F>
+impl<I, T, F, R> Product<TypedWithIter<I>, F>
 where
     I: Iterator<Item = Type<T>>,
     F: Fn(T) -> R,
+    T: Resolvable,
 {
     pub fn with<P>(iter: P, func: F) -> Self
     where
         P: IntoIterator<Item = I::Item, IntoIter = I>,
     {
         Product {
-            iter: iter.into_iter(),
+            iter: TypedWithIter {
+                inner: iter.into_iter(),
+            },
             func,
         }
     }
+}
+
+impl<I, T, F, R> Product<I, F>
+where
+    I: Iterator<Item = Type<Box<T>>>,
+    F: Fn(<T as Resolvable>::Result) -> R,
+    T: Resolvable,
+{
     pub fn compute(self) -> R
     where
         R: One + std::ops::Div<Output = R>,
@@ -204,8 +268,8 @@ where
                 (inverse, normal)
             };
             let this = Some(match this {
-                Some(prev) => prev * func(val.unwrap()),
-                None => func(val.unwrap()),
+                Some(prev) => prev * func(val.unwrap().resolve()),
+                None => func(val.unwrap().resolve()),
             });
             if !is_inverted {
                 (this, other)
@@ -220,13 +284,35 @@ where
     }
 }
 
+pub struct ProductIntoIter<I> {
+    inner: I,
+}
+
+// converts an iterator of Type<Box<T>> to one of Type<T>
+impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for ProductIntoIter<I> {
+    type Item = Type<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.map(|val| *val))
+    }
+}
+
+// converts a Product struct into an iterator of Type<T>
+impl<I: Iterator<Item = Type<Box<T>>>, T, F> IntoIterator for Product<I, F> {
+    type Item = Type<T>;
+    type IntoIter = ProductIntoIter<I>;
+    fn into_iter(self) -> Self::IntoIter {
+        ProductIntoIter { inner: self.iter }
+    }
+}
+
 impl<B, C, T, F> std::ops::Div<Product<C, F>> for Product<B, F>
 where
-    B: Iterator<Item = Type<T>>,
-    C: Iterator<Item = Type<T>>,
+    B: Iterator<Item = Type<Box<T>>>,
+    C: Iterator<Item = Type<Box<T>>>,
     T: Eq + Hash,
+    Box<T>: Clone,
 {
-    type Output = Product<ExcludedIterator<B, C, Type<T>>, F>;
+    type Output = Product<ExcludedIterator<B, C, Type<Box<T>>>, F>;
     fn div(self, rhs: Product<C, F>) -> Self::Output {
         Product {
             iter: self
@@ -240,11 +326,12 @@ where
 
 impl<B, C, T, F> std::ops::Mul<Product<C, F>> for Product<B, F>
 where
-    B: Iterator<Item = Type<T>>,
-    C: Iterator<Item = Type<T>>,
+    B: Iterator<Item = Type<Box<T>>>,
+    C: Iterator<Item = Type<Box<T>>>,
     T: Eq + Hash,
+    Box<T>: Clone,
 {
-    type Output = Product<ExcludedIterator<B, FlippedIteratorOfTypes<C, T>, Type<T>>, F>;
+    type Output = Product<ExcludedIterator<B, FlippedIteratorOfTypes<C>, Type<Box<T>>>, F>;
     fn mul(self, rhs: Product<C, F>) -> Self::Output {
         Product {
             iter: self
@@ -253,14 +340,6 @@ where
                 .include_overflow_with(|val| val.flip()),
             func: self.func,
         }
-    }
-}
-
-impl<I: Iterator, F> IntoIterator for Product<I, F> {
-    type Item = I::Item;
-    type IntoIter = I;
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter
     }
 }
 
@@ -560,4 +639,5 @@ mod tests {
         let result = Product::with(result, func);
         assert_eq!(result.compute(), 1);
     }
+    // test clone
 }
