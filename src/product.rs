@@ -139,7 +139,7 @@ where
 impl<'a, I, T: 'a, F, R> Product<TypedWithIter<TypedIter<I>>, F>
 where
     I: Iterator<Item = T>,
-    F: Fn(T) -> R,
+    F: Fn(<T as Resolvable>::Result) -> R,
     T: Resolvable,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
@@ -153,7 +153,7 @@ where
 impl<I, T, F, R> Product<TypedWithIter<I>, F>
 where
     I: Iterator<Item = Type<T>>,
-    F: Fn(T) -> R,
+    F: Fn(<T as Resolvable>::Result) -> R,
     T: Resolvable,
 {
     pub fn with<P>(iter: P, func: F) -> Self
