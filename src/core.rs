@@ -189,7 +189,7 @@ mod product {
         func: F,
     }
 
-    type ProductIntoIter<I> = DeBoxify<I>;
+    pub type ProductIntoIter<I> = DeBoxify<I>;
 
     impl<I, T, F, R> Resolvable for Product<I, F>
     where
