@@ -12,25 +12,25 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
-    fn flip(self) -> Self {
+    pub fn flip(self) -> Self {
         match self {
             Type::Normal(val) => Type::Inverse(val),
             Type::Inverse(val) => Type::Normal(val),
         }
     }
-    fn is_inverted(&self) -> bool {
+    pub fn is_inverted(&self) -> bool {
         match self {
             Type::Normal(_) => false,
             Type::Inverse(_) => true,
         }
     }
-    fn unwrap(self) -> T {
+    pub fn unwrap(self) -> T {
         match self {
             Type::Normal(val) => val,
             Type::Inverse(val) => val,
         }
     }
-    fn map<P: Fn(T) -> R, R>(self, func: P) -> Type<R> {
+    pub fn map<P: Fn(T) -> R, R>(self, func: P) -> Type<R> {
         match self {
             Type::Normal(val) => Type::Normal(func(val)),
             Type::Inverse(val) => Type::Inverse(func(val)),
