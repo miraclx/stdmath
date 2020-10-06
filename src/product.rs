@@ -60,6 +60,12 @@ pub struct TypedWithIter<I> {
     inner: I,
 }
 
+impl<I> TypedWithIter<I> {
+    pub fn new(iter: I) -> Self {
+        TypedWithIter { inner: iter }
+    }
+}
+
 // turns an iter of Type<T>'s to an iterator of Type<Box<T>>'s
 impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
     type Item = Type<Box<T>>;
@@ -173,9 +179,7 @@ where
         P: IntoIterator<Item = I::Item, IntoIter = I>,
     {
         Product {
-            iter: TypedWithIter {
-                inner: iter.into_iter(),
-            },
+            iter: TypedWithIter::new(iter.into_iter()),
             func,
         }
     }
