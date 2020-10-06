@@ -88,7 +88,7 @@ impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I> {
     }
 }
 
-trait Flippable<I> {
+pub trait Flippable<I> {
     fn flip(self) -> FlippedIteratorOfTypes<I>;
 }
 
