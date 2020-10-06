@@ -1,3 +1,8 @@
+pub use self::{
+    core::{Resolvable, Type, TypedIter},
+    product::Product,
+};
+
 mod core {
     #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
     pub enum Type<T> {
