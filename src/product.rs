@@ -663,5 +663,4 @@ mod tests {
         let result = Product::with(result, func);
         assert_eq!(result.compute(), 1);
     }
-    // test clone
 }
