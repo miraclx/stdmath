@@ -102,6 +102,24 @@ where
     }
 }
 
+pub struct DeBoxify<I> {
+    inner: I,
+}
+
+impl<I> DeBoxify<I> {
+    pub fn new(iter: I) -> Self {
+        DeBoxify { inner: iter }
+    }
+}
+
+// converts an iterator of Type<Box<T>> to one of Type<T>
+impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
+    type Item = Type<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.map(|val| *val))
+    }
+}
+
 pub trait Resolvable {
     type Result;
     fn resolve(self) -> Self::Result;
@@ -139,6 +157,8 @@ pub struct Product<I: Iterator, F> {
     iter: I,
     func: F,
 }
+
+type ProductIntoIter<I> = DeBoxify<I>;
 
 impl<I, T, F, R> Resolvable for Product<I, F>
 where
@@ -305,7 +325,7 @@ impl<I: Iterator<Item = Type<Box<T>>>, T, F> IntoIterator for Product<I, F> {
     type Item = Type<T>;
     type IntoIter = ProductIntoIter<I>;
     fn into_iter(self) -> Self::IntoIter {
-        ProductIntoIter { inner: self.iter }
+        ProductIntoIter::new(self.iter)
     }
 }
 
