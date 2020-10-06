@@ -116,6 +116,18 @@ macro_rules! impl_resolve_primitives {
 
 impl_resolve_primitives!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128);
 
+pub struct ProductIntoIter<I> {
+    inner: I,
+}
+
+// converts an iterator of Type<Box<T>> to one of Type<T>
+impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for ProductIntoIter<I> {
+    type Item = Type<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.map(|val| *val))
+    }
+}
+
 #[derive(Clone)]
 pub struct Product<I: Iterator, F> {
     iter: I,
@@ -281,18 +293,6 @@ where
         let inverse = inverse.unwrap_or_else(|| R::one());
 
         normal / inverse
-    }
-}
-
-pub struct ProductIntoIter<I> {
-    inner: I,
-}
-
-// converts an iterator of Type<Box<T>> to one of Type<T>
-impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for ProductIntoIter<I> {
-    type Item = Type<T>;
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(self.inner.next()?.map(|val| *val))
     }
 }
 
