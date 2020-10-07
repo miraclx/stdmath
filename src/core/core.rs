@@ -14,6 +14,17 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
+    /// Inverts the state of the Type
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let val = Type::Normal(10);
+    /// let inv = val.flip();
+    /// assert_eq!(inv, Type::Inverse(10));
+    /// ```
     pub fn flip(self) -> Self {
         match self {
             Type::Normal(val) => Type::Inverse(val),
