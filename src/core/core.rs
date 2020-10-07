@@ -35,6 +35,19 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Normal(val),
         }
     }
+    /// Matches the type variant, returning true if self is [`Type::Inverse`](#variant.Inverse)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let val = Type::Normal(());
+    /// assert_eq!(val.is_inverted(), false);
+    ///
+    /// let val = Type::Inverse(());
+    /// assert_eq!(val.is_inverted(), true);
+    /// ```
     pub fn is_inverted(&self) -> bool {
         if let Type::Inverse(_) = self {
             return true;
