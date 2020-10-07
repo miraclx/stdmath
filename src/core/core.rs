@@ -49,25 +49,6 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
 }
 
 #[derive(Clone)]
-pub struct TypedWithIter<I> {
-    inner: I,
-}
-
-impl<I> TypedWithIter<I> {
-    pub fn new(iter: I) -> Self {
-        TypedWithIter { inner: iter }
-    }
-}
-
-// turns an iter of Type<T>'s to an iterator of Type<Box<T>>'s
-impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
-    type Item = Type<Box<T>>;
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(self.inner.next()?.map(|val| Box::new(val)))
-    }
-}
-
-#[derive(Clone)]
 pub struct FlippedIteratorOfTypes<I> {
     inner: I,
 }
@@ -95,6 +76,25 @@ where
     }
 }
 
+#[derive(Clone)]
+pub struct TypedWithIter<I> {
+    inner: I,
+}
+
+impl<I> TypedWithIter<I> {
+    pub fn new(iter: I) -> Self {
+        TypedWithIter { inner: iter }
+    }
+}
+
+// turns an iter of Type<T>'s to an iterator of Type<Box<T>>'s
+impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
+    type Item = Type<Box<T>>;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.inner.next()?.map(|val| Box::new(val)))
+    }
+}
+
 pub struct DeBoxify<I> {
     inner: I,
 }
@@ -119,17 +119,17 @@ pub trait Compute {
 }
 
 macro_rules! impl_resolve_primitives {
-        ($($type:ty),+) => {
-            $(
-                impl Compute for $type {
-                    type Result = $type;
-                    fn compute(self) -> $type {
-                        self
-                    }
+    ($($type:ty),+) => {
+        $(
+            impl Compute for $type {
+                type Result = $type;
+                fn compute(self) -> $type {
+                    self
                 }
-            )+
-        };
-    }
+            }
+        )+
+    };
+}
 
 impl_resolve_primitives!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128);
 
