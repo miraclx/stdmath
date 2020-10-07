@@ -1,6 +1,15 @@
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
+/// Provide a means to represent the state of a value. Normal or Reciprocal.
 pub enum Type<T> {
+    /// context        | value | identity | indirect identity
+    /// -------------- | ----- | -------- | -----------------
+    /// multiplicative |  `3`  | `3 * 1`  | `3 / 1`
+    /// additive       |  `3`  | `3 + 0`  | `3 - 0`
     Normal(T),
+    /// context        | value | identity | indirect identity
+    /// -------------- | ----- | -------- | -----------------
+    /// multiplicative |  `3`  | `1 / 3`  | `1 * 3^-1`
+    /// additive       |  `3`  | `0 - 3`  | `0 + -3`
     Inverse(T),
 }
 
@@ -32,6 +41,7 @@ impl<T> Type<T> {
 }
 
 #[derive(Clone)]
+/// Provide a means to convert an iterator of `T` to one of `Type<T>`
 pub enum TypedIter<I> {
     Normal(I),
     Inverse(I),
@@ -49,12 +59,12 @@ impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
 }
 
 #[derive(Clone)]
+/// Provide a means to convert an iterator of `Type`s to their inverse variants
+/// e.g `[Type::Normal(x), Type::Flipped(y)]` becomes `[Type::Flipped(x), Type::Normal(y)]`
 pub struct FlippedIteratorOfTypes<I> {
     inner: I,
 }
 
-// turns an iter of Type<T> to an iter of the inverse of each item
-// i.e [Type::Normal(x), Type::Flipped(y)] becomes [Type::Flipped(x), Type::Normal(y)]
 impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I> {
     type Item = Type<T>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -77,6 +87,7 @@ where
 }
 
 #[derive(Clone)]
+/// Provide a means to convert an iterator of `Type<T>` to one of `Type<Box<T>>`
 pub struct TypedWithIter<I> {
     inner: I,
 }
@@ -87,7 +98,6 @@ impl<I> TypedWithIter<I> {
     }
 }
 
-// turns an iter of Type<T>'s to an iterator of Type<Box<T>>'s
 impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
     type Item = Type<Box<T>>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -95,17 +105,17 @@ impl<I: Iterator<Item = Type<T>>, T> Iterator for TypedWithIter<I> {
     }
 }
 
-pub struct DeBoxify<I> {
+/// Provide a means to convert an iterator of `Type<Box<T>>` to one of `Type<T>`
+pub struct DeBoxify<I: Iterator> {
     inner: I,
 }
 
-impl<I> DeBoxify<I> {
+impl<I: Iterator> DeBoxify<I> {
     pub fn new(iter: I) -> Self {
         DeBoxify { inner: iter }
     }
 }
 
-// converts an iterator of Type<Box<T>> to one of Type<T>
 impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
     type Item = Type<T>;
     fn next(&mut self) -> Option<Self::Item> {
