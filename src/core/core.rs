@@ -73,6 +73,19 @@ impl<T> Type<T> {
             Type::Inverse(val) => val,
         }
     }
+    /// Transform the value within the type variant, returning the result contained within same type variant.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let val = Type::Normal(533);
+    /// assert_eq!(val.map(|num| num - 33), Type::Normal(500));
+    ///
+    /// let val = Type::Inverse(10);
+    /// assert_eq!(val.map(|num| num * 20), Type::Inverse(200));
+    /// ```
     pub fn map<P: Fn(T) -> R, R>(self, func: P) -> Type<R> {
         match self {
             Type::Normal(val) => Type::Normal(func(val)),
