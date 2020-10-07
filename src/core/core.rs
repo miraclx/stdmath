@@ -32,10 +32,10 @@ impl<T> Type<T> {
         }
     }
     pub fn is_inverted(&self) -> bool {
-        match self {
-            Type::Normal(_) => false,
-            Type::Inverse(_) => true,
-        }
+        if let Type::Inverse(_) = self {
+            return true;
+        };
+        false
     }
     pub fn unwrap(self) -> T {
         match self {
