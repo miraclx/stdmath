@@ -54,6 +54,19 @@ impl<T> Type<T> {
         };
         false
     }
+    /// Extracts the value contained in a variant of `Type`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let val = Type::Normal(21);
+    /// assert_eq!(val.unwrap(), 21);
+    ///
+    /// let val = Type::Inverse("hello");
+    /// assert_eq!(val.unwrap(), "hello");
+    /// ```
     pub fn unwrap(self) -> T {
         match self {
             Type::Normal(val) => val,
