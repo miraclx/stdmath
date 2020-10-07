@@ -253,4 +253,36 @@ mod tests {
             ]
         )
     }
+    #[test]
+    fn convert_iter_type_box_t_to_iter_type_t() {
+        assert_eq!(
+            DeBoxify::new(TypedWithIter::new((3..=6).map(|val| Type::Normal(val))))
+                .collect::<Vec<_>>(),
+            vec![
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Normal(6)
+            ]
+        );
+
+        assert_eq!(
+            DeBoxify::new(
+                vec![
+                    Type::Normal(Box::new(3)),
+                    Type::Normal(Box::new(4)),
+                    Type::Normal(Box::new(5)),
+                    Type::Normal(Box::new(6)),
+                ]
+                .into_iter()
+            )
+            .collect::<Vec<_>>(),
+            vec![
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Normal(6)
+            ]
+        );
+    }
 }
