@@ -149,6 +149,12 @@ mod tests {
         assert_eq!(ty.flip(), Type::Normal(()));
     }
     #[test]
+    fn type_val_map() {
+        let ty = Type::Normal(10);
+        assert_eq!(ty, Type::Normal(10));
+        assert_eq!(ty.map(|val| val * 2), Type::Normal(20));
+    }
+    #[test]
     fn iter_type_flip() {
         // flip an iterator of types
         assert_eq!(
