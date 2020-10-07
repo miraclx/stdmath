@@ -96,6 +96,29 @@ impl<T> Type<T> {
 
 #[derive(Clone)]
 /// Provide a means to convert an iterator of `T` to one of `Type<T>`
+///
+/// # Examples
+/// ```
+/// use stdmath::core::{Type, TypedIter};
+///
+/// let vals = TypedIter::Normal(1..=5).collect::<Vec<_>>();
+/// assert_eq!(vals, vec![
+///     Type::Normal(1),
+///     Type::Normal(2),
+///     Type::Normal(3),
+///     Type::Normal(4),
+///     Type::Normal(5)
+/// ]);
+///
+/// let vals = TypedIter::Inverse(6..=10).collect::<Vec<_>>();
+/// assert_eq!(vals, vec![
+///     Type::Inverse(6),
+///     Type::Inverse(7),
+///     Type::Inverse(8),
+///     Type::Inverse(9),
+///     Type::Inverse(10)
+/// ]);
+/// ```
 pub enum TypedIter<I> {
     Normal(I),
     Inverse(I),
