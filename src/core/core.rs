@@ -210,7 +210,10 @@ mod tests {
         );
 
         assert_eq!(
-            TypedIter::Normal(3..=7).flip().collect::<Vec<_>>(),
+            (3..=7)
+                .map(|val| Type::Normal(val))
+                .flip()
+                .collect::<Vec<_>>(),
             vec![
                 Type::Inverse(3),
                 Type::Inverse(4),
