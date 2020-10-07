@@ -161,6 +161,20 @@ mod tests {
         assert_ne!(ty.unwrap(), false);
     }
     #[test]
+    fn type_val_check_state() {
+        let ty = Type::Normal(true);
+        assert_eq!(ty.is_inverted(), false);
+        assert_ne!(ty.is_inverted(), true);
+
+        let ty = Type::Inverse(true);
+        assert_eq!(ty.is_inverted(), true);
+        assert_ne!(ty.is_inverted(), false);
+
+        let ty = Type::Inverse(false).flip().map(|state| !state);
+        assert_eq!(ty.is_inverted(), false);
+        assert_eq!(ty, Type::Normal(true));
+    }
+    #[test]
     fn iter_type_flip() {
         // flip an iterator of types
         assert_eq!(
