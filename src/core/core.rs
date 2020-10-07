@@ -24,6 +24,10 @@ impl<T> Type<T> {
     /// let val = Type::Normal(10);
     /// let inv = val.flip();
     /// assert_eq!(inv, Type::Inverse(10));
+    ///
+    /// let val = Type::Inverse(30);
+    /// let inv = val.flip();
+    /// assert_eq!(inv, Type::Normal(30));
     /// ```
     pub fn flip(self) -> Self {
         match self {
