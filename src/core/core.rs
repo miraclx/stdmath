@@ -113,17 +113,17 @@ impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
     }
 }
 
-pub trait Resolvable {
+pub trait Compute {
     type Result;
-    fn resolve(self) -> Self::Result;
+    fn compute(self) -> Self::Result;
 }
 
 macro_rules! impl_resolve_primitives {
         ($($type:ty),+) => {
             $(
-                impl Resolvable for $type {
+                impl Compute for $type {
                     type Result = $type;
-                    fn resolve(self) -> $type {
+                    fn compute(self) -> $type {
                         self
                     }
                 }

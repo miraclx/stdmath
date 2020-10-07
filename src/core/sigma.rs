@@ -15,25 +15,12 @@ pub struct Sigma<I: Iterator, F> {
 
 pub type SigmaIntoIter<I> = DeBoxify<I>;
 
-impl<I, T, F, R> Resolvable for Sigma<I, F>
-where
-    I: Iterator<Item = Type<Box<T>>>,
-    F: Fn(<T as Resolvable>::Result) -> R,
-    T: Resolvable,
-    R: Zero + std::ops::Sub<Output = R>,
-{
-    type Result = R;
-    fn resolve(self) -> R {
-        self.compute()
-    }
-}
-
 /// allows creating a Product value from an iterator of primitives
 impl<'a, I, T: 'a, F, R> Sigma<TypedWithIter<TypedIter<I>>, F>
 where
     I: Iterator<Item = T>,
-    F: Fn(<T as Resolvable>::Result) -> R,
-    T: Resolvable,
+    F: Fn(<T as Compute>::Result) -> R,
+    T: Compute,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
         Sigma::with(TypedIter::Normal(iter), func)
@@ -46,8 +33,8 @@ where
 impl<I, T, F, R> Sigma<TypedWithIter<I>, F>
 where
     I: Iterator<Item = Type<T>>,
-    F: Fn(<T as Resolvable>::Result) -> R,
-    T: Resolvable,
+    F: Fn(<T as Compute>::Result) -> R,
+    T: Compute,
 {
     pub fn with<P>(iter: P, func: F) -> Self
     where
@@ -60,16 +47,15 @@ where
     }
 }
 
-impl<I, T, F, R> Sigma<I, F>
+impl<I, T, F, R> Compute for Sigma<I, F>
 where
     I: Iterator<Item = Type<Box<T>>>,
-    F: Fn(<T as Resolvable>::Result) -> R,
-    T: Resolvable,
+    F: Fn(<T as Compute>::Result) -> R,
+    T: Compute,
+    R: Zero + std::ops::Sub<Output = R>,
 {
-    pub fn compute(self) -> R
-    where
-        R: Zero + std::ops::Sub<Output = R>,
-    {
+    type Result = R;
+    fn compute(self) -> Self::Result {
         let func = &self.func;
         let (normal, inverse) = self.iter.fold((None, None), |(normal, inverse), val| {
             let is_inverted = val.is_inverted();
@@ -79,8 +65,8 @@ where
                 (inverse, normal)
             };
             let this = Some(match this {
-                Some(prev) => prev + func(val.unwrap().resolve()),
-                None => func(val.unwrap().resolve()),
+                Some(prev) => prev + func(val.unwrap().compute()),
+                None => func(val.unwrap().compute()),
             });
             if !is_inverted {
                 (this, other)
