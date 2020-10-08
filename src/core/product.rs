@@ -229,6 +229,56 @@ where
     }
 }
 
+impl<B, C, T, X, R, F1, F2> std::ops::Div<super::Sigma<C, F1>> for Product<B, F2>
+where
+    B: Iterator<Item = Type<Box<T>>>,
+    C: Iterator,
+    T: Resolve<Result = X>,
+    super::Sigma<C, F1>: Resolve<Result = X>,
+    F2: Fn(X) -> R,
+    T: 'static,
+    C: 'static,
+    F1: 'static,
+{
+    type Output = Product<std::vec::IntoIter<Type<Box<dyn Resolve<Result = X>>>>, F2>;
+    fn div(self, rhs: super::Sigma<C, F1>) -> Self::Output {
+        let mut vec: Vec<Type<Box<dyn Resolve<Result = X>>>> = vec![];
+        self.iter
+            .for_each(|item| vec.push(item.map(|val| val as Box<dyn Resolve<Result = X>>)));
+        vec.push(Type::Inverse(Box::new(rhs) as Box<dyn Resolve<Result = X>>));
+
+        Product {
+            iter: vec.into_iter(),
+            func: self.func,
+        }
+    }
+}
+
+impl<B, C, T, X, R, F1, F2> std::ops::Mul<super::Sigma<C, F1>> for Product<B, F2>
+where
+    B: Iterator<Item = Type<Box<T>>>,
+    C: Iterator,
+    T: Resolve<Result = X>,
+    super::Sigma<C, F1>: Resolve<Result = X>,
+    F2: Fn(X) -> R,
+    T: 'static,
+    C: 'static,
+    F1: 'static,
+{
+    type Output = Product<std::vec::IntoIter<Type<Box<dyn Resolve<Result = X>>>>, F2>;
+    fn mul(self, rhs: super::Sigma<C, F1>) -> Self::Output {
+        let mut vec: Vec<Type<Box<dyn Resolve<Result = X>>>> = vec![];
+        self.iter
+            .for_each(|item| vec.push(item.map(|val| val as Box<dyn Resolve<Result = X>>)));
+        vec.push(Type::Normal(Box::new(rhs) as Box<dyn Resolve<Result = X>>));
+
+        Product {
+            iter: vec.into_iter(),
+            func: self.func,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
