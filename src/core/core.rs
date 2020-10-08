@@ -200,6 +200,31 @@ impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
     }
 }
 
+/// An interface for defining types that can be computed
+///
+/// ```
+/// use stdmath::core::Compute;
+///
+/// struct Squared(u8);
+///
+/// impl Compute for Squared {
+///     type Result = u16;
+///     fn compute(self) -> Self::Result {
+///         (self.0 as u16).pow(2)
+///     }
+/// }
+///
+/// fn add_computables<T, A, B>(a: A, b: B) -> T
+/// where
+///     A: Compute<Result = T>,
+///     B: Compute<Result = T>,
+///     T: std::ops::Add<Output = T>,
+/// {
+///     a.compute() + b.compute()
+/// }
+///
+/// assert_eq!(add_computables(Squared(36), 54_u16), 1350);
+/// ```
 pub trait Compute {
     type Result;
     fn compute(self) -> Self::Result;
