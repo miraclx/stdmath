@@ -209,7 +209,7 @@ impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
 ///
 /// impl Compute for Squared {
 ///     type Result = u16;
-///     fn compute(self) -> Self::Result {
+///     fn compute(self: Box<Self>) -> Self::Result {
 ///         (self.0 as u16).pow(2)
 ///     }
 /// }
@@ -227,7 +227,7 @@ impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
 /// ```
 pub trait Compute {
     type Result;
-    fn compute(self) -> Self::Result;
+    fn compute(self: Box<Self>) -> Self::Result;
 }
 
 macro_rules! impl_resolve_primitives {
@@ -235,8 +235,8 @@ macro_rules! impl_resolve_primitives {
         $(
             impl Compute for $type {
                 type Result = $type;
-                fn compute(self) -> $type {
-                    self
+                fn compute(self: Box<Self>) -> $type {
+                    *self
                 }
             }
         )+
