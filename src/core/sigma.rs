@@ -309,4 +309,107 @@ mod tests {
         let result = Sigma::with(result, func);
         assert_eq!(result.compute(), 0);
     }
+    #[test]
+    fn add_compute() {
+        // (1 + 2 + 3 + 4 + 5) + (6 + 7 + 8 + 9 + 10)
+        //  = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
+        //  = 55
+
+        let func = |x| x;
+        let val1 = Sigma::from_normal(1..=5, func);
+        let val2 = Sigma::from_normal(6..=10, func);
+        let mut result = (val1 + val2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Normal(6),
+                Type::Normal(7),
+                Type::Normal(8),
+                Type::Normal(9),
+                Type::Normal(10)
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 55);
+    }
+    #[test]
+    fn add_overflow_compute() {
+        // (3 + 4 + 5 + 6) + ((-3) + (-4) + (-5) + (-6) + (-7))
+        //  = (3 + 4 + 5 + 6) - (3 + 4 + 5 + 6 + 7)
+        //  = 0 - 7
+        //  = -7
+
+        let func = |x| x as i8;
+        let val1 = Sigma::from_normal(3..=6, func);
+        let val2 = Sigma::from_inverse(3..=7, func);
+        let result = (val1 + val2).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![Type::Inverse(7)]);
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), -7);
+    }
+    #[test]
+    fn add_mixed_compute() {
+        // (6 + 7 + 8 + 9 + 10) + ((-3) + (-4) + (-5) + (-6) + (-7))
+        //  = (6 + 7 + 8 + 9 + 10) - (3 + 4 + 5 + 6 + 7)
+        //  = (8 + 9 + 10) - (3 + 4 + 5)
+        //  = 15
+
+        let func = |x| x;
+        let val1 = Sigma::from_normal(6..=10, func);
+        let val2 = Sigma::from_inverse(3..=7, func);
+        let mut result = (val1 + val2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(8),
+                Type::Normal(9),
+                Type::Normal(10),
+                Type::Inverse(3),
+                Type::Inverse(4),
+                Type::Inverse(5),
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 15);
+    }
+    #[test]
+    fn add_arbitrarily_compute() {
+        // c = a + b = (1 + 2 + 3 + 4 + 5) + ((-6) + (-7) + (-8) + (-9) + (-10))
+        // c =         (1 + 2 + 3 + 4 + 5) - (6 + 7 + 8 + 9 + 10)
+        // d =         (6 + 7 + 8 + 9 + 10) + ((-1) + (-2) + (-3) + (-4) + (-5))
+        // d =         (6 + 7 + 8 + 9 + 10) - (1 + 2 + 3 + 4 + 5)
+        // r = c + d = ((1 + 2 + 3 + 4 + 5) - (6 + 7 + 8 + 9 + 10))
+        //          : +((6 + 7 + 8 + 9 + 10) - (1 + 2 + 3 + 4 + 5))
+        // r =         0
+
+        let func = |x| x;
+        let a = Sigma::with(TypedIter::Normal(1..=5), func);
+        let b = Sigma::with(TypedIter::Inverse(6..=10), func);
+        let c = a + b;
+        let d = Sigma::with(
+            TypedIter::Normal(6..=10).chain(TypedIter::Inverse(1..=5)),
+            func,
+        );
+        let result = (c + d).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![]);
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 0);
+    }
 }
