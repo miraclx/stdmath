@@ -19,8 +19,8 @@ pub type SigmaIntoIter<I> = DeBoxify<I>;
 impl<'a, I, T: 'a, F, R> Sigma<TypedWithIter<TypedIter<I>>, F>
 where
     I: Iterator<Item = T>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
         Sigma::with(TypedIter::Normal(iter), func)
@@ -33,8 +33,8 @@ where
 impl<I, T, F, R> Sigma<TypedWithIter<I>, F>
 where
     I: Iterator<Item = Type<T>>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
 {
     pub fn with<P>(iter: P, func: F) -> Self
     where
@@ -47,15 +47,14 @@ where
     }
 }
 
-impl<I, T, F, R> Compute for Sigma<I, F>
+impl<I, T, F, R> Sigma<I, F>
 where
     I: Iterator<Item = Type<Box<T>>>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
     R: Zero + std::ops::Sub<Output = R>,
 {
-    type Result = R;
-    fn compute(self) -> Self::Result {
+    fn compute(self) -> R {
         let func = &self.func;
         let (normal, inverse) = self.iter.fold((None, None), |(normal, inverse), val| {
             let is_inverted = val.is_inverted();
@@ -65,8 +64,8 @@ where
                 (inverse, normal)
             };
             let this = Some(match this {
-                Some(prev) => prev + func(val.unwrap().compute()),
-                None => func(val.unwrap().compute()),
+                Some(prev) => prev + func(val.unwrap().resolve()),
+                None => func(val.unwrap().resolve()),
             });
             if !is_inverted {
                 (this, other)
@@ -78,6 +77,19 @@ where
         let inverse = inverse.unwrap_or_else(|| R::zero());
 
         normal - inverse
+    }
+}
+
+impl<I, T, F, R> Resolve for Sigma<I, F>
+where
+    I: Iterator<Item = Type<Box<T>>>,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
+    R: Zero + std::ops::Sub<Output = R>,
+{
+    type Result = R;
+    fn resolve(self: Box<Self>) -> Self::Result {
+        self.compute()
     }
 }
 

@@ -19,8 +19,8 @@ pub type ProductIntoIter<I> = DeBoxify<I>;
 impl<'a, I, T: 'a, F, R> Product<TypedWithIter<TypedIter<I>>, F>
 where
     I: Iterator<Item = T>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
 {
     pub fn from_normal(iter: I, func: F) -> Self {
         Product::with(TypedIter::Normal(iter), func)
@@ -33,8 +33,8 @@ where
 impl<I, T, F, R> Product<TypedWithIter<I>, F>
 where
     I: Iterator<Item = Type<T>>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
 {
     pub fn with<P>(iter: P, func: F) -> Self
     where
@@ -47,14 +47,13 @@ where
     }
 }
 
-impl<I, T, F, R> Compute for Product<I, F>
+impl<I, T, F, R> Product<I, F>
 where
     I: Iterator<Item = Type<Box<T>>>,
-    F: Fn(<T as Compute>::Result) -> R,
-    T: Compute,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
     R: One + std::ops::Div<Output = R>,
 {
-    type Result = R;
     fn compute(self) -> R {
         let func = &self.func;
 
@@ -145,8 +144,8 @@ where
                 (inverse, normal)
             };
             let this = Some(match this {
-                Some(prev) => prev * func(val.unwrap().compute()),
-                None => func(val.unwrap().compute()),
+                Some(prev) => prev * func(val.unwrap().resolve()),
+                None => func(val.unwrap().resolve()),
             });
             if !is_inverted {
                 (this, other)
@@ -158,6 +157,19 @@ where
         let inverse = inverse.unwrap_or_else(|| R::one());
 
         normal / inverse
+    }
+}
+
+impl<I, T, F, R> Resolve for Product<I, F>
+where
+    I: Iterator<Item = Type<Box<T>>>,
+    F: Fn(<T as Resolve>::Result) -> R,
+    T: Resolve,
+    R: One + std::ops::Div<Output = R>,
+{
+    type Result = R;
+    fn resolve(self: Box<Self>) -> Self::Result {
+        self.compute()
     }
 }
 

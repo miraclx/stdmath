@@ -200,42 +200,42 @@ impl<I: Iterator<Item = Type<Box<T>>>, T> Iterator for DeBoxify<I> {
     }
 }
 
-/// An interface for defining types that can be computed
+/// An interface for defining types that can be resolved
 ///
 /// ```
-/// use stdmath::core::Compute;
+/// use stdmath::core::Resolve;
 ///
 /// struct Squared(u8);
 ///
-/// impl Compute for Squared {
+/// impl Resolve for Squared {
 ///     type Result = u16;
-///     fn compute(self: Box<Self>) -> Self::Result {
+///     fn resolve(self: Box<Self>) -> Self::Result {
 ///         (self.0 as u16).pow(2)
 ///     }
 /// }
 ///
 /// fn add_computables<T, A, B>(a: A, b: B) -> T
 /// where
-///     A: Compute<Result = T>,
-///     B: Compute<Result = T>,
+///     A: Resolve<Result = T>,
+///     B: Resolve<Result = T>,
 ///     T: std::ops::Add<Output = T>,
 /// {
-///     a.compute() + b.compute()
+///     Box::new(a).resolve() + Box::new(b).resolve()
 /// }
 ///
 /// assert_eq!(add_computables(Squared(36), 54_u16), 1350);
 /// ```
-pub trait Compute {
+pub trait Resolve {
     type Result;
-    fn compute(self: Box<Self>) -> Self::Result;
+    fn resolve(self: Box<Self>) -> Self::Result;
 }
 
 macro_rules! impl_resolve_primitives {
     ($($type:ty),+) => {
         $(
-            impl Compute for $type {
+            impl Resolve for $type {
                 type Result = $type;
-                fn compute(self: Box<Self>) -> $type {
+                fn resolve(self: Box<Self>) -> $type {
                     *self
                 }
             }
