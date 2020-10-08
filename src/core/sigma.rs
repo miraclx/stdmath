@@ -63,7 +63,7 @@ where
     T: Resolve,
     R: Zero + std::ops::Sub<Output = R>,
 {
-    fn compute(self) -> R {
+    pub fn compute(self) -> R {
         let func = &self.func;
         let (normal, inverse) = self.iter.fold((None, None), |(normal, inverse), val| {
             let is_inverted = val.is_inverted();

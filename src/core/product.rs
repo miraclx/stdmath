@@ -63,7 +63,7 @@ where
     T: Resolve,
     R: One + std::ops::Div<Output = R>,
 {
-    fn compute(self) -> R {
+    pub fn compute(self) -> R {
         let func = &self.func;
 
         // Method #1
