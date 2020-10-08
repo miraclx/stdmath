@@ -148,3 +148,165 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn basic_compute() {
+        // (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10)
+        //  = 55
+
+        let val = Sigma::from_normal(1..=10u8, |x| x);
+        assert_eq!(val.compute(), 55);
+    }
+    #[test]
+    fn custom_compute_add() {
+        // (4 - 2) + (2 - 4)
+        //  = 0
+
+        let func = |x| x;
+        let part1 = Sigma::with(vec![Type::Normal(4), Type::Inverse(2)], func);
+        let part2 = Sigma::with(vec![Type::Normal(2), Type::Inverse(4)], func);
+        let result = (part1 + part2).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![]);
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 0);
+    }
+    #[test]
+    fn custom_compute_sub() {
+        // (4 - 2) - (2 - 4)
+        //  = (4 + 4) - (2 + 2)
+        //  = (8 - 4)
+        //  = 4
+
+        let func = |x| x;
+        let part1 = Sigma::with(vec![Type::Normal(4), Type::Inverse(2)], func);
+        let part2 = Sigma::with(vec![Type::Normal(2), Type::Inverse(4)], func);
+        let mut result = (part1 - part2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(4),
+                Type::Normal(4),
+                Type::Inverse(2),
+                Type::Inverse(2),
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 4);
+    }
+    #[test]
+    fn sub_compute() {
+        // (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10) - (3 + 4 + 5 + 6)
+        //  = (1 + 2 + 7 + 8 + 9 + 10)
+        //  = 37
+
+        let func = |x| x;
+        let val1 = Sigma::from_normal(1..=10u8, func);
+        let val2 = Sigma::from_normal(3..=6u8, func);
+        let result = (val1 - val2).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(7),
+                Type::Normal(8),
+                Type::Normal(9),
+                Type::Normal(10)
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 37);
+    }
+    #[test]
+    fn sub_overflow_compute() {
+        // (3 + 4 + 5 + 6) - (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10)
+        //  = 1 - (1 + 2 + 7 + 8 + 9 + 10)
+        //  = -37
+
+        let func = |x| x as i8;
+        let val1 = Sigma::from_normal(1..=10u8, func);
+        let val2 = Sigma::from_normal(3..=6u8, func);
+        let mut result = (val2 - val1).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Inverse(1),
+                Type::Inverse(2),
+                Type::Inverse(7),
+                Type::Inverse(8),
+                Type::Inverse(9),
+                Type::Inverse(10)
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), -37);
+    }
+    #[test]
+    fn sub_mixed_compute() {
+        // (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10) - (6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15)
+        //  = (1 + 2 + 3 + 4 + 5) - (11 + 12 + 13 + 14 + 15)
+        //  = 0.000333000333000333
+
+        let func = |x| x;
+        let val1 = Sigma::from_normal(1..=10, func);
+        let val2 = Sigma::from_normal(6..=15, func);
+        let mut result = (val1 - val2).into_iter().collect::<Vec<_>>();
+
+        result.sort();
+
+        assert_eq!(
+            result,
+            vec![
+                Type::Normal(1),
+                Type::Normal(2),
+                Type::Normal(3),
+                Type::Normal(4),
+                Type::Normal(5),
+                Type::Inverse(11),
+                Type::Inverse(12),
+                Type::Inverse(13),
+                Type::Inverse(14),
+                Type::Inverse(15)
+            ]
+        );
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), -50);
+    }
+    #[test]
+    fn sub_arbitrarily_compute() {
+        // c = a + b = (1 + 2 + 3 + 4 + 5) - ((-1) + (-2) + (-3) + (-4) + (-5))
+        // c =         (1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5)
+        // d =         (1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5)
+        // r = c - d = (1 + 2 + 3 + 4 + 5 + 2 + 3 + 4 + 5)
+        //          : -(1 + 2 + 3 + 4 + 5 + 1 + 2 + 3 + 4 + 5)
+        // r =         0
+
+        let func = |x| x;
+        let a = Sigma::with(TypedIter::Normal(1..=5), func);
+        let b = Sigma::with(TypedIter::Inverse(1..=5), func);
+        let c = a - b;
+        let d = Sigma::from_normal((1..=5).chain(1..=5), func);
+        let result = (c - d).into_iter().collect::<Vec<_>>();
+
+        assert_eq!(result, vec![]);
+
+        let result = Sigma::with(result, func);
+        assert_eq!(result.compute(), 0);
+    }
+}
