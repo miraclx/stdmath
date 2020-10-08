@@ -65,85 +65,11 @@ where
 {
     pub fn compute(self) -> R {
         let func = &self.func;
-
-        // Method #1
-        //  Single iteration, No allocation: Invert every inverse variant by dividing by 1
-        //  i.e n(1),n(2),f(3),f(4)
-        //     = (1*2)*(1/3)*(1/4)
-        //  Drawback: in the case of a non-float int, 1/x = 0, invalidating the op
-        //  e.g: u8:  (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0
-        //  e.g: f64: (1*2*3*4*5)*(1/11)*(1/12)*(1/13)*(1/14)*(1/15) = 0.000333000333000333
-        //
-        // self.iter
-        //     .map(|val| match val {
-        //         Type::Normal(val) => func(val),
-        //         Type::Inverse(val) => R::one() / func(val),
-        //     })
-        //     .product()
-
-        // Method #2 (fixes method #1)
-        //  Single iteration, No allocation: Use an option to keep track of item availability
-        //  Never divide by one if there's an available preceeding value
-        //  i.e n(1),n(2),f(3),f(4)
-        //     = (1*2)/3/4
-        //  Drawback: in some cases, like in floating-point division, precision can change
-        //  based on the order of digits involved
-        //  e.g: u8:  (1*2*3*4*5)/11/12/13/14/15 = 0
-        //  e.g: f64: (1*2*3*4*5)/11/12/13/14/15 = 0.00033300033300033295
-        //
-        // self.iter
-        //     .fold(None, |acc, val| {
-        //         Some(match val {
-        //             Type::Normal(val) => match acc {
-        //                 Some(acc) => acc * func(val),
-        //                 None => func(val),
-        //             },
-        //             Type::Inverse(val) => match acc {
-        //                 Some(acc) => acc / func(val),
-        //                 None => R::one() / func(val),
-        //             },
-        //         })
-        //     })
-        //     .unwrap_or_else(|| R::one())
-
-        // Method #3 (fixes method #2)
-        //  Triple iteration, Two allocations: Localize operations on normal and inverse variants
-        //  Use an option to keep track of item availability on each collection
-        //  Converge finally, after folding each collection on its own kind
-        //  Never divide arbitrarily if there's a valid non-zero, non-one value
-        //  i.e n(1),n(2),f(3),f(4)
-        //     = (1*2)/(3*4)
-        //  Drawback: double allocations needed to keep track of normal and inverse variants
-        //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
-        //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
-        //
-        // let (normal, inverse): (Vec<Type<T>>, Vec<Type<T>>) =
-        //     self.iter.partition(|val| !val.is_inverted());
-        // let mut proc = vec![normal, inverse].into_iter().map(|collection| {
-        //     collection
-        //         .into_iter()
-        //         .map(|val| val.unwrap())
-        //         .fold(None, |acc, val| {
-        //             Some(match acc {
-        //                 Some(acc) => acc * func(val),
-        //                 None => func(val),
-        //             })
-        //         })
-        //         .unwrap_or_else(|| R::one())
-        // });
-        // let normal = proc.next().unwrap();
-        // let inverse = proc.next().unwrap();
-        // normal / inverse
-
-        // Method #4 (fixes method #3)
+        // Method #4 [see 7a58b45]
         //  Single iteration, No allocation: Using a single pass over the inner iterator
         //  logically identify which branch a computation falls under save computed result
-        //  within that branch. Eliminating the need for two allocations and extra iterations
-        //  i.e n(1),n(2),f(3),f(4)
-        //     = (1*2)/(3*4)
-        //  Drawback: None
-        //  e.g: u8:  (1*2*3*4*5)/(11*12*13*14*15) = 0
-        //  e.g: f64: (1*2*3*4*5)/(11*12*13*14*15) = 0.000333000333000333
+        //  within that branch.
+        //  i.e [n(1),n(2),f(3),f(4)] = (1*2)/(3*4)
 
         let (normal, inverse) = self.iter.fold((None, None), |(normal, inverse), val| {
             let is_inverted = val.is_inverted();
