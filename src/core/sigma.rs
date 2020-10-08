@@ -47,6 +47,15 @@ where
     }
 }
 
+impl<I, X, F> Sigma<I, F>
+where
+    I: Iterator<Item = Type<Box<dyn Resolve<Result = X>>>>,
+{
+    pub fn dump(self) -> I {
+        self.iter
+    }
+}
+
 impl<I, T, F, R> Sigma<I, F>
 where
     I: Iterator<Item = Type<Box<T>>>,

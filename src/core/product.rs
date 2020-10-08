@@ -47,6 +47,15 @@ where
     }
 }
 
+impl<I, X, F> Product<I, F>
+where
+    I: Iterator<Item = Type<Box<dyn Resolve<Result = X>>>>,
+{
+    pub fn dump(self) -> I {
+        self.iter
+    }
+}
+
 impl<I, T, F, R> Product<I, F>
 where
     I: Iterator<Item = Type<Box<T>>>,
