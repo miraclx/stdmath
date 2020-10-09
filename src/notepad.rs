@@ -109,40 +109,6 @@ impl<R> Context2<R> {
     }
 }
 
-pub fn cx2() {
-    // (1 * 2) + 1 + (1 + 2)
-    let a = Context2::<u8>::Add(Box::new(
-        vec![
-            Context2::Mul(Box::new(
-                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
-            )),
-            Context2::Nil(1),
-            Context2::Add(Box::new(
-                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
-            )),
-        ]
-        .into_iter(),
-    ));
-    println!(" = {}", a.resolve());
-
-    let b = Context2::Add(Box::new((1..=5).map(|val| {
-        if val % 2 == 0 {
-            Context2::Mul(Box::new((1..=val).map(|val| {
-                if val % 4 == 0 {
-                    Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
-                } else {
-                    Context2::Nil(val)
-                }
-            })))
-        } else if val == 1 {
-            Context2::Nil(val)
-        } else {
-            Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
-        }
-    })));
-    println!(" = {}", b.resolve());
-}
-
 pub fn cx1() {
     // (1 * 2) + 1 + (1 + 2)
     let a = Context1::Add(vec![
@@ -185,6 +151,40 @@ pub fn cx1() {
         "{}",
         b.clone().repr().expect("failed to represent math context")
     );
+    println!(" = {}", b.resolve());
+}
+
+pub fn cx2() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context2::<u8>::Add(Box::new(
+        vec![
+            Context2::Mul(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+            Context2::Nil(1),
+            Context2::Add(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+        ]
+        .into_iter(),
+    ));
+    println!(" = {}", a.resolve());
+
+    let b = Context2::Add(Box::new((1..=5).map(|val| {
+        if val % 2 == 0 {
+            Context2::Mul(Box::new((1..=val).map(|val| {
+                if val % 4 == 0 {
+                    Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+                } else {
+                    Context2::Nil(val)
+                }
+            })))
+        } else if val == 1 {
+            Context2::Nil(val)
+        } else {
+            Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+        }
+    })));
     println!(" = {}", b.resolve());
 }
 
