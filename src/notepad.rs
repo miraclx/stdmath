@@ -74,7 +74,7 @@ impl<R> Context1<R> {
     }
 }
 
-pub fn main() {
+pub fn cx1() {
     // (1 * 2) + 1 + (1 + 2)
     let a = Context1::Add(vec![
         Context1::Mul(vec![Context1::Nil(1), Context1::Nil(2)]),
@@ -117,4 +117,8 @@ pub fn main() {
         b.clone().repr().expect("failed to represent math context")
     );
     println!(" = {}", b.resolve());
+}
+
+pub fn main() {
+    cx1();
 }
