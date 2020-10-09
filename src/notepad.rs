@@ -123,14 +123,24 @@ pub fn cx2() {
         ]
         .into_iter(),
     ));
-    println!("{}", a.resolve());
+    println!(" = {}", a.resolve());
 
-    let iter = vec![Context2::Nil(10u8)].into_iter();
-    let a = Context2::<u8>::Add(Box::new(iter));
-    println!("{}", a.resolve());
-
-    let a = Context2::Nil(10);
-    println!("{}", a.resolve());
+    let b = Context2::Add(Box::new((1..=5).map(|val| {
+        if val % 2 == 0 {
+            Context2::Mul(Box::new((1..=val).map(|val| {
+                if val % 4 == 0 {
+                    Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+                } else {
+                    Context2::Nil(val)
+                }
+            })))
+        } else if val == 1 {
+            Context2::Nil(val)
+        } else {
+            Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+        }
+    })));
+    println!(" = {}", b.resolve());
 }
 
 pub fn cx1() {
