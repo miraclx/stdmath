@@ -12,7 +12,6 @@ impl<R> Context1<R> {
     pub fn resolve(self) -> R
     where
         R: Zero + One,
-        R: std::ops::Mul<Output = R>,
     {
         let (items, is_additive) = match self {
             Context1::Add(items) => (items, true),
