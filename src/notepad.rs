@@ -74,6 +74,65 @@ impl<R> Context1<R> {
     }
 }
 
+pub enum Context2<R> {
+    Add(Box<dyn Iterator<Item = Context2<R>>>),
+    Mul(Box<dyn Iterator<Item = Context2<R>>>),
+    Nil(R),
+}
+
+impl<R> Context2<R> {
+    fn resolve(self) -> R
+    where
+        R: Zero + One,
+    {
+        let (items, is_additive) = match self {
+            Context2::Add(items) => (items, true),
+            Context2::Mul(items) => (items, false),
+            Context2::Nil(val) => return val,
+        };
+        items
+            .fold(None, |prev, item| {
+                let val = item.resolve();
+                let result = match prev {
+                    Some(prev) => {
+                        if is_additive {
+                            prev + val
+                        } else {
+                            prev * val
+                        }
+                    }
+                    None => val,
+                };
+                Some(result)
+            })
+            .unwrap_or_else(|| if is_additive { R::zero() } else { R::one() })
+    }
+}
+
+pub fn cx2() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context2::<u8>::Add(Box::new(
+        vec![
+            Context2::Mul(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+            Context2::Nil(1),
+            Context2::Add(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+        ]
+        .into_iter(),
+    ));
+    println!("{}", a.resolve());
+
+    let iter = vec![Context2::Nil(10u8)].into_iter();
+    let a = Context2::<u8>::Add(Box::new(iter));
+    println!("{}", a.resolve());
+
+    let a = Context2::Nil(10);
+    println!("{}", a.resolve());
+}
+
 pub fn cx1() {
     // (1 * 2) + 1 + (1 + 2)
     let a = Context1::Add(vec![
@@ -120,5 +179,8 @@ pub fn cx1() {
 }
 
 pub fn main() {
+    println!("[\x1b[32mContext 1\x1b[0m]");
     cx1();
+    println!("[\x1b[32mContext 2\x1b[0m]");
+    cx2();
 }
