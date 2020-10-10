@@ -1,3 +1,4 @@
+use dyn_clone::{clone_trait_object, DynClone};
 use std::fmt::Write;
 use stdmath::{One, Zero};
 
@@ -109,6 +110,53 @@ impl<R> Context2<R> {
     }
 }
 
+pub trait Resolve: DynClone {
+    type Result;
+    fn resolve(&self) -> Self::Result;
+}
+
+clone_trait_object!(<R> Resolve<Result = R>);
+
+macro_rules! bulk_impl_traits {
+    ($($type:ty),+) => {
+        $(
+            impl Resolve for $type {
+                type Result = $type;
+                #[inline]
+                fn resolve(&self) -> Self::Result {
+                    *self
+                }
+            }
+        )+
+    };
+}
+
+bulk_impl_traits!(i8, i16, i32, i64, isize);
+bulk_impl_traits!(u8, u16, u32, u64, usize);
+bulk_impl_traits!(f32, f64);
+bulk_impl_traits!(i128, u128);
+
+#[derive(Clone)]
+pub enum Context3<R> {
+    Add(Vec<Box<dyn Resolve<Result = R>>>),
+    Mul(Vec<Box<dyn Resolve<Result = R>>>),
+    Nil(Box<dyn Resolve<Result = R>>),
+}
+
+impl<R> Resolve for Context3<R>
+where
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(&self) -> Self::Result {
+        match self {
+            Context3::Mul(val) => val.into_iter().fold(R::one(), |a, i| a * i.resolve()),
+            Context3::Add(val) => val.into_iter().fold(R::zero(), |a, i| a + i.resolve()),
+            Context3::Nil(val) => val.resolve(),
+        }
+    }
+}
+
 pub fn cx1() {
     // (1 * 2) + 1 + (1 + 2)
     let a = Context1::Add(vec![
@@ -188,9 +236,36 @@ pub fn cx2() {
     println!(" = {}", b.resolve());
 }
 
+fn cx3() {
+    // ((1 + (3 * 4)) + 1 + (1 + (3 * 4)))
+    let a = Context3::Add(vec![
+        Box::new(Context3::Add(vec![
+            Box::new(Context3::Nil(Box::new(1))),
+            Box::new(Context3::Mul(vec![
+                Box::new(Context3::Nil(Box::new(3))),
+                Box::new(Context3::Nil(Box::new(4))),
+            ])),
+        ])),
+        Box::new(Context3::Nil(Box::new(1))),
+        Box::new(Context3::Add(vec![
+            Box::new(Context3::Nil(Box::new(1))),
+            Box::new(Context3::Mul(vec![
+                Box::new(Context3::Nil(Box::new(3))),
+                Box::new(Context3::Nil(Box::new(4))),
+            ])),
+        ])),
+    ]);
+    println!("{}", a.clone().resolve());
+    println!("{}", a.resolve());
+}
+
 pub fn main() {
-    println!("[\x1b[32mContext 1\x1b[0m]");
+    println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
-    println!("[\x1b[32mContext 2\x1b[0m]");
+    println!("[\x1b[32mContext 2\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Context>>, Non-repr, Non-cloneable\x1b[0m)");
     cx2();
+    println!(
+        "[\x1b[32mContext 3\x1b[0m] (\x1b[33mVec<Box<dyn Resolve>>, Non-repr, Clonable\x1b[0m)"
+    );
+    cx3();
 }
