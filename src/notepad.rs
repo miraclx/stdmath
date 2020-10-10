@@ -193,7 +193,7 @@ pub fn cx2() {
 
 pub trait Resolve: DynClone {
     type Result;
-    fn resolve(&self) -> Self::Result;
+    fn resolve(self: Box<Self>) -> Self::Result;
 }
 
 clone_trait_object!(<R> Resolve<Result = R>);
@@ -204,7 +204,7 @@ macro_rules! bulk_impl_traits {
             impl Resolve for $type {
                 type Result = $type;
                 #[inline]
-                fn resolve(&self) -> Self::Result {
+                fn resolve(self: Box<Self>) -> Self::Result {
                     *self
                 }
             }
@@ -229,12 +229,21 @@ where
     R: One + Zero + Clone,
 {
     type Result = R;
-    fn resolve(&self) -> Self::Result {
-        match self {
+    fn resolve(self: Box<Self>) -> Self::Result {
+        match *self {
             Context3::Mul(val) => val.into_iter().fold(R::one(), |a, i| a * i.resolve()),
             Context3::Add(val) => val.into_iter().fold(R::zero(), |a, i| a + i.resolve()),
             Context3::Nil(val) => val.resolve(),
         }
+    }
+}
+
+impl<R> Context3<R> {
+    fn resolve(self) -> R
+    where
+        R: One + Zero + Clone,
+    {
+        Resolve::resolve(Box::new(self))
     }
 }
 
@@ -307,8 +316,8 @@ where
     R: One + Zero + Clone,
 {
     type Result = R;
-    fn resolve(&self) -> Self::Result {
-        match self {
+    fn resolve(self: Box<Self>) -> Self::Result {
+        match *self {
             Context4::Mul(val, func) => {
                 val.into_iter().fold(R::one(), |a, i| a * func(i.resolve()))
             }
@@ -317,6 +326,16 @@ where
                 .fold(R::zero(), |a, i| a + func(i.resolve())),
             Context4::Nil(val, func) => func(val.resolve()),
         }
+    }
+}
+
+impl<T, R> Context4<T, R> {
+    fn resolve(self) -> R
+    where
+        T: Clone,
+        R: One + Zero + Clone,
+    {
+        Resolve::resolve(Box::new(self))
     }
 }
 
@@ -414,12 +433,22 @@ where
     R: One + Zero + Clone,
 {
     type Result = R;
-    fn resolve(&self) -> Self::Result {
-        match self.clone() {
+    fn resolve(self: Box<Self>) -> Self::Result {
+        match *self {
             Context5::Mul(val, func) => val.fold(R::one(), |a, i| a * func(i.resolve())),
             Context5::Add(val, func) => val.fold(R::zero(), |a, i| a + func(i.resolve())),
             Context5::Nil(val, func) => func(val.resolve()),
         }
+    }
+}
+
+impl<T, R> Context5<T, R> {
+    fn resolve(self) -> R
+    where
+        T: Clone,
+        R: One + Zero + Clone,
+    {
+        Resolve::resolve(Box::new(self))
     }
 }
 
