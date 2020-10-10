@@ -498,6 +498,29 @@ fn cx5() {
     println!(" = {}", b.resolve());
 }
 
+pub fn product<I: Iterator, X, R>(iter: I, func: fn(X) -> R) -> Context5<X, R>
+where
+    I: Clone,
+    I: 'static,
+    I::Item: Resolve<Result = X>,
+{
+    Context5::Mul(
+        Box::new(iter.map(|val| Box::new(val) as Box<dyn Resolve<Result = _>>)),
+        func,
+    )
+}
+pub fn sum<I: Iterator, X, R>(iter: I, func: fn(X) -> R) -> Context5<X, R>
+where
+    I: Clone,
+    I: 'static,
+    I::Item: Resolve<Result = X>,
+{
+    Context5::Add(
+        Box::new(iter.map(|val| Box::new(val) as Box<dyn Resolve<Result = _>>)),
+        func,
+    )
+}
+
 pub fn main() {
     println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
