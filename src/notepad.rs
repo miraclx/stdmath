@@ -237,26 +237,58 @@ pub fn cx2() {
 }
 
 fn cx3() {
-    // ((1 + (3 * 4)) + 1 + (1 + (3 * 4)))
+    // (1 * 2) + 1 + (1 + 2)
     let a = Context3::Add(vec![
-        Box::new(Context3::Add(vec![
+        Box::new(Context3::Mul(vec![
             Box::new(Context3::Nil(Box::new(1))),
-            Box::new(Context3::Mul(vec![
-                Box::new(Context3::Nil(Box::new(3))),
-                Box::new(Context3::Nil(Box::new(4))),
-            ])),
+            Box::new(Context3::Nil(Box::new(2))),
         ])),
         Box::new(Context3::Nil(Box::new(1))),
         Box::new(Context3::Add(vec![
             Box::new(Context3::Nil(Box::new(1))),
-            Box::new(Context3::Mul(vec![
-                Box::new(Context3::Nil(Box::new(3))),
-                Box::new(Context3::Nil(Box::new(4))),
-            ])),
+            Box::new(Context3::Nil(Box::new(2))),
         ])),
     ]);
-    println!("{}", a.clone().resolve());
-    println!("{}", a.resolve());
+    println!(" = {}", a.resolve());
+
+    let b = Context3::Add(
+        (1..=5)
+            .map(|val| {
+                if val % 2 == 0 {
+                    Box::new(Context3::Mul(
+                        (1..=val)
+                            .map(|val| {
+                                (if val % 4 == 0 {
+                                    Box::new(Context3::Add(
+                                        (1..=val)
+                                            .map(|val| {
+                                                Box::new(Context3::Nil(Box::new(val)))
+                                                    as Box<dyn Resolve<Result = _>>
+                                            })
+                                            .collect::<Vec<_>>(),
+                                    ))
+                                } else {
+                                    Box::new(Context3::Nil(Box::new(val)))
+                                }) as Box<dyn Resolve<Result = _>>
+                            })
+                            .collect::<Vec<_>>(),
+                    ))
+                } else if val == 1 {
+                    Box::new(Context3::Nil(Box::new(val)))
+                } else {
+                    Box::new(Context3::Add(
+                        (1..=val)
+                            .map(|val| {
+                                Box::new(Context3::Nil(Box::new(val)))
+                                    as Box<dyn Resolve<Result = _>>
+                            })
+                            .collect::<Vec<_>>(),
+                    ))
+                }
+            } as Box<dyn Resolve<Result = _>>)
+            .collect::<Vec<_>>(),
+    );
+    println!(" = {}", b.resolve());
 }
 
 pub fn main() {
