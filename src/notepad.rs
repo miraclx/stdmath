@@ -75,6 +75,51 @@ impl<R> Context1<R> {
     }
 }
 
+pub fn cx1() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context1::Add(vec![
+        Context1::Mul(vec![Context1::Nil(1), Context1::Nil(2)]),
+        Context1::Nil(1),
+        Context1::Add(vec![Context1::Nil(1), Context1::Nil(2)]),
+    ]);
+    println!(
+        "{}",
+        a.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", a.resolve());
+
+    let b = Context1::Add(
+        (1..=5)
+            .map(|val| {
+                if val % 2 == 0 {
+                    Context1::Mul(
+                        (1..=val)
+                            .map(|val| {
+                                if val % 4 == 0 {
+                                    Context1::Add(
+                                        (1..=val).map(|val| Context1::Nil(val)).collect::<Vec<_>>(),
+                                    )
+                                } else {
+                                    Context1::Nil(val)
+                                }
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                } else if val == 1 {
+                    Context1::Nil(val)
+                } else {
+                    Context1::Add((1..=val).map(|val| Context1::Nil(val)).collect::<Vec<_>>())
+                }
+            })
+            .collect::<Vec<_>>(),
+    );
+    println!(
+        "{}",
+        b.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", b.resolve());
+}
+
 pub enum Context2<R> {
     Add(Box<dyn Iterator<Item = Context2<R>>>),
     Mul(Box<dyn Iterator<Item = Context2<R>>>),
@@ -108,6 +153,40 @@ impl<R> Context2<R> {
             })
             .unwrap_or_else(|| if is_additive { R::zero() } else { R::one() })
     }
+}
+
+pub fn cx2() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context2::<u8>::Add(Box::new(
+        vec![
+            Context2::Mul(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+            Context2::Nil(1),
+            Context2::Add(Box::new(
+                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
+            )),
+        ]
+        .into_iter(),
+    ));
+    println!(" = {}", a.resolve());
+
+    let b = Context2::Add(Box::new((1..=5).map(|val| {
+        if val % 2 == 0 {
+            Context2::Mul(Box::new((1..=val).map(|val| {
+                if val % 4 == 0 {
+                    Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+                } else {
+                    Context2::Nil(val)
+                }
+            })))
+        } else if val == 1 {
+            Context2::Nil(val)
+        } else {
+            Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
+        }
+    })));
+    println!(" = {}", b.resolve());
 }
 
 pub trait Resolve: DynClone {
@@ -155,111 +234,6 @@ where
             Context3::Nil(val) => val.resolve(),
         }
     }
-}
-
-#[derive(Clone)]
-pub enum Context4<T, R> {
-    Add(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
-    Mul(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
-    Nil(Box<dyn Resolve<Result = T>>, fn(T) -> R),
-}
-
-impl<T, R> Resolve for Context4<T, R>
-where
-    T: Clone,
-    R: One + Zero + Clone,
-{
-    type Result = R;
-    fn resolve(&self) -> Self::Result {
-        match self {
-            Context4::Mul(val, func) => {
-                val.into_iter().fold(R::one(), |a, i| a * func(i.resolve()))
-            }
-            Context4::Add(val, func) => val
-                .into_iter()
-                .fold(R::zero(), |a, i| a + func(i.resolve())),
-            Context4::Nil(val, func) => func(val.resolve()),
-        }
-    }
-}
-
-pub fn cx1() {
-    // (1 * 2) + 1 + (1 + 2)
-    let a = Context1::Add(vec![
-        Context1::Mul(vec![Context1::Nil(1), Context1::Nil(2)]),
-        Context1::Nil(1),
-        Context1::Add(vec![Context1::Nil(1), Context1::Nil(2)]),
-    ]);
-    println!(
-        "{}",
-        a.clone().repr().expect("failed to represent math context")
-    );
-    println!(" = {}", a.resolve());
-
-    let b = Context1::Add(
-        (1..=5)
-            .map(|val| {
-                if val % 2 == 0 {
-                    Context1::Mul(
-                        (1..=val)
-                            .map(|val| {
-                                if val % 4 == 0 {
-                                    Context1::Add(
-                                        (1..=val).map(|val| Context1::Nil(val)).collect::<Vec<_>>(),
-                                    )
-                                } else {
-                                    Context1::Nil(val)
-                                }
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                } else if val == 1 {
-                    Context1::Nil(val)
-                } else {
-                    Context1::Add((1..=val).map(|val| Context1::Nil(val)).collect::<Vec<_>>())
-                }
-            })
-            .collect::<Vec<_>>(),
-    );
-    println!(
-        "{}",
-        b.clone().repr().expect("failed to represent math context")
-    );
-    println!(" = {}", b.resolve());
-}
-
-pub fn cx2() {
-    // (1 * 2) + 1 + (1 + 2)
-    let a = Context2::<u8>::Add(Box::new(
-        vec![
-            Context2::Mul(Box::new(
-                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
-            )),
-            Context2::Nil(1),
-            Context2::Add(Box::new(
-                vec![Context2::Nil(1), Context2::Nil(2)].into_iter(),
-            )),
-        ]
-        .into_iter(),
-    ));
-    println!(" = {}", a.resolve());
-
-    let b = Context2::Add(Box::new((1..=5).map(|val| {
-        if val % 2 == 0 {
-            Context2::Mul(Box::new((1..=val).map(|val| {
-                if val % 4 == 0 {
-                    Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
-                } else {
-                    Context2::Nil(val)
-                }
-            })))
-        } else if val == 1 {
-            Context2::Nil(val)
-        } else {
-            Context2::Add(Box::new((1..=val).map(|val| Context2::Nil(val))))
-        }
-    })));
-    println!(" = {}", b.resolve());
 }
 
 fn cx3() {
@@ -315,6 +289,32 @@ fn cx3() {
             .collect::<Vec<_>>(),
     );
     println!(" = {}", b.resolve());
+}
+
+#[derive(Clone)]
+pub enum Context4<T, R> {
+    Add(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
+    Mul(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
+    Nil(Box<dyn Resolve<Result = T>>, fn(T) -> R),
+}
+
+impl<T, R> Resolve for Context4<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(&self) -> Self::Result {
+        match self {
+            Context4::Mul(val, func) => {
+                val.into_iter().fold(R::one(), |a, i| a * func(i.resolve()))
+            }
+            Context4::Add(val, func) => val
+                .into_iter()
+                .fold(R::zero(), |a, i| a + func(i.resolve())),
+            Context4::Nil(val, func) => func(val.resolve()),
+        }
+    }
 }
 
 fn cx4() {
