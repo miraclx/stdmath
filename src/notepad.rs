@@ -157,6 +157,32 @@ where
     }
 }
 
+#[derive(Clone)]
+pub enum Context4<T, R> {
+    Add(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
+    Mul(Vec<Box<dyn Resolve<Result = T>>>, fn(T) -> R),
+    Nil(Box<dyn Resolve<Result = T>>, fn(T) -> R),
+}
+
+impl<T, R> Resolve for Context4<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(&self) -> Self::Result {
+        match self {
+            Context4::Mul(val, func) => {
+                val.into_iter().fold(R::one(), |a, i| a * func(i.resolve()))
+            }
+            Context4::Add(val, func) => val
+                .into_iter()
+                .fold(R::zero(), |a, i| a + func(i.resolve())),
+            Context4::Nil(val, func) => func(val.resolve()),
+        }
+    }
+}
+
 pub fn cx1() {
     // (1 * 2) + 1 + (1 + 2)
     let a = Context1::Add(vec![
@@ -291,6 +317,74 @@ fn cx3() {
     println!(" = {}", b.resolve());
 }
 
+fn cx4() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context4::Add(
+        vec![
+            Box::new(Context4::Mul(
+                vec![
+                    Box::new(Context4::Nil(Box::new(1), |x| x)),
+                    Box::new(Context4::Nil(Box::new(2), |x| x)),
+                ],
+                |x| x,
+            )),
+            Box::new(Context4::Nil(Box::new(1), |x| x)),
+            Box::new(Context4::Add(
+                vec![
+                    Box::new(Context4::Nil(Box::new(1), |x| x)),
+                    Box::new(Context4::Nil(Box::new(2), |x| x)),
+                ],
+                |x| x,
+            )),
+        ],
+        |x| x,
+    );
+    println!(" = {}", a.resolve());
+
+    let b = Context4::Add(
+        (1..=5)
+            .map(|val| {
+                if val % 2 == 0 {
+                    Box::new(Context4::Mul(
+                        (1..=val)
+                            .map(|val| {
+                                (if val % 4 == 0 {
+                                    Box::new(Context4::Add(
+                                        (1..=val)
+                                            .map(|val| {
+                                                Box::new(Context4::Nil(Box::new(val), |x| x))
+                                                    as Box<dyn Resolve<Result = _>>
+                                            })
+                                            .collect::<Vec<_>>(),
+                                        |x| x,
+                                    ))
+                                } else {
+                                    Box::new(Context4::Nil(Box::new(val), |x| x))
+                                }) as Box<dyn Resolve<Result = _>>
+                            })
+                            .collect::<Vec<_>>(),
+                        |x| x,
+                    ))
+                } else if val == 1 {
+                    Box::new(Context4::Nil(Box::new(val), |x| x))
+                } else {
+                    Box::new(Context4::Add(
+                        (1..=val)
+                            .map(|val| {
+                                Box::new(Context4::Nil(Box::new(val), |x| x))
+                                    as Box<dyn Resolve<Result = _>>
+                            })
+                            .collect::<Vec<_>>(),
+                        |x| x,
+                    ))
+                }
+            } as Box<dyn Resolve<Result = _>>)
+            .collect::<Vec<_>>(),
+        |x| x,
+    );
+    println!(" = {}", b.resolve());
+}
+
 pub fn main() {
     println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
@@ -300,4 +394,8 @@ pub fn main() {
         "[\x1b[32mContext 3\x1b[0m] (\x1b[33mVec<Box<dyn Resolve>>, Non-repr, Clonable\x1b[0m)"
     );
     cx3();
+    println!(
+        "[\x1b[32mContext 4\x1b[0m] (\x1b[33mVec<Box<dyn Resolve>>, Non-repr, Clonable, Transforming\x1b[0m)"
+    );
+    cx4();
 }
