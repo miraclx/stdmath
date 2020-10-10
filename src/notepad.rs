@@ -389,6 +389,115 @@ fn cx4() {
     println!(" = {}", b.resolve());
 }
 
+pub trait Itertraitor: Iterator + DynClone {}
+
+clone_trait_object!(<T> Itertraitor<Item = T>);
+
+impl<I> Itertraitor for I where I: Iterator + Clone {}
+
+#[derive(Clone)]
+pub enum Context5<T, R> {
+    Add(
+        Box<dyn Itertraitor<Item = Box<dyn Resolve<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Mul(
+        Box<dyn Itertraitor<Item = Box<dyn Resolve<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Nil(Box<dyn Resolve<Result = T>>, fn(T) -> R),
+}
+
+impl<T, R> Resolve for Context5<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(&self) -> Self::Result {
+        match self.clone() {
+            Context5::Mul(val, func) => val.fold(R::one(), |a, i| a * func(i.resolve())),
+            Context5::Add(val, func) => val.fold(R::zero(), |a, i| a + func(i.resolve())),
+            Context5::Nil(val, func) => func(val.resolve()),
+        }
+    }
+}
+
+fn cx5() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context5::Add(
+        Box::new(
+            vec![
+                Box::new(Context5::Mul(
+                    Box::new(
+                        vec![
+                            Box::new(Context5::Nil(Box::new(1), |x| x))
+                                as Box<dyn Resolve<Result = _>>,
+                            Box::new(Context5::Nil(Box::new(2), |x| x))
+                                as Box<dyn Resolve<Result = _>>,
+                        ]
+                        .into_iter(),
+                    ) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                )) as Box<dyn Resolve<Result = _>>,
+                Box::new(Context5::Nil(Box::new(1), |x| x)) as Box<dyn Resolve<Result = _>>,
+                Box::new(Context5::Add(
+                    Box::new(
+                        vec![
+                            Box::new(Context5::Nil(Box::new(1), |x| x))
+                                as Box<dyn Resolve<Result = _>>,
+                            Box::new(Context5::Nil(Box::new(2), |x| x))
+                                as Box<dyn Resolve<Result = _>>,
+                        ]
+                        .into_iter(),
+                    ) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                )) as Box<dyn Resolve<Result = _>>,
+            ]
+            .into_iter(),
+        ) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(" = {}", a.resolve());
+
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
+    let b = Context5::Add(
+        Box::new((1..=5).map(|val| {
+            if val % 2 == 0 {
+                Box::new(Context5::Mul(
+                    Box::new((1..=val).map(|val| {
+                        (if val % 4 == 0 {
+                            Box::new(Context5::Add(
+                                Box::new((1..=val).map(|val| {
+                                    Box::new(Context5::Nil(Box::new(val), |x| x))
+                                        as Box<dyn Resolve<Result = _>>
+                                }))
+                                    as Box<dyn Itertraitor<Item = _>>,
+                                |x| x,
+                            ))
+                        } else {
+                            Box::new(Context5::Nil(Box::new(val), |x| x))
+                        }) as Box<dyn Resolve<Result = _>>
+                    })) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                ))
+            } else if val == 1 {
+                Box::new(Context5::Nil(Box::new(val), |x| x))
+            } else {
+                Box::new(Context5::Add(
+                    Box::new((1..=val).map(|val| {
+                        Box::new(Context5::Nil(Box::new(val), |x| x))
+                            as Box<dyn Resolve<Result = _>>
+                    })) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                ))
+            }
+        } as Box<dyn Resolve<Result = _>>)) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(" = {}", b.resolve());
+}
+
 pub fn main() {
     println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
@@ -402,4 +511,8 @@ pub fn main() {
         "[\x1b[32mContext 4\x1b[0m] (\x1b[33mVec<Box<dyn Resolve>>, Non-repr, Clonable, Transforming\x1b[0m)"
     );
     cx4();
+    println!(
+        "[\x1b[32mContext 5\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Non-repr, Clonable, Transforming\x1b[0m)"
+    );
+    cx5();
 }
