@@ -88,6 +88,7 @@ pub fn cx1() {
     );
     println!(" = {}", a.resolve());
 
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
     let b = Context1::Add(
         (1..=5)
             .map(|val| {
@@ -171,6 +172,7 @@ pub fn cx2() {
     ));
     println!(" = {}", a.resolve());
 
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
     let b = Context2::Add(Box::new((1..=5).map(|val| {
         if val % 2 == 0 {
             Context2::Mul(Box::new((1..=val).map(|val| {
@@ -251,6 +253,7 @@ fn cx3() {
     ]);
     println!(" = {}", a.resolve());
 
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
     let b = Context3::Add(
         (1..=5)
             .map(|val| {
@@ -341,6 +344,7 @@ fn cx4() {
     );
     println!(" = {}", a.resolve());
 
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
     let b = Context4::Add(
         (1..=5)
             .map(|val| {
