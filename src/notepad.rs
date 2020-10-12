@@ -608,13 +608,6 @@ where
     }
 }
 
-impl<T, R> Simplificable for Context6<T, R>
-where
-    T: Clone,
-    R: One + Zero + Clone,
-{
-}
-
 impl<T, R> Context6<T, R> {
     fn resolve(self) -> R
     where
@@ -660,6 +653,13 @@ impl<T, R> Simplify for Context6<T, R> {
         }
         write!(file, ")")
     }
+}
+
+impl<T, R> Simplificable for Context6<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
 }
 
 fn cx6() {
