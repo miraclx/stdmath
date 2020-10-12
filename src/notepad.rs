@@ -913,19 +913,71 @@ where
 }
 
 fn cx7() {
-    let a = product7(vec![Type::Normal(10)].into_iter(), |x| x);
+    // (1 * 2) + 1 + (1 + 2)
+    let a = sum7(
+        vec![
+            Type::Normal(product7(
+                vec![Type::Normal(1), Type::Normal(2)].into_iter(),
+                |x| x,
+            )),
+            Type::Normal(sum7(std::iter::once(Type::Normal(1)), |x| x)),
+            Type::Normal(sum7(
+                vec![Type::Normal(1), Type::Normal(2)].into_iter(),
+                |x| x,
+            )),
+        ]
+        .into_iter(),
+        |x| x,
+    );
     println!(
         "{}",
         a.clone().repr().expect("failed to represent math context")
     );
-    println!("{}", a.resolve());
+    println!(" = {}", a.resolve());
 
-    let b = product7(vec![Type::Normal(10), Type::Inverse(5)].into_iter(), |x| x);
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
+    let b = sum7(
+        (1..=5).map(|val| {
+            if val % 2 == 0 {
+                Type::Normal(product7(
+                    (1..=val).map(|val| {
+                        if val % 4 == 0 {
+                            Type::Normal(sum7((1..=val).map(|val| Type::Normal(val)), |x| x))
+                        } else {
+                            Type::Normal(sum7(std::iter::once(Type::Normal(val)), |x| x))
+                        }
+                    }),
+                    |x| x,
+                ))
+            } else if val == 1 {
+                Type::Normal(sum7(std::iter::once(Type::Normal(val)), |x| x))
+            } else {
+                Type::Normal(sum7((1..=val).map(|val| Type::Normal(val)), |x| x))
+            }
+        }),
+        |x| x,
+    );
     println!(
         "{}",
         b.clone().repr().expect("failed to represent math context")
     );
-    println!("{}", b.resolve());
+    println!(" = {}", b.resolve());
+
+    // 10
+    let c = product7(vec![Type::Normal(10)].into_iter(), |x| x);
+    println!(
+        "{}",
+        c.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", c.resolve());
+
+    // (10 / 5)
+    let d = product7(vec![Type::Normal(10), Type::Inverse(5)].into_iter(), |x| x);
+    println!(
+        "{}",
+        d.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", d.resolve());
 }
 
 pub fn main() {
