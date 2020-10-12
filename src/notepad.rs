@@ -825,12 +825,7 @@ impl<T, R> Context7<T, R> {
         Resolve::resolve(Box::new(self))
     }
     pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
-        let ctx = match &self {
-            Context7::Add(_, _) => SimplifyCtx::Add,
-            Context7::Mul(_, _) => SimplifyCtx::Mul,
-            Context7::Nil(_, _) => SimplifyCtx::Nil,
-        };
-        Simplify1::simplify(Box::new(self), ctx, file)
+        Simplify::simplify(Box::new(self), file)
     }
     pub fn repr(self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
@@ -839,17 +834,15 @@ impl<T, R> Context7<T, R> {
     }
 }
 
-impl<T, R> Simplify1 for Context7<T, R> {
+impl<T, R> Simplify for Context7<T, R> {
     // remove func
-    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
         let (iter, is_additive) = match *self {
             Context7::Add(iter, _) => (iter, true),
             Context7::Mul(iter, _) => (iter, false),
-            Context7::Nil(val, _) => return val.simplify(SimplifyCtx::Nil, file),
         };
         write!(file, "(")?;
         for (index, item) in iter.enumerate() {
-            // if i am additive, check if func is the same
             write!(
                 file,
                 "{}",
@@ -863,21 +856,25 @@ impl<T, R> Simplify1 for Context7<T, R> {
                     ""
                 }
             )?;
-            Simplify1::simplify(
-                item,
+            let (inverted, val) = (item.is_inverted(), item.unwrap());
+            let (now, end) = if inverted {
                 if is_additive {
-                    SimplifyCtx::Add
+                    ("(-(", "))")
                 } else {
-                    SimplifyCtx::Mul
-                },
-                file,
-            )?;
+                    ("(1/(", "))")
+                }
+            } else {
+                ("(", ")")
+            };
+            write!(file, "{}", now)?;
+            val.simplify(file)?;
+            write!(file, "{}", end)?;
         }
         write!(file, ")")
     }
 }
 
-impl<T, R> Simplificable1 for Context7<T, R>
+impl<T, R> Simplificable for Context7<T, R>
 where
     T: Clone,
     R: One
