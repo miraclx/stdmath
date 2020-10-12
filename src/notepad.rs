@@ -37,7 +37,7 @@ impl<R> Context1<R> {
             })
             .unwrap_or_else(|| if is_additive { R::zero() } else { R::one() })
     }
-    fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result
+    pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result
     where
         R: std::fmt::Debug,
     {
@@ -128,7 +128,7 @@ pub enum Context2<R> {
 }
 
 impl<R> Context2<R> {
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         R: Zero + One,
     {
@@ -239,7 +239,7 @@ where
 }
 
 impl<R> Context3<R> {
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         R: One + Zero + Clone,
     {
@@ -330,7 +330,7 @@ where
 }
 
 impl<T, R> Context4<T, R> {
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         T: Clone,
         R: One + Zero + Clone,
@@ -443,7 +443,7 @@ where
 }
 
 impl<T, R> Context5<T, R> {
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         T: Clone,
         R: One + Zero + Clone,
@@ -609,17 +609,17 @@ where
 }
 
 impl<T, R> Context6<T, R> {
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         T: Clone,
         R: One + Zero + Clone,
     {
         Resolve::resolve(Box::new(self))
     }
-    fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
+    pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
         Simplify::simplify(Box::new(self), file)
     }
-    fn repr(self) -> Result<String, std::fmt::Error> {
+    pub fn repr(self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
         self.repr_into(&mut file)?;
         Ok(file)
