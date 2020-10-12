@@ -745,67 +745,68 @@ fn cx6() {
     println!(" = {}", b.resolve());
 }
 
-pub enum SimplifyCtx {
-    Add,
-    Mul,
-    Nil,
-}
-
-pub trait Simplify1 {
-    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result;
-}
-
-pub trait Simplificable1: Resolve + Simplify1 {}
-
-clone_trait_object!(<X> Simplificable1<Result = X>);
-
-macro_rules! bulk_impl_traits {
-    ($($type:ty),+) => {
-        $(
-            impl Simplify1 for $type
-            where
-                $type: std::fmt::Debug
-            {
-                #[inline]
-                fn simplify(self: Box<Self>, _ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
-                    write!(file, "{:?}", self)
-                }
-            }
-            impl Simplificable1 for $type {}
-        )+
-    };
-}
-
-bulk_impl_traits!(i8, i16, i32, i64, isize);
-bulk_impl_traits!(u8, u16, u32, u64, usize);
-bulk_impl_traits!(f32, f64);
-bulk_impl_traits!(i128, u128);
-
 #[derive(Clone)]
 pub enum Context7<T, R> {
     Add(
-        Box<dyn Itertraitor<Item = Box<dyn Simplificable1<Result = T>>>>,
+        Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
         fn(T) -> R,
     ),
     Mul(
-        Box<dyn Itertraitor<Item = Box<dyn Simplificable1<Result = T>>>>,
+        Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
         fn(T) -> R,
     ),
-    Nil(Box<dyn Simplificable1<Result = T>>, fn(T) -> R),
 }
 
 impl<T, R> Resolve for Context7<T, R>
 where
     T: Clone,
-    R: One + Zero + Clone,
+    R: One
+        + Zero
+        + Clone
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>,
 {
     type Result = R;
     fn resolve(self: Box<Self>) -> Self::Result {
-        match *self {
-            Context7::Mul(val, func) => val.fold(R::one(), |a, i| a * func(i.resolve())),
-            Context7::Add(val, func) => val.fold(R::zero(), |a, i| a + func(i.resolve())),
-            Context7::Nil(val, func) => func(val.resolve()),
-        }
+        let (iter, func, default, [normal_op, inverse_op]): (_, _, fn() -> R, [fn(R, R) -> R; 2]) =
+            match *self {
+                Context7::Add(iter, func) => (
+                    iter,
+                    func,
+                    || R::zero(),
+                    [std::ops::Add::add, std::ops::Sub::sub],
+                ),
+                Context7::Mul(iter, func) => (
+                    iter,
+                    func,
+                    || R::one(),
+                    [std::ops::Mul::mul, std::ops::Div::div],
+                ),
+            };
+        let (normal, inverse) = iter.fold((None, None), |(normal, inverse), item| {
+            let is_inverted = item.is_inverted();
+            let (this, other) = if !is_inverted {
+                (normal, inverse)
+            } else {
+                (inverse, normal)
+            };
+            let val = item.unwrap().resolve();
+            let this = Some(match this {
+                Some(prev) => normal_op(prev, func(val)),
+                None => func(val),
+            });
+            if !is_inverted {
+                (this, other)
+            } else {
+                (other, this)
+            }
+        });
+        let normal = normal.unwrap_or_else(default);
+        let inverse = inverse.unwrap_or_else(default);
+
+        inverse_op(normal, inverse)
     }
 }
 
@@ -813,7 +814,13 @@ impl<T, R> Context7<T, R> {
     pub fn resolve(self) -> R
     where
         T: Clone,
-        R: One + Zero + Clone,
+        R: One
+            + Zero
+            + Clone
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div<Output = R>
+            + std::ops::Sub<Output = R>,
     {
         Resolve::resolve(Box::new(self))
     }
@@ -873,7 +880,13 @@ impl<T, R> Simplify1 for Context7<T, R> {
 impl<T, R> Simplificable1 for Context7<T, R>
 where
     T: Clone,
-    R: One + Zero + Clone,
+    R: One
+        + Zero
+        + Clone
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>,
 {
 }
 
@@ -884,69 +897,37 @@ impl<T: Clone> Resolve for Type<T> {
     }
 }
 
-impl<T: Simplify1> Simplify1 for Type<T> {
-    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
-        let (inverted, val) = (self.is_inverted(), self.unwrap());
-        let (now, end) = if inverted {
-            match &ctx {
-                SimplifyCtx::Add => Some(("(-(", "))")),
-                SimplifyCtx::Mul => Some(("(1/(", "))")),
-                SimplifyCtx::Nil => None,
-            }
-        } else {
-            None
-        }
-        .unwrap_or(("(", ")"));
-        write!(file, "{}", now)?;
-        Simplify1::simplify(Box::new(val), ctx, file)?;
-        write!(file, "{}", end)
-    }
-}
-
-impl<T> Simplificable1 for Type<T> where T: Clone + Simplify1 {}
-
 fn cx7() {
-    let c = Context7::Nil(Box::new(Type::Normal(10)), |x| x);
-    println!(
-        "{}",
-        c.clone().repr().expect("failed to represent math context")
-    );
-    println!("{}", c.resolve());
-
-    let d = Context7::Mul(
+    let a = Context7::Mul(
         Box::new(
-            vec![
-                // this is flawed, remove nil?
-                Box::new(Context7::Nil(Box::new(Type::Normal(10)), |x| x))
-                    as Box<dyn Simplificable1<Result = _>>,
-                Box::new(Context7::Nil(Box::new(Type::Inverse(5)), |x| x))
-                    as Box<dyn Simplificable1<Result = _>>,
-            ]
+            vec![Type::Normal(
+                Box::new(10) as Box<dyn Simplificable<Result = _>>
+            )]
             .into_iter(),
-        ) as Box<dyn Itertraitor<Item = _>>,
+        ) as Box<_>,
         |x| x,
     );
     println!(
         "{}",
-        d.clone().repr().expect("failed to represent math context")
+        a.clone().repr().expect("failed to represent math context")
     );
-    println!("{}", d.resolve());
+    println!("{}", a.resolve());
 
-    let e = Context7::Mul(
+    let b = Context7::Mul(
         Box::new(
             vec![
-                Box::new(Type::Normal(10)) as Box<dyn Simplificable1<Result = _>>,
-                Box::new(Type::Inverse(5)) as Box<dyn Simplificable1<Result = _>>,
+                Type::Normal(Box::new(10) as Box<dyn Simplificable<Result = _>>),
+                Type::Inverse(Box::new(5) as Box<_>),
             ]
             .into_iter(),
-        ) as Box<dyn Itertraitor<Item = _>>,
+        ) as Box<_>,
         |x| x,
     );
     println!(
         "{}",
-        e.clone().repr().expect("failed to represent math context")
+        b.clone().repr().expect("failed to represent math context")
     );
-    println!("{}", e.resolve());
+    println!("{}", b.resolve());
 }
 
 pub fn main() {
