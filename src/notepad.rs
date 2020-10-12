@@ -1,6 +1,6 @@
+use super::{One, Zero};
 use dyn_clone::{clone_trait_object, DynClone};
 use std::fmt::Write;
-use stdmath::{One, Zero};
 
 #[derive(Debug, Clone)]
 pub enum Context1<R> {
