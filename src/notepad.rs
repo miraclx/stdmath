@@ -887,32 +887,40 @@ where
 {
 }
 
-fn cx7() {
-    let a = Context7::Mul(
+fn product7<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context7<X, R>
+where
+    I: Clone + 'static,
+    V: Simplificable<Result = X> + 'static,
+{
+    Context7::Mul(
         Box::new(
-            vec![Type::Normal(
-                Box::new(10) as Box<dyn Simplificable<Result = _>>
-            )]
-            .into_iter(),
-        ) as Box<_>,
-        |x| x,
-    );
+            iter.map(|item| item.map(|val| Box::new(val) as Box<dyn Simplificable<Result = _>>)),
+        ),
+        func,
+    )
+}
+fn sum7<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context7<X, R>
+where
+    I: Clone + 'static,
+    V: Simplificable<Result = X> + 'static,
+{
+    Context7::Add(
+        Box::new(
+            iter.map(|item| item.map(|val| Box::new(val) as Box<dyn Simplificable<Result = _>>)),
+        ),
+        func,
+    )
+}
+
+fn cx7() {
+    let a = product7(vec![Type::Normal(10)].into_iter(), |x| x);
     println!(
         "{}",
         a.clone().repr().expect("failed to represent math context")
     );
     println!("{}", a.resolve());
 
-    let b = Context7::Mul(
-        Box::new(
-            vec![
-                Type::Normal(Box::new(10) as Box<dyn Simplificable<Result = _>>),
-                Type::Inverse(Box::new(5) as Box<_>),
-            ]
-            .into_iter(),
-        ) as Box<_>,
-        |x| x,
-    );
+    let b = product7(vec![Type::Normal(10), Type::Inverse(5)].into_iter(), |x| x);
     println!(
         "{}",
         b.clone().repr().expect("failed to represent math context")
