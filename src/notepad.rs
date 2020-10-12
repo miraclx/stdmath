@@ -887,13 +887,6 @@ where
 {
 }
 
-impl<T: Clone> Resolve for Type<T> {
-    type Result = T;
-    fn resolve(self: Box<Self>) -> Self::Result {
-        self.unwrap()
-    }
-}
-
 fn cx7() {
     let a = Context7::Mul(
         Box::new(
