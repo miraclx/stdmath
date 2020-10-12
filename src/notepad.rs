@@ -1,4 +1,4 @@
-use super::{One, Zero};
+use super::{core::Type, One, Zero};
 use dyn_clone::{clone_trait_object, DynClone};
 use std::fmt::Write;
 
@@ -745,6 +745,210 @@ fn cx6() {
     println!(" = {}", b.resolve());
 }
 
+pub enum SimplifyCtx {
+    Add,
+    Mul,
+    Nil,
+}
+
+pub trait Simplify1 {
+    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result;
+}
+
+pub trait Simplificable1: Resolve + Simplify1 {}
+
+clone_trait_object!(<X> Simplificable1<Result = X>);
+
+macro_rules! bulk_impl_traits {
+    ($($type:ty),+) => {
+        $(
+            impl Simplify1 for $type
+            where
+                $type: std::fmt::Debug
+            {
+                #[inline]
+                fn simplify(self: Box<Self>, _ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
+                    write!(file, "{:?}", self)
+                }
+            }
+            impl Simplificable1 for $type {}
+        )+
+    };
+}
+
+bulk_impl_traits!(i8, i16, i32, i64, isize);
+bulk_impl_traits!(u8, u16, u32, u64, usize);
+bulk_impl_traits!(f32, f64);
+bulk_impl_traits!(i128, u128);
+
+#[derive(Clone)]
+pub enum Context7<T, R> {
+    Add(
+        Box<dyn Itertraitor<Item = Box<dyn Simplificable1<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Mul(
+        Box<dyn Itertraitor<Item = Box<dyn Simplificable1<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Nil(Box<dyn Simplificable1<Result = T>>, fn(T) -> R),
+}
+
+impl<T, R> Resolve for Context7<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(self: Box<Self>) -> Self::Result {
+        match *self {
+            Context7::Mul(val, func) => val.fold(R::one(), |a, i| a * func(i.resolve())),
+            Context7::Add(val, func) => val.fold(R::zero(), |a, i| a + func(i.resolve())),
+            Context7::Nil(val, func) => func(val.resolve()),
+        }
+    }
+}
+
+impl<T, R> Context7<T, R> {
+    pub fn resolve(self) -> R
+    where
+        T: Clone,
+        R: One + Zero + Clone,
+    {
+        Resolve::resolve(Box::new(self))
+    }
+    pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
+        let ctx = match &self {
+            Context7::Add(_, _) => SimplifyCtx::Add,
+            Context7::Mul(_, _) => SimplifyCtx::Mul,
+            Context7::Nil(_, _) => SimplifyCtx::Nil,
+        };
+        Simplify1::simplify(Box::new(self), ctx, file)
+    }
+    pub fn repr(self) -> Result<String, std::fmt::Error> {
+        let mut file = String::new();
+        self.repr_into(&mut file)?;
+        Ok(file)
+    }
+}
+
+impl<T, R> Simplify1 for Context7<T, R> {
+    // remove func
+    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
+        let (iter, is_additive) = match *self {
+            Context7::Add(iter, _) => (iter, true),
+            Context7::Mul(iter, _) => (iter, false),
+            Context7::Nil(val, _) => return val.simplify(SimplifyCtx::Nil, file),
+        };
+        write!(file, "(")?;
+        for (index, item) in iter.enumerate() {
+            // if i am additive, check if func is the same
+            write!(
+                file,
+                "{}",
+                if index != 0 {
+                    if is_additive {
+                        " + "
+                    } else {
+                        " * "
+                    }
+                } else {
+                    ""
+                }
+            )?;
+            Simplify1::simplify(
+                item,
+                if is_additive {
+                    SimplifyCtx::Add
+                } else {
+                    SimplifyCtx::Mul
+                },
+                file,
+            )?;
+        }
+        write!(file, ")")
+    }
+}
+
+impl<T, R> Simplificable1 for Context7<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+}
+
+impl<T: Clone> Resolve for Type<T> {
+    type Result = T;
+    fn resolve(self: Box<Self>) -> Self::Result {
+        self.unwrap()
+    }
+}
+
+impl<T: Simplify1> Simplify1 for Type<T> {
+    fn simplify(self: Box<Self>, ctx: SimplifyCtx, file: &mut dyn Write) -> std::fmt::Result {
+        let (inverted, val) = (self.is_inverted(), self.unwrap());
+        let (now, end) = if inverted {
+            match &ctx {
+                SimplifyCtx::Add => Some(("(-(", "))")),
+                SimplifyCtx::Mul => Some(("(1/(", "))")),
+                SimplifyCtx::Nil => None,
+            }
+        } else {
+            None
+        }
+        .unwrap_or(("(", ")"));
+        write!(file, "{}", now)?;
+        Simplify1::simplify(Box::new(val), ctx, file)?;
+        write!(file, "{}", end)
+    }
+}
+
+impl<T> Simplificable1 for Type<T> where T: Clone + Simplify1 {}
+
+fn cx7() {
+    let c = Context7::Nil(Box::new(Type::Normal(10)), |x| x);
+    println!(
+        "{}",
+        c.clone().repr().expect("failed to represent math context")
+    );
+    println!("{}", c.resolve());
+
+    let d = Context7::Mul(
+        Box::new(
+            vec![
+                // this is flawed, remove nil?
+                Box::new(Context7::Nil(Box::new(Type::Normal(10)), |x| x))
+                    as Box<dyn Simplificable1<Result = _>>,
+                Box::new(Context7::Nil(Box::new(Type::Inverse(5)), |x| x))
+                    as Box<dyn Simplificable1<Result = _>>,
+            ]
+            .into_iter(),
+        ) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(
+        "{}",
+        d.clone().repr().expect("failed to represent math context")
+    );
+    println!("{}", d.resolve());
+
+    let e = Context7::Mul(
+        Box::new(
+            vec![
+                Box::new(Type::Normal(10)) as Box<dyn Simplificable1<Result = _>>,
+                Box::new(Type::Inverse(5)) as Box<dyn Simplificable1<Result = _>>,
+            ]
+            .into_iter(),
+        ) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(
+        "{}",
+        e.clone().repr().expect("failed to represent math context")
+    );
+    println!("{}", e.resolve());
+}
+
 pub fn main() {
     println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
@@ -762,8 +966,17 @@ pub fn main() {
         "[\x1b[32mContext 5\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Non-repr, Clonable, Transforming\x1b[0m)"
     );
     cx5();
+
+    // let a = product(4..=6, |val| val);
+    // let b = product(4..=6, |val| val);
+    // println!("{}", (a.clone() + b.clone()).resolve());
+    // println!("{}", (a.clone() * b.clone()).resolve());
     println!(
         "[\x1b[32mContext 6\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Repr, Clonable, Transforming\x1b[0m)"
     );
     cx6();
+    println!(
+        "[\x1b[32mContext 7\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Typed, Repr, Clonable, Transforming\x1b[0m)"
+    );
+    cx7();
 }
