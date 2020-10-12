@@ -550,6 +550,201 @@ where
     )
 }
 
+pub trait Simplify {
+    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result;
+}
+
+pub trait Simplificable: Resolve + Simplify {}
+
+clone_trait_object!(<X> Simplificable<Result = X>);
+
+macro_rules! bulk_impl_traits {
+    ($($type:ty),+) => {
+        $(
+            impl Simplify for $type
+            where
+                $type: std::fmt::Debug
+            {
+                #[inline]
+                fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+                    write!(file, "{:?}", self)
+                }
+            }
+            impl Simplificable for $type {}
+        )+
+    };
+}
+
+bulk_impl_traits!(i8, i16, i32, i64, isize);
+bulk_impl_traits!(u8, u16, u32, u64, usize);
+bulk_impl_traits!(f32, f64);
+bulk_impl_traits!(i128, u128);
+
+#[derive(Clone)]
+pub enum Context6<T, R> {
+    Add(
+        Box<dyn Itertraitor<Item = Box<dyn Simplificable<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Mul(
+        Box<dyn Itertraitor<Item = Box<dyn Simplificable<Result = T>>>>,
+        fn(T) -> R,
+    ),
+    Nil(Box<dyn Simplificable<Result = T>>, fn(T) -> R),
+}
+
+impl<T, R> Resolve for Context6<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+    type Result = R;
+    fn resolve(self: Box<Self>) -> Self::Result {
+        match *self {
+            Context6::Mul(val, func) => val.fold(R::one(), |a, i| a * func(i.resolve())),
+            Context6::Add(val, func) => val.fold(R::zero(), |a, i| a + func(i.resolve())),
+            Context6::Nil(val, func) => func(val.resolve()),
+        }
+    }
+}
+
+impl<T, R> Simplificable for Context6<T, R>
+where
+    T: Clone,
+    R: One + Zero + Clone,
+{
+}
+
+impl<T, R> Context6<T, R> {
+    fn resolve(self) -> R
+    where
+        T: Clone,
+        R: One + Zero + Clone,
+    {
+        Resolve::resolve(Box::new(self))
+    }
+    fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
+        Simplify::simplify(Box::new(self), file)
+    }
+    fn repr(self) -> Result<String, std::fmt::Error> {
+        let mut file = String::new();
+        self.repr_into(&mut file)?;
+        Ok(file)
+    }
+}
+
+impl<T, R> Simplify for Context6<T, R> {
+    // remove func
+    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+        let (iter, is_additive) = match *self {
+            Context6::Add(iter, _) => (iter, true),
+            Context6::Mul(iter, _) => (iter, false),
+            Context6::Nil(val, _) => return val.simplify(file),
+        };
+        write!(file, "(")?;
+        for (index, item) in iter.enumerate() {
+            write!(
+                file,
+                "{}",
+                if index != 0 {
+                    if is_additive {
+                        " + "
+                    } else {
+                        " * "
+                    }
+                } else {
+                    ""
+                }
+            )?;
+            Simplify::simplify(item, file)?;
+        }
+        write!(file, ")")
+    }
+}
+
+fn cx6() {
+    // (1 * 2) + 1 + (1 + 2)
+    let a = Context6::Add(
+        Box::new(
+            vec![
+                Box::new(Context6::Mul(
+                    Box::new(
+                        vec![
+                            Box::new(Context6::Nil(Box::new(1), |x| x))
+                                as Box<dyn Simplificable<Result = _>>,
+                            Box::new(Context6::Nil(Box::new(2), |x| x))
+                                as Box<dyn Simplificable<Result = _>>,
+                        ]
+                        .into_iter(),
+                    ) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                )) as Box<dyn Simplificable<Result = _>>,
+                Box::new(Context6::Nil(Box::new(1), |x| x)) as Box<dyn Simplificable<Result = _>>,
+                Box::new(Context6::Add(
+                    Box::new(
+                        vec![
+                            Box::new(Context6::Nil(Box::new(1), |x| x))
+                                as Box<dyn Simplificable<Result = _>>,
+                            Box::new(Context6::Nil(Box::new(2), |x| x))
+                                as Box<dyn Simplificable<Result = _>>,
+                        ]
+                        .into_iter(),
+                    ) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                )) as Box<dyn Simplificable<Result = _>>,
+            ]
+            .into_iter(),
+        ) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(
+        "{}",
+        a.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", a.resolve());
+
+    // (1 + (1 * 2) + (1 + 2 + 3) + (1 * 2 * 3 * (1 + 2 + 3 + 4)) + (1 + 2 + 3 + 4 + 5))
+    let b = Context6::Add(
+        Box::new((1..=5).map(|val| {
+            if val % 2 == 0 {
+                Box::new(Context6::Mul(
+                    Box::new((1..=val).map(|val| {
+                        (if val % 4 == 0 {
+                            Box::new(Context6::Add(
+                                Box::new((1..=val).map(|val| {
+                                    Box::new(Context6::Nil(Box::new(val), |x| x))
+                                        as Box<dyn Simplificable<Result = _>>
+                                }))
+                                    as Box<dyn Itertraitor<Item = _>>,
+                                |x| x,
+                            ))
+                        } else {
+                            Box::new(Context6::Nil(Box::new(val), |x| x))
+                        }) as Box<dyn Simplificable<Result = _>>
+                    })) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                ))
+            } else if val == 1 {
+                Box::new(Context6::Nil(Box::new(val), |x| x))
+            } else {
+                Box::new(Context6::Add(
+                    Box::new((1..=val).map(|val| {
+                        Box::new(Context6::Nil(Box::new(val), |x| x))
+                            as Box<dyn Simplificable<Result = _>>
+                    })) as Box<dyn Itertraitor<Item = _>>,
+                    |x| x,
+                ))
+            }
+        } as Box<dyn Simplificable<Result = _>>)) as Box<dyn Itertraitor<Item = _>>,
+        |x| x,
+    );
+    println!(
+        "{}",
+        b.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", b.resolve());
+}
+
 pub fn main() {
     println!("[\x1b[32mContext 1\x1b[0m] (\x1b[33mVec<Context>, Repr, Cloneable\x1b[0m)");
     cx1();
@@ -567,4 +762,8 @@ pub fn main() {
         "[\x1b[32mContext 5\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Non-repr, Clonable, Transforming\x1b[0m)"
     );
     cx5();
+    println!(
+        "[\x1b[32mContext 6\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Repr, Clonable, Transforming\x1b[0m)"
+    );
+    cx6();
 }
