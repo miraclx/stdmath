@@ -884,7 +884,7 @@ impl<T, R> Simplify for Context7<T, R> {
             }
             (None, Some((flipped, f_over_one))) => write!(
                 file,
-                "({}{})",
+                "{}{}",
                 if is_additive { "-" } else { "1/" },
                 if f_over_one {
                     format!("({})", flipped)
