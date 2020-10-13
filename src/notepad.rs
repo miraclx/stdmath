@@ -1127,34 +1127,32 @@ fn cx7() {
     // ops tests
     println!("\n--ops test--");
 
-    let val1 = product7(vec![Type::Normal(10)].into_iter(), |x| x);
-    let val2 = val1.clone();
+    let val = product7(vec![Type::Normal(10)].into_iter(), |x| x);
 
     println!(
         "val1 := {}",
-        val1.clone()
+        val.clone()
             .repr()
             .expect("failed to represent math context")
     );
-    println!(" = {}", val1.clone().resolve());
-
+    println!(" = {}", val.clone().resolve());
     println!(
         "val2 := {}",
-        val2.clone()
+        val.clone()
             .repr()
             .expect("failed to represent math context")
     );
-    println!(" = {}", val2.clone().resolve());
+    println!(" = {}", val.clone().resolve());
 
-    let val3 = val1 / val2;
-    println!("val3 := val1 / val2");
+    let div = val.clone() / val.clone();
+    println!("div := val1 / val2");
     println!(
-        "val3 := {}",
-        val3.clone()
+        "div := {}",
+        div.clone()
             .repr()
             .expect("failed to represent math context")
     );
-    println!(" = {}", val3.clone().resolve());
+    println!(" = {}", div.resolve());
 }
 
 pub fn main() {
