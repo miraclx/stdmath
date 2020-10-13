@@ -951,6 +951,28 @@ where
     )
 }
 
+impl<T, R, F: Fn(T) -> R> std::ops::Div<Context7<T, R, F>> for Context7<T, R, F>
+where
+    T: Clone + 'static,
+    R: One
+        + Zero
+        + Clone
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>
+        + 'static,
+    F: Clone + 'static,
+{
+    type Output = Context7<R, R, fn(R) -> R>;
+    fn div(self, rhs: Context7<T, R, F>) -> Self::Output {
+        product7(
+            vec![Type::Normal(self), Type::Inverse(rhs)].into_iter(),
+            |x| x,
+        )
+    }
+}
+
 fn cx7() {
     // (1 * 2) + 1 + (1 + 2)
     let a = sum7(
@@ -1101,6 +1123,35 @@ fn cx7() {
         k.clone().repr().expect("failed to represent math context")
     );
     println!(" = {}", k.resolve());
+
+    // ops tests
+    let val1 = product7(vec![Type::Normal(10)].into_iter(), |x| x);
+    let val2 = val1.clone();
+
+    println!(
+        "val1 := {}",
+        val1.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val1.clone().resolve());
+
+    println!(
+        "val2 := {}",
+        val2.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val2.clone().resolve());
+
+    let val3 = val1 / val2;
+    println!(
+        "val3 := {}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val3.clone().resolve());
 }
 
 pub fn main() {
