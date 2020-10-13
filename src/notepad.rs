@@ -851,27 +851,46 @@ impl<T, R> Simplify for Context7<T, R> {
             };
             let mut file = String::new();
             item.unwrap().simplify(&mut file)?;
-            if let Some(prev) = this {
+            if let Some((prev, over_one)) = this {
+                *over_one = true;
                 String::push_str(prev, if is_additive { " + " } else { " * " });
                 String::push_str(prev, &file);
             } else {
-                *this = Some(file);
+                *this = Some((file, false));
             };
         }
         match (normal, flipped) {
-            (Some(normal), Some(flipped)) => write!(
+            (Some((normal, n_over_one)), Some((flipped, f_over_one))) => write!(
                 file,
-                "({}){}({})",
-                normal,
+                "{}{}{}",
+                if n_over_one {
+                    format!("({})", normal)
+                } else {
+                    normal
+                },
                 if is_additive { " - " } else { " / " },
-                flipped
+                if f_over_one {
+                    format!("({})", flipped)
+                } else {
+                    flipped
+                },
             ),
-            (Some(normal), None) => write!(file, "({})", normal),
-            (None, Some(flipped)) => write!(
+            (Some((normal, n_over_one)), None) => {
+                if n_over_one {
+                    write!(file, "({})", normal)
+                } else {
+                    write!(file, "{}", normal)
+                }
+            }
+            (None, Some((flipped, f_over_one))) => write!(
                 file,
-                "({}({}))",
+                "({}{})",
                 if is_additive { "-" } else { "1/" },
-                flipped
+                if f_over_one {
+                    format!("({})", flipped)
+                } else {
+                    flipped
+                }
             ),
             (None, None) => Ok(()),
         }
