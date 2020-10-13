@@ -841,36 +841,40 @@ impl<T, R> Simplify for Context7<T, R> {
             Context7::Add(iter, _) => (iter, true),
             Context7::Mul(iter, _) => (iter, false),
         };
-        write!(file, "(")?;
-        for (index, item) in iter.enumerate() {
-            write!(
-                file,
-                "{}",
-                if index != 0 {
-                    if is_additive {
-                        " + "
-                    } else {
-                        " * "
-                    }
-                } else {
-                    ""
-                }
-            )?;
-            let (inverted, val) = (item.is_inverted(), item.unwrap());
-            let (now, end) = if inverted {
-                if is_additive {
-                    ("(-(", "))")
-                } else {
-                    ("(1/(", "))")
-                }
+        let (mut normal, mut flipped) = (None, None);
+        for item in iter {
+            let is_inverted = item.is_inverted();
+            let this = if !is_inverted {
+                &mut normal
             } else {
-                ("(", ")")
+                &mut flipped
             };
-            write!(file, "{}", now)?;
-            val.simplify(file)?;
-            write!(file, "{}", end)?;
+            let mut file = String::new();
+            item.unwrap().simplify(&mut file)?;
+            if let Some(prev) = this {
+                String::push_str(prev, if is_additive { " + " } else { " * " });
+                String::push_str(prev, &file);
+            } else {
+                *this = Some(file);
+            };
         }
-        write!(file, ")")
+        match (normal, flipped) {
+            (Some(normal), Some(flipped)) => write!(
+                file,
+                "({}){}({})",
+                normal,
+                if is_additive { " - " } else { " / " },
+                flipped
+            ),
+            (Some(normal), None) => write!(file, "({})", normal),
+            (None, Some(flipped)) => write!(
+                file,
+                "({}({}))",
+                if is_additive { "-" } else { "1/" },
+                flipped
+            ),
+            (None, None) => Ok(()),
+        }
     }
 }
 
