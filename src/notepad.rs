@@ -1125,6 +1125,8 @@ fn cx7() {
     println!(" = {}", k.resolve());
 
     // ops tests
+    println!("\n--ops test--");
+
     let val1 = product7(vec![Type::Normal(10)].into_iter(), |x| x);
     let val2 = val1.clone();
 
@@ -1145,6 +1147,7 @@ fn cx7() {
     println!(" = {}", val2.clone().resolve());
 
     let val3 = val1 / val2;
+    println!("val3 := val1 / val2");
     println!(
         "val3 := {}",
         val3.clone()
