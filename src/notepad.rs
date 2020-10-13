@@ -1100,7 +1100,7 @@ pub fn main() {
     );
     cx6();
     println!(
-        "[\x1b[32mContext 7\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Box<dyn Resolve>>>, Typed, Repr, Clonable, Transforming\x1b[0m)"
+        "[\x1b[32mContext 7\x1b[0m] (\x1b[33mBox<dyn Iterator<Item = Type<Box<dyn Simplificable>>>>, Typed, Repr, Clonable, Transforming\x1b[0m)"
     );
     cx7();
 }
