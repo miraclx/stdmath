@@ -982,6 +982,26 @@ fn cx7() {
         d.clone().repr().expect("failed to represent math context")
     );
     println!(" = {}", d.resolve());
+
+    // 10 * (1/5) * 10 * (1/5) * 10 * (1/5)
+    // (10 * 10 * 10) / (5 * 5 * 5)
+    let e = product7(
+        vec![
+            Type::Normal(10),
+            Type::Inverse(5),
+            Type::Normal(10),
+            Type::Inverse(5),
+            Type::Normal(10),
+            Type::Inverse(5),
+        ]
+        .into_iter(),
+        |x| x,
+    );
+    println!(
+        "{}",
+        e.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", e.resolve());
 }
 
 pub fn main() {
