@@ -746,18 +746,21 @@ fn cx6() {
 }
 
 #[derive(Clone)]
-pub enum Context7<T, R> {
+pub enum Context7<T, R, F>
+where
+    F: Fn(T) -> R,
+{
     Add(
         Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
-        fn(T) -> R,
+        F,
     ),
     Mul(
         Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
-        fn(T) -> R,
+        F,
     ),
 }
 
-impl<T, R> Resolve for Context7<T, R>
+impl<T, R, F> Resolve for Context7<T, R, F>
 where
     T: Clone,
     R: One
@@ -767,6 +770,7 @@ where
         + std::ops::Add
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>,
+    F: Fn(T) -> R + Clone,
 {
     type Result = R;
     fn resolve(self: Box<Self>) -> Self::Result {
@@ -810,7 +814,7 @@ where
     }
 }
 
-impl<T, R> Context7<T, R> {
+impl<T, R, F: Fn(T) -> R> Context7<T, R, F> {
     pub fn resolve(self) -> R
     where
         T: Clone,
@@ -821,6 +825,7 @@ impl<T, R> Context7<T, R> {
             + std::ops::Add
             + std::ops::Div<Output = R>
             + std::ops::Sub<Output = R>,
+        F: Clone,
     {
         Resolve::resolve(Box::new(self))
     }
@@ -834,7 +839,10 @@ impl<T, R> Context7<T, R> {
     }
 }
 
-impl<T, R> Simplify for Context7<T, R> {
+impl<T, R, F> Simplify for Context7<T, R, F>
+where
+    F: Fn(T) -> R,
+{
     // remove func
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
         let (iter, is_additive) = match *self {
@@ -897,7 +905,7 @@ impl<T, R> Simplify for Context7<T, R> {
     }
 }
 
-impl<T, R> Simplificable for Context7<T, R>
+impl<T, R, F> Simplificable for Context7<T, R, F>
 where
     T: Clone,
     R: One
@@ -907,10 +915,14 @@ where
         + std::ops::Add
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>,
+    F: Fn(T) -> R + Clone,
 {
 }
 
-fn product7<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context7<X, R>
+fn product7<I: Iterator<Item = Type<V>>, V, X, R>(
+    iter: I,
+    func: fn(X) -> R,
+) -> Context7<X, R, fn(X) -> R>
 where
     I: Clone + 'static,
     V: Simplificable<Result = X> + 'static,
@@ -922,7 +934,11 @@ where
         func,
     )
 }
-fn sum7<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context7<X, R>
+
+fn sum7<I: Iterator<Item = Type<V>>, V, X, R>(
+    iter: I,
+    func: fn(X) -> R,
+) -> Context7<X, R, fn(X) -> R>
 where
     I: Clone + 'static,
     V: Simplificable<Result = X> + 'static,
@@ -1071,6 +1087,20 @@ fn cx7() {
         j.clone().repr().expect("failed to represent math context")
     );
     println!(" = {}", j.resolve());
+
+    let k = sum7(
+        vec![
+            Type::Normal(sum7(std::iter::once(Type::Inverse(15)), |x| x)),
+            Type::Inverse(sum7(std::iter::once(Type::Normal(10)), |x| x)),
+        ]
+        .into_iter(),
+        |x| x,
+    );
+    println!(
+        "{}",
+        k.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", k.resolve());
 }
 
 pub fn main() {
