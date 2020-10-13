@@ -994,17 +994,41 @@ fn cx7() {
     );
     println!(" = {}", c.resolve());
 
-    // (10 / 5)
-    let d = product7(vec![Type::Normal(10), Type::Inverse(5)].into_iter(), |x| x);
+    // 1/10
+    let d = product7(vec![Type::Inverse(10.0)].into_iter(), |x| x);
     println!(
         "{}",
         d.clone().repr().expect("failed to represent math context")
     );
     println!(" = {}", d.resolve());
 
+    // 10
+    let e = sum7(vec![Type::Normal(10)].into_iter(), |x| x);
+    println!(
+        "{}",
+        e.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", e.resolve());
+
+    // -10
+    let f = sum7(vec![Type::Inverse(10)].into_iter(), |x| x);
+    println!(
+        "{}",
+        f.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", f.resolve());
+
+    // (10 / 5)
+    let g = product7(vec![Type::Normal(10), Type::Inverse(5)].into_iter(), |x| x);
+    println!(
+        "{}",
+        g.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", g.resolve());
+
     // 10 * (1/5) * 10 * (1/5) * 10 * (1/5)
     // (10 * 10 * 10) / (5 * 5 * 5)
-    let e = product7(
+    let h = product7(
         vec![
             Type::Normal(10),
             Type::Inverse(5),
@@ -1018,9 +1042,35 @@ fn cx7() {
     );
     println!(
         "{}",
-        e.clone().repr().expect("failed to represent math context")
+        h.clone().repr().expect("failed to represent math context")
     );
-    println!(" = {}", e.resolve());
+    println!(" = {}", h.resolve());
+
+    let i = sum7(
+        vec![Type::Inverse(5), Type::Inverse(5), Type::Inverse(5)].into_iter(),
+        |x| x,
+    );
+    println!(
+        "{}",
+        i.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", i.resolve());
+
+    let j = sum7(
+        vec![
+            Type::Normal(15),
+            Type::Inverse(5),
+            Type::Inverse(5),
+            Type::Inverse(5),
+        ]
+        .into_iter(),
+        |x| x,
+    );
+    println!(
+        "{}",
+        j.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {}", j.resolve());
 }
 
 pub fn main() {
