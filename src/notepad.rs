@@ -973,6 +973,28 @@ where
     }
 }
 
+impl<T, R, F: Fn(T) -> R> std::ops::Mul<Context7<T, R, F>> for Context7<T, R, F>
+where
+    T: Clone + 'static,
+    R: One
+        + Zero
+        + Clone
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>
+        + 'static,
+    F: Clone + 'static,
+{
+    type Output = Context7<R, R, fn(R) -> R>;
+    fn mul(self, rhs: Context7<T, R, F>) -> Self::Output {
+        product7(
+            vec![Type::Normal(self), Type::Normal(rhs)].into_iter(),
+            |x| x,
+        )
+    }
+}
+
 fn cx7() {
     // (1 * 2) + 1 + (1 + 2)
     let a = sum7(
@@ -1154,6 +1176,17 @@ fn cx7() {
             .expect("failed to represent math context")
     );
     println!(" = {}", div.resolve());
+    println!("--------------");
+    let mul = val.clone() * val.clone();
+    println!("mul := val1 * val2");
+    println!(
+        "mul := {}",
+        mul.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", mul.resolve());
+    println!("--------------");
 }
 
 pub fn main() {
