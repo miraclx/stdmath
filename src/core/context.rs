@@ -148,6 +148,12 @@ impl<T, F> Context<T, F> {
             Context::Mul(iter, func) => f(iter, func),
         }
     }
+    pub fn is_additive(&self) -> bool {
+        if let Context::Add(_, _) = self {
+            return true;
+        }
+        false
+    }
 }
 
 impl<T, F> Simplify for Context<T, F> {
