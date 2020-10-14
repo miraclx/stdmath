@@ -584,4 +584,75 @@ pub fn main() {
     );
     println!(" = {}", sub.resolve());
     println!("--------------");
+
+    // optimizing operations
+    println!("\n---optimization test---");
+
+    let func = |x| x;
+    let val1: Context<_, fn(i32) -> _> = Context::Add(
+        Box::new((1..=2).map(|v| Type::Normal(Box::new(v) as Box<dyn Simplificable<Result = _>>))),
+        func,
+    );
+    let val2: Context<_, fn(i32) -> _> = Context::Add(
+        Box::new((1..=2).map(|v| Type::Normal(Box::new(v) as Box<dyn Simplificable<Result = _>>))),
+        func,
+    );
+    let val3: Context<_, fn(i32) -> _> = Context::Add(
+        Box::new((1..=2).map(|v| Type::Normal(Box::new(v) as Box<dyn Simplificable<Result = _>>))),
+        |x| x,
+    );
+    let val4: Context<_, fn(i32) -> _> = Context::Add(
+        Box::new((1..=2).map(|v| Type::Normal(Box::new(v) as Box<dyn Simplificable<Result = _>>))),
+        |x| x,
+    );
+
+    println!(
+        "val1 := {} (func shared with val2)",
+        val1.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val1.clone().resolve());
+    println!(
+        "val2 := {} (func shared with val1)",
+        val2.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val2.clone().resolve());
+    println!(
+        "val3 := {} (unique func)",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val3.clone().resolve());
+    println!(
+        "val4 := {} (unique func)",
+        val4.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", val4.clone().resolve());
+
+    println!("--------------");
+    let add = val1.clone() + val2.clone();
+    println!("add := val1 + val2");
+    println!(
+        "add := {}",
+        add.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", add.resolve());
+    let add = val3.clone() + val4.clone();
+    println!("add := val3 + val4");
+    println!(
+        "add := {}",
+        add.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {}", add.resolve());
+    println!("--------------");
 }
