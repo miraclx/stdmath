@@ -141,7 +141,7 @@ impl<T, R, F: Fn(T) -> R> Context<T, F> {
     }
 }
 
-impl<T, R, F: Fn(T) -> R> Simplify for Context<T, F> {
+impl<T, F> Simplify for Context<T, F> {
     // remove func
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
         let (iter, is_additive) = match *self {
