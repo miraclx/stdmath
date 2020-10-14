@@ -98,24 +98,20 @@ where
                     [std::ops::Mul::mul, std::ops::Div::div],
                 ),
             };
-        let (normal, inverse) = iter.fold((None, None), |(normal, inverse), item| {
+        let (mut normal, mut inverse) = (None, None);
+        for item in iter {
             let is_inverted = item.is_inverted();
-            let (this, other) = if !is_inverted {
-                (normal, inverse)
+            let this = if !is_inverted {
+                &mut normal
             } else {
-                (inverse, normal)
+                &mut inverse
             };
             let val = item.unwrap().resolve();
-            let this = Some(match this {
+            *this = Some(match this.take() {
                 Some(prev) => normal_op(prev, func(val)),
                 None => func(val),
-            });
-            if !is_inverted {
-                (this, other)
-            } else {
-                (other, this)
-            }
-        });
+            })
+        }
         let normal = normal.unwrap_or_else(default);
         let inverse = inverse.unwrap_or_else(default);
 
