@@ -55,10 +55,7 @@ bulk_impl_traits!(f32, f64);
 bulk_impl_traits!(i128, u128);
 
 #[derive(Clone)]
-pub enum Context<T, R, F>
-where
-    F: Fn(T) -> R,
-{
+pub enum Context<T, F> {
     Add(
         Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
         F,
@@ -69,7 +66,7 @@ where
     ),
 }
 
-impl<T, R, F> Resolve for Context<T, R, F>
+impl<T, R, F> Resolve for Context<T, F>
 where
     T: Clone,
     R: One
@@ -119,7 +116,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> Context<T, R, F> {
+impl<T, R, F: Fn(T) -> R> Context<T, F> {
     pub fn resolve(self) -> R
     where
         T: Clone,
@@ -144,10 +141,7 @@ impl<T, R, F: Fn(T) -> R> Context<T, R, F> {
     }
 }
 
-impl<T, R, F> Simplify for Context<T, R, F>
-where
-    F: Fn(T) -> R,
-{
+impl<T, R, F: Fn(T) -> R> Simplify for Context<T, F> {
     // remove func
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
         let (iter, is_additive) = match *self {
@@ -210,7 +204,7 @@ where
     }
 }
 
-impl<T, R, F> Simplificable for Context<T, R, F>
+impl<T, R, F> Simplificable for Context<T, F>
 where
     T: Clone,
     R: One
@@ -227,7 +221,7 @@ where
 fn product<I: Iterator<Item = Type<V>>, V, X, R>(
     iter: I,
     func: fn(X) -> R,
-) -> Context<X, R, fn(X) -> R>
+) -> Context<X, fn(X) -> R>
 where
     I: Clone + 'static,
     V: Simplificable<Result = X> + 'static,
@@ -240,7 +234,7 @@ where
     )
 }
 
-fn sum<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context<X, R, fn(X) -> R>
+fn sum<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context<X, fn(X) -> R>
 where
     I: Clone + 'static,
     V: Simplificable<Result = X> + 'static,
@@ -253,7 +247,7 @@ where
     )
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Div<Context<T, R, F>> for Context<T, R, F>
+impl<T, R, F: Fn(T) -> R> std::ops::Div<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -266,8 +260,8 @@ where
         + 'static,
     F: Clone + 'static,
 {
-    type Output = Context<R, R, fn(R) -> R>;
-    fn div(self, rhs: Context<T, R, F>) -> Self::Output {
+    type Output = Context<R, fn(R) -> R>;
+    fn div(self, rhs: Context<T, F>) -> Self::Output {
         product(
             vec![Type::Normal(self), Type::Inverse(rhs)].into_iter(),
             |x| x,
@@ -275,7 +269,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Mul<Context<T, R, F>> for Context<T, R, F>
+impl<T, R, F: Fn(T) -> R> std::ops::Mul<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -288,8 +282,8 @@ where
         + 'static,
     F: Clone + 'static,
 {
-    type Output = Context<R, R, fn(R) -> R>;
-    fn mul(self, rhs: Context<T, R, F>) -> Self::Output {
+    type Output = Context<R, fn(R) -> R>;
+    fn mul(self, rhs: Context<T, F>) -> Self::Output {
         product(
             vec![Type::Normal(self), Type::Normal(rhs)].into_iter(),
             |x| x,
@@ -297,7 +291,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Add<Context<T, R, F>> for Context<T, R, F>
+impl<T, R, F: Fn(T) -> R> std::ops::Add<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -310,8 +304,8 @@ where
         + 'static,
     F: Clone + 'static,
 {
-    type Output = Context<R, R, fn(R) -> R>;
-    fn add(self, rhs: Context<T, R, F>) -> Self::Output {
+    type Output = Context<R, fn(R) -> R>;
+    fn add(self, rhs: Context<T, F>) -> Self::Output {
         sum(
             vec![Type::Normal(self), Type::Normal(rhs)].into_iter(),
             |x| x,
@@ -319,7 +313,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Sub<Context<T, R, F>> for Context<T, R, F>
+impl<T, R, F: Fn(T) -> R> std::ops::Sub<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -332,8 +326,8 @@ where
         + 'static,
     F: Clone + 'static,
 {
-    type Output = Context<R, R, fn(R) -> R>;
-    fn sub(self, rhs: Context<T, R, F>) -> Self::Output {
+    type Output = Context<R, fn(R) -> R>;
+    fn sub(self, rhs: Context<T, F>) -> Self::Output {
         sum(
             vec![Type::Normal(self), Type::Inverse(rhs)].into_iter(),
             |x| x,
