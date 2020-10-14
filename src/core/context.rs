@@ -116,8 +116,8 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> Context<T, F> {
-    pub fn resolve(self) -> R
+impl<T, F> Context<T, F> {
+    pub fn resolve<R>(self) -> R
     where
         T: Clone,
         R: One
@@ -127,7 +127,7 @@ impl<T, R, F: Fn(T) -> R> Context<T, F> {
             + std::ops::Add
             + std::ops::Div<Output = R>
             + std::ops::Sub<Output = R>,
-        F: Clone,
+        F: Fn(T) -> R + Clone,
     {
         Resolve::resolve(Box::new(self))
     }
