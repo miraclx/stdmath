@@ -148,6 +148,17 @@ impl<T, F> Context<T, F> {
             Context::Mul(iter, func) => f(iter, func),
         }
     }
+    fn dump(
+        self,
+    ) -> (
+        Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>,
+        F,
+    ) {
+        match self {
+            Context::Add(iter, func) => (iter, func),
+            Context::Mul(iter, func) => (iter, func),
+        }
+    }
     pub fn is_additive(&self) -> bool {
         if let Context::Add(_, _) = self {
             return true;
