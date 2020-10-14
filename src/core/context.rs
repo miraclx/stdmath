@@ -154,13 +154,13 @@ where
             Context::Add(iter, _) => (iter, true),
             Context::Mul(iter, _) => (iter, false),
         };
-        let (mut normal, mut flipped) = (None, None);
+        let (mut normal, mut inverse) = (None, None);
         for item in iter {
             let is_inverted = item.is_inverted();
             let this = if !is_inverted {
                 &mut normal
             } else {
-                &mut flipped
+                &mut inverse
             };
             let mut file = String::new();
             item.unwrap().simplify(&mut file)?;
@@ -172,8 +172,8 @@ where
                 *this = Some((file, false));
             };
         }
-        match (normal, flipped) {
-            (Some((normal, n_over_one)), Some((flipped, f_over_one))) => write!(
+        match (normal, inverse) {
+            (Some((normal, n_over_one)), Some((inverse, f_over_one))) => write!(
                 file,
                 "({}{}{})",
                 if n_over_one {
@@ -183,9 +183,9 @@ where
                 },
                 if is_additive { " - " } else { " / " },
                 if f_over_one {
-                    format!("({})", flipped)
+                    format!("({})", inverse)
                 } else {
-                    flipped
+                    inverse
                 },
             ),
             (Some((normal, n_over_one)), None) => {
@@ -195,14 +195,14 @@ where
                     write!(file, "{}", normal)
                 }
             }
-            (None, Some((flipped, f_over_one))) => write!(
+            (None, Some((inverse, f_over_one))) => write!(
                 file,
                 "{}{}",
                 if is_additive { "-" } else { "1/" },
                 if f_over_one {
-                    format!("({})", flipped)
+                    format!("({})", inverse)
                 } else {
-                    flipped
+                    inverse
                 }
             ),
             (None, None) => Ok(()),
