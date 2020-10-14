@@ -175,7 +175,7 @@ where
         match (normal, flipped) {
             (Some((normal, n_over_one)), Some((flipped, f_over_one))) => write!(
                 file,
-                "{}{}{}",
+                "({}{}{})",
                 if n_over_one {
                     format!("({})", normal)
                 } else {
