@@ -139,6 +139,15 @@ impl<T, F> Context<T, F> {
         self.repr_into(&mut file)?;
         Ok(file)
     }
+    pub fn map<P, R>(&self, f: P) -> R
+    where
+        P: Fn(&Box<dyn Itertraitor<Item = Type<Box<dyn Simplificable<Result = T>>>>>, &F) -> R,
+    {
+        match self {
+            Context::Add(iter, func) => f(iter, func),
+            Context::Mul(iter, func) => f(iter, func),
+        }
+    }
 }
 
 impl<T, F> Simplify for Context<T, F> {
