@@ -218,12 +218,9 @@ where
 {
 }
 
-fn product<I: Iterator<Item = Type<V>>, V, X, R>(
-    iter: I,
-    func: fn(X) -> R,
-) -> Context<X, fn(X) -> R>
+fn product<I, V, X, R>(iter: I, func: fn(X) -> R) -> Context<X, fn(X) -> R>
 where
-    I: Clone + 'static,
+    I: Iterator<Item = Type<V>> + Clone + 'static,
     V: Simplificable<Result = X> + 'static,
 {
     Context::Mul(
@@ -234,9 +231,9 @@ where
     )
 }
 
-fn sum<I: Iterator<Item = Type<V>>, V, X, R>(iter: I, func: fn(X) -> R) -> Context<X, fn(X) -> R>
+fn sum<I, V, X, R>(iter: I, func: fn(X) -> R) -> Context<X, fn(X) -> R>
 where
-    I: Clone + 'static,
+    I: Iterator<Item = Type<V>> + Clone + 'static,
     V: Simplificable<Result = X> + 'static,
 {
     Context::Add(
@@ -247,7 +244,7 @@ where
     )
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Div<Context<T, F>> for Context<T, F>
+impl<T, R, F> std::ops::Div<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -258,7 +255,7 @@ where
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>
         + 'static,
-    F: Clone + 'static,
+    F: Fn(T) -> R + Clone + 'static,
 {
     type Output = Context<R, fn(R) -> R>;
     fn div(self, rhs: Context<T, F>) -> Self::Output {
@@ -269,7 +266,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Mul<Context<T, F>> for Context<T, F>
+impl<T, R, F> std::ops::Mul<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -280,7 +277,7 @@ where
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>
         + 'static,
-    F: Clone + 'static,
+    F: Fn(T) -> R + Clone + 'static,
 {
     type Output = Context<R, fn(R) -> R>;
     fn mul(self, rhs: Context<T, F>) -> Self::Output {
@@ -291,7 +288,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Add<Context<T, F>> for Context<T, F>
+impl<T, R, F> std::ops::Add<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -302,7 +299,7 @@ where
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>
         + 'static,
-    F: Clone + 'static,
+    F: Fn(T) -> R + Clone + 'static,
 {
     type Output = Context<R, fn(R) -> R>;
     fn add(self, rhs: Context<T, F>) -> Self::Output {
@@ -313,7 +310,7 @@ where
     }
 }
 
-impl<T, R, F: Fn(T) -> R> std::ops::Sub<Context<T, F>> for Context<T, F>
+impl<T, R, F> std::ops::Sub<Context<T, F>> for Context<T, F>
 where
     T: Clone + 'static,
     R: One
@@ -324,7 +321,7 @@ where
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>
         + 'static,
-    F: Clone + 'static,
+    F: Fn(T) -> R + Clone + 'static,
 {
     type Output = Context<R, fn(R) -> R>;
     fn sub(self, rhs: Context<T, F>) -> Self::Output {
