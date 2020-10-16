@@ -3,8 +3,12 @@ use std::{any::Any, cmp::Ordering};
 trait Value {
     fn as_any(&self) -> &dyn Any;
     fn _cmp(&self, other: &dyn Value) -> Option<Ordering>;
-    fn _clone(&self) -> Box<dyn Value>;
-    fn _debug(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+    fn _clone(&self) -> Box<dyn Value> {
+        unimplemented!()
+    }
+    fn _debug(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        unimplemented!()
+    }
 }
 
 impl std::cmp::PartialEq<dyn Value> for dyn Value {
