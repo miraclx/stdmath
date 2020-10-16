@@ -16,6 +16,8 @@ impl std::cmp::PartialEq<dyn Value> for dyn Value {
     }
 }
 
+impl std::cmp::Eq for dyn Value {}
+
 impl std::fmt::Debug for dyn Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self._debug(f)
