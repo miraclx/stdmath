@@ -2,6 +2,7 @@ use std::{
     any::Any,
     cmp::{Eq, Ordering, PartialEq},
     fmt::{self, Debug},
+    hash::{Hash, Hasher},
 };
 
 trait Value {
@@ -11,6 +12,9 @@ trait Value {
         unimplemented!()
     }
     fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        unimplemented!()
+    }
+    fn _hash(&self, _state: &mut dyn Hasher) {
         unimplemented!()
     }
 }
@@ -44,10 +48,16 @@ impl Clone for Box<dyn Value> {
     }
 }
 
+impl Hash for Box<dyn Value> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self._hash(state);
+    }
+}
+
 macro_rules! stage_default_methods {
     () => {};
     (ALL) => {
-        stage_default_methods!(as_any _cmp _debug _clone);
+        stage_default_methods!(as_any _cmp _debug _clone _hash);
     };
     (as_any $($rest:tt)*) => {
         fn as_any(&self) -> &dyn Any {
@@ -73,6 +83,12 @@ macro_rules! stage_default_methods {
     (_clone $($rest:tt)*) => {
         fn _clone(&self) -> Box<dyn Value> {
             Box::new(self.clone()) as Box<dyn Value>
+        }
+        stage_default_methods!($($rest)*);
+    };
+    (_hash $($rest:tt)*) => {
+        fn _hash(&self, mut state: &mut dyn Hasher) {
+            self.hash(&mut state)
         }
         stage_default_methods!($($rest)*);
     };
