@@ -75,6 +75,18 @@ impl Value for B {
     stage_default_methods!(ALL);
 }
 
+#[derive(Clone, Debug, Eq)]
+struct C {
+    a: Box<dyn Value>,
+    b: Box<dyn Value>,
+}
+
+impl PartialEq for C {
+    fn eq(&self, other: &Self) -> bool {
+        (&self.a, &self.b) == (&other.a, &other.b)
+    }
+}
+
 pub fn main() {
     let vec1: Vec<Box<dyn Value>> = vec![Box::new(A), Box::new(B)];
     let vec2: Vec<Box<dyn Value>> = vec![Box::new(A), Box::new(B)];
@@ -96,4 +108,17 @@ pub fn main() {
     let c = Box::new(a) as Box<dyn Value>;
     println!("{:?}", c);
     println!("{:?}", c.clone());
+
+    let val1 = C {
+        a: Box::new(A),
+        b: Box::new(B),
+    };
+    let val2 = C {
+        a: Box::new(A),
+        b: Box::new(B),
+    };
+
+    println!("{:?}", val1);
+    println!("{:?}", val2);
+    println!("{:?}", val1 == val2);
 }
