@@ -94,18 +94,18 @@ macro_rules! stage_default_methods {
     };
 }
 
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug, Hash)]
 struct A;
 impl Value for A {
     stage_default_methods!(ALL);
 }
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug, Hash)]
 struct B;
 impl Value for B {
     stage_default_methods!(ALL);
 }
 
-#[derive(Clone, Debug, Eq, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialOrd, Hash)]
 struct C {
     a: Box<dyn Value>,
     b: Box<dyn Value>,
@@ -158,4 +158,8 @@ pub fn main() {
 
     let val3 = Box::new(val1) as Box<dyn Value>;
     println!("{:?}", val3);
+
+    let mut state = std::collections::hash_map::DefaultHasher::new();
+    val2.hash(&mut state);
+    println!("{:x}", state.finish());
 }
