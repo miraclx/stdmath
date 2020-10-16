@@ -162,4 +162,30 @@ pub fn main() {
     let mut state = std::collections::hash_map::DefaultHasher::new();
     val2.hash(&mut state);
     println!("{:x}", state.finish());
+
+    use super::exclude::ExcludedIteratorExt;
+
+    let val1 = vec![
+        Box::new(A) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+    ];
+    let val2 = vec![
+        Box::new(B) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+        Box::new(A) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+        Box::new(B) as Box<dyn Value>,
+    ];
+    let iter1 = val1.into_iter();
+    let iter2 = val2.into_iter();
+
+    let res = iter1.exclude(iter2).include_overflow();
+    println!("{:?}", res.collect::<Vec<_>>());
 }
