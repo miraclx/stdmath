@@ -22,6 +22,12 @@ impl std::cmp::PartialEq<dyn Value> for dyn Value {
 
 impl std::cmp::Eq for dyn Value {}
 
+impl std::cmp::PartialOrd<dyn Value> for dyn Value {
+    fn partial_cmp(&self, other: &dyn Value) -> Option<Ordering> {
+        self._cmp(other)
+    }
+}
+
 impl std::fmt::Debug for dyn Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self._debug(f)
@@ -79,7 +85,7 @@ impl Value for B {
     stage_default_methods!(ALL);
 }
 
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Debug, Eq, PartialOrd)]
 struct C {
     a: Box<dyn Value>,
     b: Box<dyn Value>,
@@ -89,6 +95,10 @@ impl PartialEq for C {
     fn eq(&self, other: &Self) -> bool {
         (&self.a, &self.b) == (&other.a, &other.b)
     }
+}
+
+impl Value for C {
+    stage_default_methods!(ALL);
 }
 
 pub fn main() {
@@ -125,4 +135,7 @@ pub fn main() {
     println!("{:?}", val1);
     println!("{:?}", val2);
     println!("{:?}", val1 == val2);
+
+    let val3 = Box::new(val1) as Box<dyn Value>;
+    println!("{:?}", val3);
 }
