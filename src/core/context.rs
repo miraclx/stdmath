@@ -280,9 +280,9 @@ where
         self.repr_into(&mut file)?;
         Ok(file)
     }
-    pub fn map<P>(&self, f: P) -> R
+    pub fn map<P, X>(&self, f: P) -> X
     where
-        P: Fn(&Vec<Type<Box<dyn Resolve<Result = T>>>>, &F) -> R,
+        P: Fn(&Vec<Type<Box<dyn Resolve<Result = T>>>>, &F) -> X,
     {
         match self {
             Context::Add(iter, func) => f(iter, func),
