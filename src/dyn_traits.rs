@@ -1,4 +1,8 @@
-use std::{any::Any, cmp::Ordering};
+use std::{
+    any::Any,
+    cmp::{Eq, Ordering, PartialEq},
+    fmt::{self, Debug},
+};
 
 trait Value {
     fn as_any(&self) -> &dyn Any;
@@ -6,12 +10,12 @@ trait Value {
     fn _clone(&self) -> Box<dyn Value> {
         unimplemented!()
     }
-    fn _debug(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unimplemented!()
     }
 }
 
-impl std::cmp::PartialEq<dyn Value> for dyn Value {
+impl PartialEq<dyn Value> for dyn Value {
     fn eq(&self, other: &dyn Value) -> bool {
         if let Some(Ordering::Equal) = self._cmp(other) {
             return true;
@@ -20,16 +24,16 @@ impl std::cmp::PartialEq<dyn Value> for dyn Value {
     }
 }
 
-impl std::cmp::Eq for dyn Value {}
+impl Eq for dyn Value {}
 
-impl std::cmp::PartialOrd<dyn Value> for dyn Value {
+impl PartialOrd<dyn Value> for dyn Value {
     fn partial_cmp(&self, other: &dyn Value) -> Option<Ordering> {
         self._cmp(other)
     }
 }
 
-impl std::fmt::Debug for dyn Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Debug for dyn Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self._debug(f)
     }
 }
@@ -61,8 +65,8 @@ macro_rules! stage_default_methods {
         stage_default_methods!($($rest)*);
     };
     (_debug $($rest:tt)*) => {
-        fn _debug(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            std::fmt::Debug::fmt(self, f)
+        fn _debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            Debug::fmt(self, f)
         }
         stage_default_methods!($($rest)*);
     };
