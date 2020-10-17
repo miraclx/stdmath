@@ -98,6 +98,12 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(val),
         }
     }
+    pub fn as_mut(&mut self) -> Type<&mut T> {
+        match self {
+            Type::Normal(val) => Type::Normal(val),
+            Type::Inverse(val) => Type::Inverse(val),
+        }
+    }
 }
 
 #[derive(Clone)]
