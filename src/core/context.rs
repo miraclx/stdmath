@@ -137,7 +137,7 @@ pub enum Context<T, F> {
     Mul(Vec<Type<Box<dyn Resolve<Result = T>>>>, F),
 }
 
-impl<T, R, F> Resolve for Context<T, F>
+impl<T: 'static, R, F: 'static> Resolve for Context<T, F>
 where
     T: Clone,
     R: One
@@ -147,9 +147,6 @@ where
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>,
     F: Fn(T) -> R + Clone,
-    // FIXME: can these be unbounded? or at least custom defined
-    T: 'static,
-    F: 'static,
     // TODO: look into these
     T: Hash + Debug + PartialOrd,
     F: Hash + Debug + PartialOrd,
