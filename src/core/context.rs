@@ -72,12 +72,14 @@ macro_rules! stage_default_methods {
         stage_default_methods!(as_any _cmp _debug _clone _hash);
     };
     (as_any $($rest:tt)*) => {
+        #[inline]
         fn as_any(&self) -> &dyn Any {
             self
         }
         stage_default_methods!($($rest)*);
     };
     (_cmp $($rest:tt)*) => {
+        #[inline]
         fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering> {
             other
                 .as_any()
@@ -87,18 +89,21 @@ macro_rules! stage_default_methods {
         stage_default_methods!($($rest)*);
     };
     (_debug $($rest:tt)*) => {
+        #[inline]
         fn _debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             Debug::fmt(self, f)
         }
         stage_default_methods!($($rest)*);
     };
     (_clone $($rest:tt)*) => {
+        #[inline]
         fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
             Box::new(self.clone()) as Box<dyn Resolve<Result = Self::Result>>
         }
         stage_default_methods!($($rest)*);
     };
     (_hash $($rest:tt)*) => {
+        #[inline]
         fn _hash(&self, mut state: &mut dyn Hasher) {
             self.hash(&mut state)
         }
