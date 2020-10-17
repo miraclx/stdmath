@@ -92,6 +92,19 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(func(val)),
         }
     }
+    /// Converts from a `&Type<T>` to a `Type<&T>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let val = Type::Normal(100);
+    /// assert_eq!(val.as_ref().map(|val| val * 2), Type::Normal(200));
+    ///
+    /// let val = Type::Inverse("Hello");
+    /// assert_eq!(val.as_ref().map(|txt| txt.len()), Type::Inverse(5));
+    /// ```
     pub fn as_ref(&self) -> Type<&T> {
         match self {
             Type::Normal(val) => Type::Normal(val),
