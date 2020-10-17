@@ -9,10 +9,13 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-pub trait Resolve {
+pub trait Simplify {
+    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result;
+}
+
+pub trait Resolve: Simplify {
     type Result;
     fn resolve(self: Box<Self>) -> Self::Result;
-    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result;
 
     // methods needed for dynamicism
     fn as_any(&self) -> &dyn Any;
@@ -112,6 +115,8 @@ macro_rules! bulk_impl_traits {
             fn resolve(self: Box<Self>) -> Self::Result {
                 *self
             }
+        }
+        impl Simplify for $type {
             #[inline]
             fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
                 write!(file, "{:?}", self)
@@ -185,6 +190,9 @@ where
 
         inverse_op(normal, inverse)
     }
+}
+
+impl<T, F> Simplify for Context<T, F> {
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
         let (iter, is_additive) = match *self {
             Context::Add(iter, _) => (iter, true),
@@ -261,7 +269,7 @@ impl<T: 'static, F: 'static> Context<T, F> {
         Resolve::resolve(Box::new(self))
     }
     pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
-        Resolve::simplify(Box::new(self), file)
+        Simplify::simplify(Box::new(self), file)
     }
     pub fn repr(self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
