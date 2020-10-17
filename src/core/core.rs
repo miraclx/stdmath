@@ -111,6 +111,21 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(val),
         }
     }
+    /// Converts from a `&mut Type<T>` to a `Type<&mut T>`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Type;
+    ///
+    /// let mut text = Type::Normal("Hello".to_string());
+    /// text.as_mut().map(|s| s.push_str(", World!"));
+    /// assert_eq!(text.as_ref().map(|s| s.as_str()), Type::Normal("Hello, World!"));
+    ///
+    /// let mut val = Type::Inverse(33);
+    /// val.as_mut().map(|v| *v += 20);
+    /// assert_eq!(val, Type::Inverse(53));
+    /// ```
     pub fn as_mut(&mut self) -> Type<&mut T> {
         match self {
             Type::Normal(val) => Type::Normal(val),
