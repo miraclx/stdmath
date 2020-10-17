@@ -92,6 +92,12 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(func(val)),
         }
     }
+    pub fn as_ref(&self) -> Type<&T> {
+        match self {
+            Type::Normal(val) => Type::Normal(val),
+            Type::Inverse(val) => Type::Inverse(val),
+        }
+    }
 }
 
 #[derive(Clone)]
