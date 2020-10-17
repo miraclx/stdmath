@@ -281,9 +281,27 @@ impl<T: 'static, F: 'static> Context<T, F> {
         self.repr_into(&mut file)?;
         Ok(file)
     }
-    pub fn map<P, X>(&self, f: P) -> X
+    pub fn map<P>(self, f: P) -> Self
     where
-        P: Fn(&Vec<Type<Box<dyn Resolve<Result = T>>>>, &F) -> X,
+        P: FnOnce(
+            Vec<Type<Box<dyn Resolve<Result = T>>>>,
+            F,
+        ) -> (Vec<Type<Box<dyn Resolve<Result = T>>>>, F),
+    {
+        match self {
+            Context::Add(iter, func) => {
+                let (iter, func) = f(iter, func);
+                Context::Add(iter, func)
+            }
+            Context::Mul(iter, func) => {
+                let (iter, func) = f(iter, func);
+                Context::Mul(iter, func)
+            }
+        }
+    }
+    pub fn fold<P, X>(&self, f: P) -> X
+    where
+        P: FnOnce(&Vec<Type<Box<dyn Resolve<Result = T>>>>, &F) -> X,
     {
         match self {
             Context::Add(iter, func) => f(iter, func),
