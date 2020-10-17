@@ -396,41 +396,41 @@ pub fn main() {
 //     }
 // }
 
-// impl<T, R> std::ops::Add<Context<T, fn(T) -> R>> for Context<T, fn(T) -> R>
-// where
-//     T: Clone + 'static,
-//     R: One
-//         + Zero
-//         + Clone
-//         + std::ops::Mul
-//         + std::ops::Add
-//         + std::ops::Div<Output = R>
-//         + std::ops::Sub<Output = R>
-//         + 'static,
-// {
-//     type Output = Context<R, fn(R) -> R>;
-//     fn add(self, rhs: Context<T, fn(T) -> R>) -> Self::Output {
-//         let my_func = self.map(|_, func| func.clone());
-//         let your_func = rhs.map(|_, func| func.clone());
-//         match (self.is_additive(), rhs.is_additive(), my_func == your_func) {
-//             (true, true, true) => {
-//                 let (my_iter, _) = self.dump();
-//                 let (your_iter, _) = rhs.dump();
-//                 sum(
-//                     std::iter::once(Type::Normal(Context::Add(
-//                         Box::new(my_iter.chain(your_iter)),
-//                         my_func,
-//                     ))),
-//                     |x| x,
-//                 )
-//             }
-//             _ => sum(
-//                 vec![Type::Normal(self), Type::Normal(rhs)].into_iter(),
-//                 |x| x,
-//             ),
-//         }
-//     }
-// }
+impl<T: 'static, R: 'static> std::ops::Add<Context<T, fn(T) -> R>> for Context<T, fn(T) -> R>
+where
+    T: Clone + Hash + Debug + PartialOrd,
+    R: One
+        + Zero
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>,
+{
+    type Output = Context<R, fn(R) -> R>;
+    fn add(self, rhs: Context<T, fn(T) -> R>) -> Self::Output {
+        let my_func = self.map(|_, func| func.clone());
+        let your_func = rhs.map(|_, func| func.clone());
+        let x = (self.is_additive(), rhs.is_additive(), my_func == your_func);
+        println!("{:?}", x);
+        match x {
+            (true, true, true) => {
+                let (my_iter, _) = self.dump();
+                let (your_iter, _) = rhs.dump();
+                sum(
+                    std::iter::once(Type::Normal(Context::Add(
+                        my_iter.into_iter().chain(your_iter.into_iter()).collect(),
+                        my_func,
+                    ))),
+                    |x| x,
+                )
+            }
+            _ => sum(
+                vec![Type::Normal(self), Type::Normal(rhs)].into_iter(),
+                |x| x,
+            ),
+        }
+    }
+}
 
 // impl<T, R, F> std::ops::Sub<Context<T, F>> for Context<T, F>
 // where
