@@ -139,17 +139,14 @@ pub enum Context<T, F> {
 
 impl<T: 'static, R, F: 'static> Resolve for Context<T, F>
 where
-    T: Clone,
+    T: Clone + Hash + Debug + PartialOrd,
     R: One
         + Zero
         + std::ops::Mul
         + std::ops::Add
         + std::ops::Div<Output = R>
         + std::ops::Sub<Output = R>,
-    F: Fn(T) -> R + Clone,
-    // TODO: look into these
-    T: Hash + Debug + PartialOrd,
-    F: Hash + Debug + PartialOrd,
+    F: Fn(T) -> R + Clone + Hash + Debug + PartialOrd,
 {
     type Result = R;
     stage_default_methods!(ALL);
@@ -249,24 +246,18 @@ where
     }
 }
 
-impl<T, R, F> Context<T, F>
-where
-    T: Clone,
-    R: One
-        + Zero
-        + std::ops::Mul
-        + std::ops::Add
-        + std::ops::Div<Output = R>
-        + std::ops::Sub<Output = R>,
-    F: Fn(T) -> R + Clone,
-    // FIXME: can these be unbounded? or at least custom defined
-    T: 'static,
-    F: 'static,
-    // TODO: look into these
-    T: Hash + Debug + PartialOrd,
-    F: Hash + Debug + PartialOrd,
-{
-    pub fn resolve(self) -> R {
+impl<T: 'static, F: 'static> Context<T, F> {
+    pub fn resolve<R>(self) -> R
+    where
+        T: Clone + Hash + Debug + PartialOrd,
+        R: One
+            + Zero
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div<Output = R>
+            + std::ops::Sub<Output = R>,
+        F: Fn(T) -> R + Clone + Hash + Debug + PartialOrd,
+    {
         Resolve::resolve(Box::new(self))
     }
     pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
