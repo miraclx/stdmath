@@ -314,5 +314,9 @@ pub fn main() {
         ]))),
     ];
     let a = Context::Add(vec);
-    println!("{:?}", a.resolve());
+    println!(
+        "{:?}",
+        a.clone().repr().expect("failed to represent math context")
+    );
+    println!(" = {:?}", a.resolve());
 }
