@@ -208,16 +208,30 @@ where
                 // only I am additive
                 // extend res with self's contents
                 // push rhs as is into res
-                res.extend(self.dump());
-                res.push(Type::Normal(Box::new(rhs)));
+
+                res.extend(
+                    self.dump()
+                        .into_iter()
+                        .exclude(
+                            std::iter::once(Type::Normal(
+                                Box::new(rhs) as Box<dyn Resolve<Result = R>>
+                            ))
+                            .flip(),
+                        )
+                        .include_overflow_with(|item| item.flip()),
+                );
             }
             (false, true) => {
                 // method 2
                 // only rhs is additive
                 // push self as is into res
                 // extend res with rhs's contents
-                res.push(Type::Normal(Box::new(self)));
-                res.extend(rhs.dump());
+
+                res.extend(
+                    std::iter::once(Type::Normal(Box::new(self) as Box<dyn Resolve<Result = R>>))
+                        .exclude(rhs.dump().into_iter().flip())
+                        .include_overflow_with(|item| item.flip()),
+                )
             }
             _ => {
                 // method 3
