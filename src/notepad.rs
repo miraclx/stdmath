@@ -393,7 +393,7 @@ where
     )
 }
 
-pub fn product<I, T, X>(iter: I) -> Context<X>
+pub fn mul<I, T, X>(iter: I) -> Context<X>
 where
     I: IntoIterator<Item = Type<T>>,
     T: Resolve<Result = X> + 'static,
@@ -407,8 +407,8 @@ where
 
 pub fn main() {
     let a = sum(vec![
-        Type::Normal(product(vec![Type::Normal(10)])),
-        Type::Normal(product(vec![Type::Normal(10), Type::Normal(13)])),
+        Type::Normal(mul(vec![Type::Normal(10)])),
+        Type::Normal(mul(vec![Type::Normal(10), Type::Normal(13)])),
     ]);
     println!(
         "{:?}",
@@ -417,10 +417,10 @@ pub fn main() {
     println!(" = {:?}", a.resolve());
 
     let val1 = sum(vec![
-        Type::Normal(product(vec![Type::Normal(10)])),
-        Type::Normal(product(vec![Type::Normal(10), Type::Normal(13)])),
+        Type::Normal(mul(vec![Type::Normal(10)])),
+        Type::Normal(mul(vec![Type::Normal(10), Type::Normal(13)])),
     ]);
-    let val2 = product(vec![
+    let val2 = mul(vec![
         Type::Normal(sum(vec![Type::Normal(10)])),
         Type::Normal(sum(vec![Type::Normal(10), Type::Normal(13)])),
     ]);
@@ -478,7 +478,7 @@ pub fn main() {
     //  result:
     //   25
     let val1 = sum(vec![Type::Normal(2), Type::Normal(3)]);
-    let val2 = product(vec![Type::Normal(4), Type::Normal(5)]);
+    let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
     let val3 = val1 + val2;
     println!(
         "{:?}",
@@ -497,7 +497,7 @@ pub fn main() {
     //   ((2 * 3) + 4 + 5)
     //  result:
     //   15
-    let val1 = product(vec![Type::Normal(2), Type::Normal(3)]);
+    let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
     let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
     let val3 = val1 + val2;
     println!(
@@ -526,8 +526,8 @@ pub fn main() {
     //   ((2 * 3) + (4 * 5))
     //  result:
     //   26
-    let val1 = product(vec![Type::Normal(2), Type::Normal(3)]);
-    let val2 = product(vec![Type::Normal(4), Type::Normal(5)]);
+    let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
+    let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
     let val3 = val1 + val2;
     println!(
         "{:?}",
