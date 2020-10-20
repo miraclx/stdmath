@@ -454,4 +454,54 @@ pub fn main() {
             .expect("failed to represent math context")
     );
     println!(" = {:?}", val3.resolve());
+
+    // test addition method 2
+    //  include a side as-is into the result if the variant of the context
+    //  doesn't conform to the operation
+    //  i.e adding a mul context to an add will include the mul as an
+    //      item within the add context
+    //    > add[n(a), i(b)] + mul[n(c), i(d)]
+    //    = add[n(a), i(b), n(mul[n(c), i(d)])]
+    //    > mul[n(a), i(b)] + add[n(c), i(b)]
+    //    = mul[n(a), i(b), n(add[n(c), i(b)])]
+
+    // Example 1:
+    //  input:
+    //   (2 + 3) + (4 * 5)
+    //  1: exclude rhs from lhs if present else merge rhs into lhs
+    //   (2 + 3 + (4 * 5))
+    //  2: group variants
+    //   (2 + 3 + (4 * 5))
+    //  result:
+    //   25
+    let val1 = sum(vec![Type::Normal(2), Type::Normal(3)]);
+    let val2 = product(vec![Type::Normal(4), Type::Normal(5)]);
+    let val3 = val1 + val2;
+    println!(
+        "{:?}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {:?}", val3.resolve());
+
+    // Example 2:
+    //  input:
+    //   (2 * 3) + (4 + 5)
+    //  1: exclude lhs from rhs if present else merge lhs into rhs
+    //   ((2 * 3) + 4 + 5)
+    //  2: group variants
+    //   ((2 * 3) + 4 + 5)
+    //  result:
+    //   15
+    let val1 = product(vec![Type::Normal(2), Type::Normal(3)]);
+    let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
+    let val3 = val1 + val2;
+    println!(
+        "{:?}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {:?}", val3.resolve());
 }
