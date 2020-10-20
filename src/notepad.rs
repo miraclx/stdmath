@@ -646,12 +646,21 @@ mod tests {
         let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
         let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
         let val3 = val1 + val2;
-        assert_eq!(
-            val3.clone()
-                .repr()
-                .expect("failed to represent math context"),
-            "((2 * 3) + 4 + 5)"
-        );
+        match val3
+            .clone()
+            .repr()
+            .expect("failed to represent math context")
+            .as_str()
+        {
+            "((2 * 3) + 4 + 5)" | "((2 * 3) + 5 + 4)" => {}
+            // fixme: asserting between multiple matches
+            val => panic!(
+                r#"assertion failed: `(left == right)`
+  left: `{:?}`,
+ right: `"((2 * 3) + 4 + 5)" or "((2 * 3) + 5 + 4)"`"#,
+                val
+            ),
+        }
         assert_eq!(val3.resolve(), 15);
     }
     #[test]
