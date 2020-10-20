@@ -432,4 +432,26 @@ pub fn main() {
             .expect("failed to represent math context")
     );
     println!(" = {:?}", val3.resolve());
+
+    // test addition method 1
+    //  merge two contexts if both match the operation
+    //  i.e two additive contexts are merged with an additive operation
+    // input:
+    //  (5 - 10 - 6) + (-10 + 5 + 6)
+    // 1: exclude inverse matches and merge
+    //  (5 - 10 - 10 + 5)
+    // 2: group variants
+    //  (5 + 5) - (10 + 10)
+    // result:
+    //  -10
+    let val1 = sum(vec![Type::Normal(5), Type::Inverse(10), Type::Inverse(6)]);
+    let val2 = sum(vec![Type::Inverse(10), Type::Normal(5), Type::Normal(6)]);
+    let val3 = val1 + val2;
+    println!(
+        "{:?}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {:?}", val3.resolve());
 }
