@@ -612,4 +612,24 @@ mod tests {
         );
         assert_eq!(val3.resolve(), 0);
     }
+    #[test]
+    fn context_add_method_2a() {
+        // (2 + 3) + (4 * 5)
+        // ? 1: exclude rhs from lhs if present else merge rhs into lhs
+        //  (2 + 3 + (4 * 5))
+        // ? 2: group variants
+        //  (2 + 3 + (4 * 5))
+        // ? result:
+        //  25
+        let val1 = sum(vec![Type::Normal(2), Type::Normal(3)]);
+        let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
+        let val3 = val1 + val2;
+        assert_eq!(
+            val3.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "(2 + 3 + (4 * 5))"
+        );
+        assert_eq!(val3.resolve(), 25);
+    }
 }
