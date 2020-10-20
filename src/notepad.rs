@@ -1,4 +1,8 @@
-use super::{core::Type, One, Zero};
+use super::{
+    core::{Flippable, Type},
+    exclude::ExcludedIteratorExt,
+    One, Zero,
+};
 use std::{
     any::Any,
     cmp::{Eq, Ordering, PartialEq},
@@ -190,8 +194,14 @@ where
                 // method 1
                 // both are additive
                 // merge both into an additive context
-                res.extend(self.dump());
-                res.extend(rhs.dump());
+
+                // lets resolve this well enough to not need a vec
+                res.extend(
+                    self.dump()
+                        .into_iter()
+                        .exclude(rhs.dump().into_iter().flip())
+                        .include_overflow_with(|item| item.flip()),
+                );
             }
             (true, false) => {
                 // method 2
