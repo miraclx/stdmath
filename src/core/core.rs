@@ -19,8 +19,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Typ{mul, sum, Context, Type}e;
+    /// #
     /// let val = Type::Normal(10);
     /// let inv = val.flip();
     /// assert_eq!(inv, Type::Inverse(10));
@@ -40,8 +40,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Type;
+    /// #
     /// let val = Type::Normal(());
     /// assert_eq!(val.is_inverted(), false);
     ///
@@ -59,8 +59,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Type;
+    /// #
     /// let val = Type::Normal(21);
     /// assert_eq!(val.unwrap(), 21);
     ///
@@ -78,8 +78,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Type;
+    /// #
     /// let val = Type::Normal(533);
     /// assert_eq!(val.map(|num| num - 33), Type::Normal(500));
     ///
@@ -97,8 +97,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Type;
+    /// #
     /// let val = Type::Normal(100);
     /// assert_eq!(val.as_ref().map(|val| val * 2), Type::Normal(200));
     ///
@@ -116,8 +116,8 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// use stdmath::core::Type;
-    ///
+    /// # use stdmath::core::Type;
+    /// #
     /// let mut text = Type::Normal("Hello".to_string());
     /// text.as_mut().map(|s| s.push_str(", World!"));
     /// assert_eq!(text.as_ref().map(|s| s.as_str()), Type::Normal("Hello, World!"));
@@ -139,8 +139,8 @@ impl<T> Type<T> {
 ///
 /// # Examples
 /// ```
-/// use stdmath::core::{Type, TypedIter};
-///
+/// # use stdmath::core::{Type, TypedIter};
+/// #
 /// let vals = TypedIter::Normal(1..=5).collect::<Vec<_>>();
 /// assert_eq!(vals, vec![
 ///     Type::Normal(1),
