@@ -597,8 +597,10 @@ mod tests {
         // (1 - 2 + 3) + (-1 + 2 - 3)
         // ? 1: exclude inverse matches and merge
         //  (1 - 2 + 3 - 1 + 2 - 3)
+        //  (1 - 1 + 3 - 2 + 3 - 3)
+        //  ()
         // ? 2: group variants
-        //  (1 + 3 + 2) - (2 + 1 + 3)
+        //  ()
         // ? result:
         //  0
         let val1 = sum(vec![Type::Normal(1), Type::Inverse(2), Type::Normal(3)]);
@@ -608,7 +610,7 @@ mod tests {
             val3.clone()
                 .repr()
                 .expect("failed to represent math context"),
-            "((1 + 3 + 2) - (2 + 1 + 3))"
+            ""
         );
         assert_eq!(val3.resolve(), 0);
     }
