@@ -238,9 +238,62 @@ where
     }
 }
 
-impl<R> Simplify for Context<R> {
+impl<R: 'static> Simplify for Context<R> {
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
-        todo!()
+        let (is_additive, vec) = (self.is_additive(), self.dump());
+        let (mut normal, mut inverse) = (None, None);
+        for item in vec {
+            let is_inverted = item.is_inverted();
+            let this = if !is_inverted {
+                &mut normal
+            } else {
+                &mut inverse
+            };
+            let mut file = String::new();
+            item.unwrap().simplify(&mut file)?;
+            if let Some((prev, over_one)) = this {
+                *over_one = true;
+                String::push_str(prev, if is_additive { " + " } else { " * " });
+                String::push_str(prev, &file);
+            } else {
+                *this = Some((file, false));
+            };
+        }
+        match (normal, inverse) {
+            (Some((normal, n_over_one)), Some((inverse, f_over_one))) => write!(
+                file,
+                "({}{}{})",
+                if n_over_one {
+                    format!("({})", normal)
+                } else {
+                    normal
+                },
+                if is_additive { " - " } else { " / " },
+                if f_over_one {
+                    format!("({})", inverse)
+                } else {
+                    inverse
+                },
+            ),
+            (Some((normal, n_over_one)), None) => {
+                if n_over_one {
+                    write!(file, "({})", normal)
+                } else {
+                    write!(file, "{}", normal)
+                }
+            }
+            (None, Some((inverse, f_over_one))) => write!(
+                file,
+                "{}{}",
+                if is_additive { "-" } else { "1/" },
+                if f_over_one {
+                    format!("({})", inverse)
+                } else {
+                    inverse
+                }
+            ),
+            (None, None) => Ok(()),
+        }
     }
 }
 
