@@ -170,6 +170,57 @@ pub enum Context<R> {
     Mul(Vec<Type<Box<dyn Resolve<Result = R>>>>),
 }
 
+impl<R: 'static> std::ops::Add for Context<R>
+where
+    R: Clone + Hash + Debug + PartialOrd,
+    R: One
+        + Zero
+        + std::ops::Mul
+        + std::ops::Add
+        + std::ops::Div<Output = R>
+        + std::ops::Sub<Output = R>,
+{
+    type Output = Context<R>;
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut res = vec![];
+        match (self.is_additive(), rhs.is_additive()) {
+            // todo: check if results are the same
+            // todo: dont merge if types don't match
+            (true, true) => {
+                // method 1
+                // both are additive
+                // merge both into an additive context
+                res.extend(self.dump());
+                res.extend(rhs.dump());
+            }
+            (true, false) => {
+                // method 2
+                // only I am additive
+                // extend res with self's contents
+                // push rhs as is into res
+                res.extend(self.dump());
+                res.push(Type::Normal(Box::new(rhs)));
+            }
+            (false, true) => {
+                // method 2
+                // only rhs is additive
+                // push self as is into res
+                // extend res with rhs's contents
+                res.push(Type::Normal(Box::new(self)));
+                res.extend(rhs.dump());
+            }
+            _ => {
+                // method 3
+                // anything else
+                // push both self and rhs into an additive context
+                res.push(Type::Normal(Box::new(self)));
+                res.push(Type::Normal(Box::new(rhs)));
+            }
+        };
+        Context::Add(res)
+    }
+}
+
 impl<R: 'static> Context<R> {
     fn resolve(self) -> R
     where
