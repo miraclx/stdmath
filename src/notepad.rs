@@ -392,6 +392,18 @@ where
     )
 }
 
+pub fn product<I, T, X>(iter: I) -> Context<X>
+where
+    I: IntoIterator<Item = Type<T>>,
+    T: Resolve<Result = X> + 'static,
+{
+    Context::Mul(
+        iter.into_iter()
+            .map(|item| item.map(|val| Box::new(val) as Box<dyn Resolve<Result = _>>))
+            .collect(),
+    )
+}
+
 pub fn main() {
     let vec: Vec<Type<Box<dyn Resolve<Result = i32>>>> = vec![
         Type::Normal(Box::new(10)),
