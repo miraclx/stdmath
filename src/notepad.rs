@@ -370,4 +370,28 @@ pub fn main() {
         a.clone().repr().expect("failed to represent math context")
     );
     println!(" = {:?}", a.resolve());
+
+    let val1 = Context::Add(vec![
+        Type::Normal(Box::new(10)),
+        Type::Normal(Box::new(Context::Mul(vec![
+            Type::Normal(Box::new(10)),
+            Type::Normal(Box::new(13)),
+        ]))),
+    ]);
+    let val2 = Context::Mul(vec![
+        Type::Normal(Box::new(10)),
+        Type::Normal(Box::new(Context::Add(vec![
+            Type::Normal(Box::new(10)),
+            Type::Normal(Box::new(13)),
+        ]))),
+    ]);
+
+    let val3 = val1 + val2;
+    println!(
+        "{:?}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {:?}", val3.resolve());
 }
