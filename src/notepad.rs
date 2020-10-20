@@ -537,3 +537,59 @@ pub fn main() {
     );
     println!(" = {:?}", val3.resolve());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn basic_sum_repr() {
+        let val = sum((3..=6).map(|item| Type::Normal(item)));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 + 4 + 5 + 6)"
+        );
+    }
+    #[test]
+    fn basic_mul_repr() {
+        let val = mul((4..=7).map(|item| Type::Normal(item)));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(4 * 5 * 6 * 7)"
+        );
+    }
+    #[test]
+    fn basic_sum_compute() {
+        let val = sum((3..=6).map(|item| Type::Normal(item)));
+        assert_eq!(val.resolve(), 18);
+    }
+    #[test]
+    fn basic_mul_compute() {
+        let val = mul((4..=7).map(|item| Type::Normal(item)));
+        assert_eq!(val.resolve(), 840);
+    }
+    #[test]
+    fn trait_clone() {
+        let val = sum((9..=12).map(|item| Type::Normal(item)));
+        assert_eq!(
+            val.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "(9 + 10 + 11 + 12)"
+        );
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(9 + 10 + 11 + 12)"
+        );
+    }
+    #[test]
+    fn basic_repr_compute() {
+        let val = mul((1..=10).map(|item| Type::Normal(item)));
+        assert_eq!(
+            val.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10)"
+        );
+        assert_eq!(val.resolve(), 3628800);
+    }
+}
