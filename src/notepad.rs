@@ -405,33 +405,23 @@ where
 }
 
 pub fn main() {
-    let vec: Vec<Type<Box<dyn Resolve<Result = i32>>>> = vec![
-        Type::Normal(Box::new(10)),
-        Type::Normal(Box::new(Context::Mul(vec![
-            Type::Normal(Box::new(10)),
-            Type::Normal(Box::new(13)),
-        ]))),
-    ];
-    let a = Context::Add(vec);
+    let a = sum(vec![
+        Type::Normal(product(vec![Type::Normal(10)])),
+        Type::Normal(product(vec![Type::Normal(10), Type::Normal(13)])),
+    ]);
     println!(
         "{:?}",
         a.clone().repr().expect("failed to represent math context")
     );
     println!(" = {:?}", a.resolve());
 
-    let val1 = Context::Add(vec![
-        Type::Normal(Box::new(10)),
-        Type::Normal(Box::new(Context::Mul(vec![
-            Type::Normal(Box::new(10)),
-            Type::Normal(Box::new(13)),
-        ]))),
+    let val1 = sum(vec![
+        Type::Normal(product(vec![Type::Normal(10)])),
+        Type::Normal(product(vec![Type::Normal(10), Type::Normal(13)])),
     ]);
-    let val2 = Context::Mul(vec![
-        Type::Normal(Box::new(10)),
-        Type::Normal(Box::new(Context::Add(vec![
-            Type::Normal(Box::new(10)),
-            Type::Normal(Box::new(13)),
-        ]))),
+    let val2 = product(vec![
+        Type::Normal(sum(vec![Type::Normal(10)])),
+        Type::Normal(sum(vec![Type::Normal(10), Type::Normal(13)])),
     ]);
 
     let val3 = val1 + val2;
