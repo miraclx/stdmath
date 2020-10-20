@@ -592,4 +592,24 @@ mod tests {
         );
         assert_eq!(val.resolve(), 3628800);
     }
+    #[test]
+    fn context_add_method_1() {
+        // (1 - 2 + 3) + (-1 + 2 - 3)
+        // ? 1: exclude inverse matches and merge
+        //  (1 - 2 + 3 - 1 + 2 - 3)
+        // ? 2: group variants
+        //  (1 + 3 + 2) - (2 + 1 + 3)
+        // ? result:
+        //  0
+        let val1 = sum(vec![Type::Normal(1), Type::Inverse(2), Type::Normal(3)]);
+        let val2 = sum(vec![Type::Inverse(1), Type::Normal(2), Type::Inverse(3)]);
+        let val3 = val1 + val2;
+        assert_eq!(
+            val3.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "((1 + 3 + 2) - (2 + 1 + 3))"
+        );
+        assert_eq!(val3.resolve(), 0);
+    }
 }
