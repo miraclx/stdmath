@@ -504,4 +504,33 @@ pub fn main() {
             .expect("failed to represent math context")
     );
     println!(" = {:?}", val3.resolve());
+
+    // test addition method 3
+    //  include both sides into the result as-is if they dont match the op
+    //  i.e adding a mul context to a mul will include both as-is into the result
+    //    > mul[ n(a), i(b) ] + mul[ n(c), i(d) ]
+    //    = add[
+    //        n(mul[ n(a), i(b) ]),
+    //        n(mul[ n(c), i(d) ])
+    //      ]
+
+    // Example
+    //  input:
+    //   (2 * 3) + (4 * 5)
+    //  1: exclude rhs from lhs if present else merge rhs into lhs
+    //   ((2 * 3) + (4 * 5))
+    //  2: group variants
+    //   ((2 * 3) + (4 * 5))
+    //  result:
+    //   26
+    let val1 = product(vec![Type::Normal(2), Type::Normal(3)]);
+    let val2 = product(vec![Type::Normal(4), Type::Normal(5)]);
+    let val3 = val1 + val2;
+    println!(
+        "{:?}",
+        val3.clone()
+            .repr()
+            .expect("failed to represent math context")
+    );
+    println!(" = {:?}", val3.resolve());
 }
