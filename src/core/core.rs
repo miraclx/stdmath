@@ -169,6 +169,7 @@ impl<T: Iterator<Item = X>, X> Iterator for Type<T> {
 ///     Type::Inverse(10)
 /// ]);
 /// ```
+#[deprecated = "use Type<T: Iterator> instead"]
 pub enum TypedIter<I> {
     Normal(I),
     Inverse(I),
