@@ -32,12 +32,6 @@ pub trait Resolve: Simplify {
     }
 }
 
-enum Identity {
-    Add,
-    Mul,
-    Nil,
-}
-
 impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
     fn eq(&self, other: &dyn Resolve<Result = X>) -> bool {
         if let Some(Ordering::Equal) = self._cmp(other) {
