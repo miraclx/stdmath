@@ -455,6 +455,38 @@ impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     }
 }
 
+fn sigma<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Context<R>
+where
+    T: Clone + Hash + Debug + PartialOrd + Simplify,
+    R: Clone + Debug + PartialOrd,
+{
+    Context::Add(
+        range
+            .map(|val| {
+                Type::Normal(
+                    Box::new(TransformedValue { val: val, func }) as Box<dyn Resolve<Result = R>>
+                )
+            })
+            .collect(),
+    )
+}
+
+fn product<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Context<R>
+where
+    T: Clone + Hash + Debug + PartialOrd + Simplify,
+    R: Clone + Debug + PartialOrd,
+{
+    Context::Mul(
+        range
+            .map(|val| {
+                Type::Normal(
+                    Box::new(TransformedValue { val: val, func }) as Box<dyn Resolve<Result = R>>
+                )
+            })
+            .collect(),
+    )
+}
+
 pub fn main() {
     let a = sum(vec![
         Type::Normal(mul(vec![Type::Normal(10)])),
