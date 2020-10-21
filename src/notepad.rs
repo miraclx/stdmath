@@ -17,6 +17,7 @@ pub trait Simplify {
 pub trait Resolve: Simplify {
     type Result;
     fn resolve(self: Box<Self>) -> Self::Result;
+    fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
 
     // methods needed for dynamicism
     fn as_any(&self) -> &dyn Any;
@@ -89,6 +90,18 @@ macro_rules! stage_default_methods {
         }
         stage_default_methods!($($rest)*);
     };
+    (is_friendly_with $($rest:tt)*) => {
+        #[inline]
+        fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
+            other.as_any().downcast_ref::<Self>().is_some()
+        }
+    };
+    (is_friendly_with_all $($rest:tt)*) => {
+        #[inline]
+        fn is_friendly_with(&self, _other: &dyn Resolve<Result = Self::Result>) -> bool {
+            true
+        }
+    };
     (_debug $($rest:tt)*) => {
         #[inline]
         fn _debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -117,6 +130,7 @@ macro_rules! bulk_impl_traits {
         impl Resolve for $type {
             type Result = $type;
             stage_default_methods!($($methods)+);
+            stage_default_methods!(is_friendly_with_all);
             #[inline]
             fn resolve(self: Box<Self>) -> Self::Result {
                 *self
@@ -242,6 +256,7 @@ where
 {
     type Result = R;
     stage_default_methods!(ALL);
+    stage_default_methods!(is_friendly_with_all);
     fn resolve(self: Box<Self>) -> Self::Result {
         let (vec, default, [normal_op, inverse_op]): (_, fn() -> R, [fn(R, R) -> R; 2]) =
             match *self {
@@ -442,6 +457,7 @@ where
 {
     type Result = R;
     stage_default_methods!(ALL);
+    stage_default_methods!(is_friendly_with);
     fn resolve(self: Box<Self>) -> Self::Result {
         (self.func)(self.val)
     }
