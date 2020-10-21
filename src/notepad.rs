@@ -236,6 +236,12 @@ impl<R: 'static> Context<R> {
             Context::Mul(vec) => vec,
         }
     }
+    fn get_ref(&self) -> &Vec<Type<Box<dyn Resolve<Result = R>>>> {
+        match self {
+            Context::Add(vec) => vec,
+            Context::Mul(vec) => vec,
+        }
+    }
     pub fn is_additive(&self) -> bool {
         if let Context::Add(_) = self {
             return true;
