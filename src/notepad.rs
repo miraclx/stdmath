@@ -292,9 +292,20 @@ where
 
 impl<R: 'static> Simplify for Context<R> {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        let (is_additive, vec) = (self.is_additive(), self.dump());
+        let (is_additive, vec) = (self.is_additive(), self.get_ref());
         let (mut normal, mut inverse) = (None, None);
+        let mut prev: Option<&dyn Resolve<Result = R>> = None;
+        let mut bracket_stack = 0;
         for item in vec {
+            let is_friendly = prev
+                .take()
+                .map(|prev| {
+                    // Check that the previous item is friendly with this item
+                    // And check that this item is friendly with the previous item
+                    let item = &**item.as_ref().unwrap();
+                    prev.is_friendly_with(item) && item.is_friendly_with(prev)
+                })
+                .unwrap_or(true);
             let is_inverted = item.is_inverted();
             let this = if !is_inverted {
                 &mut normal
@@ -302,6 +313,10 @@ impl<R: 'static> Simplify for Context<R> {
                 &mut inverse
             };
             let mut file = String::new();
+            if !is_friendly {
+                write!(file, "(")?;
+                bracket_stack += 1;
+            }
             item.as_ref().unwrap().simplify(&mut file)?;
             if let Some((prev, over_one)) = this {
                 *over_one = true;
@@ -310,8 +325,9 @@ impl<R: 'static> Simplify for Context<R> {
             } else {
                 *this = Some((file, false));
             };
+            prev.replace(&**item.as_ref().unwrap());
         }
-        match (normal, inverse) {
+        let result = match (normal, inverse) {
             (Some((normal, n_over_one)), Some((inverse, f_over_one))) => write!(
                 file,
                 "({}{}{})",
@@ -345,7 +361,11 @@ impl<R: 'static> Simplify for Context<R> {
                 }
             ),
             (None, None) => Ok(()),
+        };
+        for _ in 0..bracket_stack {
+            write!(file, ")")?;
         }
+        result
     }
 }
 
@@ -473,9 +493,7 @@ impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         // todo! add means to resolve the simplification
         // todo! where items have the same function
-        write!(file, "(")?;
-        self.val.simplify(file);
-        write!(file, ")")
+        self.val.simplify(file)
     }
 }
 
@@ -785,7 +803,7 @@ mod tests {
         let mut repr = String::new();
         val.simplify(&mut repr)
             .expect("failed to represent math context");
-        assert_eq!(repr, "(50)");
+        assert_eq!(repr, "50");
         assert_eq!(Box::new(val).resolve(), 100);
     }
     #[test]
@@ -793,7 +811,7 @@ mod tests {
         let val = sigma(1..=10, |val| val);
         assert_eq!(
             val.repr().expect("failed to represent math context"),
-            "((1) + (2) + (3) + (4) + (5) + (6) + (7) + (8) + (9) + (10))"
+            "(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10)"
         );
         assert_eq!(val.resolve(), 55);
     }
@@ -802,7 +820,7 @@ mod tests {
         let val = product(1..=10, |val| val);
         assert_eq!(
             val.repr().expect("failed to represent math context"),
-            "((1) * (2) * (3) * (4) * (5) * (6) * (7) * (8) * (9) * (10))"
+            "(1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10)"
         );
         assert_eq!(val.resolve(), 3628800);
     }
