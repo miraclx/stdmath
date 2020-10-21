@@ -294,40 +294,45 @@ impl<R: 'static> Simplify for Context<R> {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         let (is_additive, vec) = (self.is_additive(), self.get_ref());
         let (mut normal, mut inverse) = (None, None);
-        let mut prev: Option<&dyn Resolve<Result = R>> = None;
-        let mut bracket_stack = 0;
         for item in vec {
-            let is_friendly = prev
-                .take()
-                .map(|prev| {
-                    // Check that the previous item is friendly with this item
-                    // And check that this item is friendly with the previous item
-                    let item = &**item.as_ref().unwrap();
-                    prev.is_friendly_with(item) && item.is_friendly_with(prev)
-                })
-                .unwrap_or(true);
             let is_inverted = item.is_inverted();
-            let this = if !is_inverted {
-                &mut normal
-            } else {
-                &mut inverse
-            };
+            let this: &mut Option<((&(dyn Resolve<Result = R>), i32), (String, bool))> =
+                if !is_inverted {
+                    &mut normal
+                } else {
+                    &mut inverse
+                };
             let mut file = String::new();
-            if !is_friendly {
-                write!(file, "(")?;
-                bracket_stack += 1;
-            }
-            item.as_ref().unwrap().simplify(&mut file)?;
-            if let Some((prev, over_one)) = this {
+            let item = &**item.as_ref().unwrap();
+            item.simplify(&mut file)?;
+            if let Some(((prev, bracket_stack), (this_file, over_one))) = this {
                 *over_one = true;
-                String::push_str(prev, if is_additive { " + " } else { " * " });
-                String::push_str(prev, &file);
+                // Check that the previous item is friendly with this item
+                // And check that this item is friendly with the previous item
+                let is_friendly = prev.is_friendly_with(item) && item.is_friendly_with(*prev);
+                if !is_friendly && *bracket_stack > 0 {
+                    String::push_str(this_file, ")");
+                    *bracket_stack -= 1;
+                }
+                String::push_str(this_file, if is_additive { " + " } else { " * " });
+                if !is_friendly {
+                    String::push_str(this_file, "(");
+                    *bracket_stack += 1;
+                }
+                String::push_str(this_file, &file);
+                *prev = item;
             } else {
-                *this = Some((file, false));
+                *this = Some(((item, 0), (file, false)));
             };
-            prev.replace(&**item.as_ref().unwrap());
         }
-        let result = match (normal, inverse) {
+        let handle_brackets = |side| {
+            Option::map(side, |((_, bracket_stack), (mut file, over_one))| {
+                (0..bracket_stack).for_each(|_| String::push_str(&mut file, ")"));
+                (file, over_one)
+            })
+        };
+        let (normal, inverse) = (handle_brackets(normal), handle_brackets(inverse));
+        match (normal, inverse) {
             (Some((normal, n_over_one)), Some((inverse, f_over_one))) => write!(
                 file,
                 "({}{}{})",
@@ -361,11 +366,7 @@ impl<R: 'static> Simplify for Context<R> {
                 }
             ),
             (None, None) => Ok(()),
-        };
-        for _ in 0..bracket_stack {
-            write!(file, ")")?;
         }
-        result
     }
 }
 
