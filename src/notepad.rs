@@ -778,4 +778,26 @@ mod tests {
         assert_eq!(repr, "(50)");
         assert_eq!(Box::new(val).resolve(), 100);
     }
+    #[test]
+    fn sigma_basic() {
+        let val = sigma(1..=10, |val| val);
+        assert_eq!(
+            val.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "((1) + (2) + (3) + (4) + (5) + (6) + (7) + (8) + (9) + (10))"
+        );
+        assert_eq!(val.resolve(), 55);
+    }
+    #[test]
+    fn product_basic() {
+        let val = product(1..=10, |val| val);
+        assert_eq!(
+            val.clone()
+                .repr()
+                .expect("failed to represent math context"),
+            "((1) * (2) * (3) * (4) * (5) * (6) * (7) * (8) * (9) * (10))"
+        );
+        assert_eq!(val.resolve(), 3628800);
+    }
 }
