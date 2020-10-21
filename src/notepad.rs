@@ -561,7 +561,7 @@ mod tests {
     use super::*;
     #[test]
     fn basic_sum_repr() {
-        let val = sum((3..=6).map(|item| Type::Normal(item)));
+        let val = sum(Type::Normal(3..=6));
         assert_eq!(
             val.repr().expect("failed to represent math context"),
             "(3 + 4 + 5 + 6)"
@@ -569,7 +569,7 @@ mod tests {
     }
     #[test]
     fn basic_mul_repr() {
-        let val = mul((4..=7).map(|item| Type::Normal(item)));
+        let val = mul(Type::Normal(4..=7));
         assert_eq!(
             val.repr().expect("failed to represent math context"),
             "(4 * 5 * 6 * 7)"
@@ -577,17 +577,17 @@ mod tests {
     }
     #[test]
     fn basic_sum_compute() {
-        let val = sum((3..=6).map(|item| Type::Normal(item)));
+        let val = sum(Type::Normal(3..=6));
         assert_eq!(val.resolve(), 18);
     }
     #[test]
     fn basic_mul_compute() {
-        let val = mul((4..=7).map(|item| Type::Normal(item)));
+        let val = mul(Type::Normal(4..=7));
         assert_eq!(val.resolve(), 840);
     }
     #[test]
     fn trait_clone() {
-        let val = sum((9..=12).map(|item| Type::Normal(item)));
+        let val = sum(Type::Normal(9..=12));
         assert_eq!(
             val.clone()
                 .repr()
@@ -601,7 +601,7 @@ mod tests {
     }
     #[test]
     fn basic_repr_compute() {
-        let val = mul((1..=10).map(|item| Type::Normal(item)));
+        let val = mul(Type::Normal(1..=10));
         assert_eq!(
             val.clone()
                 .repr()
