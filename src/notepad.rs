@@ -449,6 +449,8 @@ where
 
 impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+        // todo! add means to resolve the simplification
+        // todo! where items have the same function
         write!(file, "(")?;
         Box::new(self.val).simplify(file)?;
         write!(file, ")")
