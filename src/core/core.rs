@@ -134,6 +134,22 @@ impl<T> Type<T> {
     }
 }
 
+impl<T: Iterator<Item = X>, X> Iterator for Type<T> {
+    type Item = Type<X>;
+    fn next(&mut self) -> Option<Self::Item> {
+        // Type<Option<T>> -> Option<Type<T>>
+        let val = self.as_mut().map(|item| item.next());
+        let is_inverted = val.is_inverted();
+        val.unwrap().map(|val| {
+            if !is_inverted {
+                Type::Normal(val)
+            } else {
+                Type::Inverse(val)
+            }
+        })
+    }
+}
+
 #[derive(Clone)]
 /// Provide a means to convert an iterator of `T` to one of `Type<T>`
 ///
