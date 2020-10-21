@@ -733,4 +733,17 @@ mod tests {
         );
         assert_eq!(val3.resolve(), 26);
     }
+    #[test]
+    fn transformed_value() {
+        let val = TransformedValue {
+            val: 50,
+            func: |val| val + 50,
+        };
+        let mut repr = String::new();
+        val._clone()
+            .simplify(&mut repr)
+            .expect("failed to represent math context");
+        assert_eq!(repr, "(50)");
+        assert_eq!(Box::new(val).resolve(), 100);
+    }
 }
