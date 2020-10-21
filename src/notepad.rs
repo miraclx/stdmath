@@ -655,9 +655,7 @@ mod tests {
     fn trait_clone() {
         let val = sum(Type::Normal(9..=12));
         assert_eq!(
-            val.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val.repr().expect("failed to represent math context"),
             "(9 + 10 + 11 + 12)"
         );
         assert_eq!(
@@ -669,9 +667,7 @@ mod tests {
     fn basic_repr_compute() {
         let val = mul(Type::Normal(1..=10));
         assert_eq!(
-            val.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val.repr().expect("failed to represent math context"),
             "(1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10)"
         );
         assert_eq!(val.resolve(), 3628800);
@@ -690,12 +686,7 @@ mod tests {
         let val1 = sum(vec![Type::Normal(1), Type::Inverse(2), Type::Normal(3)]);
         let val2 = sum(vec![Type::Inverse(1), Type::Normal(2), Type::Inverse(3)]);
         let val3 = val1 + val2;
-        assert_eq!(
-            val3.clone()
-                .repr()
-                .expect("failed to represent math context"),
-            ""
-        );
+        assert_eq!(val3.repr().expect("failed to represent math context"), "");
         assert_eq!(val3.resolve(), 0);
     }
     #[test]
@@ -711,9 +702,7 @@ mod tests {
         let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
         let val3 = val1 + val2;
         assert_eq!(
-            val3.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val3.repr().expect("failed to represent math context"),
             "(2 + 3 + (4 * 5))"
         );
         assert_eq!(val3.resolve(), 25);
@@ -760,9 +749,7 @@ mod tests {
         let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
         let val3 = val1 + val2;
         assert_eq!(
-            val3.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val3.repr().expect("failed to represent math context"),
             "((2 * 3) + (4 * 5))"
         );
         assert_eq!(val3.resolve(), 26);
@@ -774,8 +761,7 @@ mod tests {
             func: |val| val + 50,
         };
         let mut repr = String::new();
-        val._clone()
-            .simplify(&mut repr)
+        val.simplify(&mut repr)
             .expect("failed to represent math context");
         assert_eq!(repr, "(50)");
         assert_eq!(Box::new(val).resolve(), 100);
@@ -784,9 +770,7 @@ mod tests {
     fn sigma_basic() {
         let val = sigma(1..=10, |val| val);
         assert_eq!(
-            val.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val.repr().expect("failed to represent math context"),
             "((1) + (2) + (3) + (4) + (5) + (6) + (7) + (8) + (9) + (10))"
         );
         assert_eq!(val.resolve(), 55);
@@ -795,9 +779,7 @@ mod tests {
     fn product_basic() {
         let val = product(1..=10, |val| val);
         assert_eq!(
-            val.clone()
-                .repr()
-                .expect("failed to represent math context"),
+            val.repr().expect("failed to represent math context"),
             "((1) * (2) * (3) * (4) * (5) * (6) * (7) * (8) * (9) * (10))"
         );
         assert_eq!(val.resolve(), 3628800);
