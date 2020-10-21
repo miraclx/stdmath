@@ -196,7 +196,7 @@ impl<R> Clone for Context<R> {
     fn clone(&self) -> Self {
         match self {
             Context::Add(vec) => Context::Add(vec.clone()),
-            Context::Mul(vec) => Context::Add(vec.clone()),
+            Context::Mul(vec) => Context::Mul(vec.clone()),
         }
     }
 }
