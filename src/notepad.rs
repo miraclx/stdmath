@@ -156,26 +156,6 @@ bulk_impl_traits!(u8, u16, u32, u64, usize);
 bulk_impl_traits!(nohash(f32, f64));
 bulk_impl_traits!(i128, u128);
 
-impl<T: 'static, X> Resolve for Box<T>
-where
-    T: Resolve<Result = X> + Clone + Hash + Debug + PartialOrd,
-{
-    type Result = X;
-    stage_default_methods!(ALL);
-    fn resolve(self: Box<Self>) -> Self::Result {
-        (*self).resolve()
-    }
-}
-
-impl<T> Simplify for Box<T>
-where
-    T: Simplify,
-{
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        (*self).simplify(file)
-    }
-}
-
 #[derive(PartialEq, PartialOrd)]
 pub enum Context<R> {
     Add(Vec<Type<Box<dyn Resolve<Result = R>>>>),
