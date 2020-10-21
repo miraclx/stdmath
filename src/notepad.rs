@@ -423,6 +423,38 @@ where
     )
 }
 
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct TransformedValue<T, R> {
+    val: T,
+    func: fn(T) -> R,
+}
+
+impl<T: Hash, R> Hash for TransformedValue<T, R> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.val.hash(state)
+    }
+}
+
+impl<T: 'static, R: 'static> Resolve for TransformedValue<T, R>
+where
+    T: Clone + Hash + Debug + PartialOrd + Simplify,
+    R: Clone + Debug + PartialOrd,
+{
+    type Result = R;
+    stage_default_methods!(ALL);
+    fn resolve(self: Box<Self>) -> Self::Result {
+        (self.func)(self.val)
+    }
+}
+
+impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
+    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+        write!(file, "(")?;
+        Box::new(self.val).simplify(file)?;
+        write!(file, ")")
+    }
+}
+
 pub fn main() {
     let a = sum(vec![
         Type::Normal(mul(vec![Type::Normal(10)])),
