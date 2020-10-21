@@ -168,15 +168,42 @@ where
     }
 }
 
-#[derive(Clone, Hash, Debug, PartialEq, PartialOrd)]
+#[derive(PartialEq, PartialOrd)]
 pub enum Context<R> {
     Add(Vec<Type<Box<dyn Resolve<Result = R>>>>),
     Mul(Vec<Type<Box<dyn Resolve<Result = R>>>>),
 }
 
+impl<R> Hash for Context<R> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            Context::Add(vec) => vec.hash(state),
+            Context::Mul(vec) => vec.hash(state),
+        }
+    }
+}
+
+impl<R> Debug for Context<R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Context::Add(vec) => vec.fmt(f),
+            Context::Mul(vec) => vec.fmt(f),
+        }
+    }
+}
+
+impl<R> Clone for Context<R> {
+    fn clone(&self) -> Self {
+        match self {
+            Context::Add(vec) => Context::Add(vec.clone()),
+            Context::Mul(vec) => Context::Add(vec.clone()),
+        }
+    }
+}
+
 impl<R: 'static> std::ops::Add for Context<R>
 where
-    R: Clone + Hash + Debug + PartialOrd,
+    R: PartialOrd,
     R: One
         + Zero
         + std::ops::Mul
@@ -249,8 +276,7 @@ where
 impl<R: 'static> Context<R> {
     fn resolve(self) -> R
     where
-        R: Clone + Hash + Debug + PartialOrd,
-        //
+        R: PartialOrd,
         R: One
             + Zero
             + std::ops::Mul
@@ -284,8 +310,7 @@ impl<R: 'static> Context<R> {
 
 impl<R: 'static> Resolve for Context<R>
 where
-    R: Clone + Hash + Debug + PartialOrd,
-    //
+    R: PartialOrd,
     R: One
         + Zero
         + std::ops::Mul
