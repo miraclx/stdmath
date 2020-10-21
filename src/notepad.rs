@@ -825,4 +825,40 @@ mod tests {
         );
         assert_eq!(val.resolve(), 3628800);
     }
+    #[test]
+    fn repr_chars() {
+        let val = sum(Type::Normal('a'..='f'));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(a + b + c + d + e + f)"
+        );
+    }
+    #[test]
+    fn repr_strings() {
+        let val = mul(vec![
+            Type::Normal("val1".to_string()),
+            Type::Normal("val2".to_string()),
+            Type::Normal("val3".to_string()),
+            Type::Normal("val4".to_string()),
+        ]);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(val1 * val2 * val3 * val4)"
+        );
+    }
+    #[test]
+    fn repr_strings_mixed() {
+        let val = sum(vec![
+            Type::Normal(mul(Type::Normal('a'..='c'))),
+            Type::Normal(mul(vec![
+                Type::Normal("val1".to_string()),
+                Type::Normal("val2".to_string()),
+                Type::Normal("val3".to_string()),
+            ])),
+        ]);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "((a + b + c) + (val1 * val2 * val3))"
+        );
+    }
 }
