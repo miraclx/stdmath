@@ -134,8 +134,32 @@ impl<T> Type<T> {
     }
 }
 
-impl<T: Iterator<Item = X>, X> Iterator for Type<T> {
-    type Item = Type<X>;
+/// Provide a means to convert an iterator of `T` to one of `Type<T>`
+///
+/// # Examples
+/// ```
+/// # use stdmath::core::Type;
+/// #
+/// let vals = Type::Normal(1..=5).collect::<Vec<_>>();
+/// assert_eq!(vals, vec![
+///     Type::Normal(1),
+///     Type::Normal(2),
+///     Type::Normal(3),
+///     Type::Normal(4),
+///     Type::Normal(5)
+/// ]);
+///
+/// let vals = Type::Inverse(6..=10).collect::<Vec<_>>();
+/// assert_eq!(vals, vec![
+///     Type::Inverse(6),
+///     Type::Inverse(7),
+///     Type::Inverse(8),
+///     Type::Inverse(9),
+///     Type::Inverse(10)
+/// ]);
+/// ```
+impl<I: Iterator<Item = T>, T> Iterator for Type<I> {
+    type Item = Type<T>;
     fn next(&mut self) -> Option<Self::Item> {
         match self.as_mut().map(|item| item.next()) {
             Type::Normal(result) => Some(Type::Normal(result?)),
