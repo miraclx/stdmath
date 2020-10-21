@@ -11,7 +11,7 @@ use std::{
 };
 
 pub trait Simplify {
-    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result;
+    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
 }
 
 pub trait Resolve: Simplify {
@@ -124,7 +124,7 @@ macro_rules! bulk_impl_traits {
         }
         impl Simplify for $type {
             #[inline]
-            fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+            fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
                 write!(file, "{:?}", self)
             }
         }
@@ -157,7 +157,7 @@ impl<T> Simplify for Box<T>
 where
     T: Simplify,
 {
-    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         (*self).simplify(file)
     }
 }
@@ -208,10 +208,10 @@ impl<R: 'static> Context<R> {
     {
         Box::new(self).resolve()
     }
-    pub fn repr_into(self, file: &mut dyn Write) -> std::fmt::Result {
-        Simplify::simplify(Box::new(self), file)
+    pub fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
+        Simplify::simplify(self, file)
     }
-    pub fn repr(self) -> Result<String, std::fmt::Error> {
+    pub fn repr(&self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
         self.repr_into(&mut file)?;
         Ok(file)
@@ -270,7 +270,7 @@ where
 }
 
 impl<R: 'static> Simplify for Context<R> {
-    fn simplify(self: Box<Self>, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         let (is_additive, vec) = (self.is_additive(), self.dump());
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
@@ -281,7 +281,7 @@ impl<R: 'static> Simplify for Context<R> {
                 &mut inverse
             };
             let mut file = String::new();
-            item.unwrap().simplify(&mut file)?;
+            item.as_ref().unwrap().simplify(&mut file)?;
             if let Some((prev, over_one)) = this {
                 *over_one = true;
                 String::push_str(prev, if is_additive { " + " } else { " * " });
