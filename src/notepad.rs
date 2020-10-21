@@ -149,7 +149,11 @@ macro_rules! bulk_impl_traits {
     (vars($($type:ty),+)) => {
         $(
             impl Resolve for $type {
-                type Result = ();
+                // fixme: this could be an unnecessary hack
+                // fixme: i.e pegging the result to a usize
+                // fixme: maybe creating a custom struct wrapping
+                // fixme: strings would be a better alternative
+                type Result = usize;
                 stage_default_methods!(ALL);
                 stage_default_methods!(is_friendly_with_all);
                 fn resolve(self: Box<Self>) -> Self::Result {
