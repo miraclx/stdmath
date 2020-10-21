@@ -146,6 +146,23 @@ macro_rules! bulk_impl_traits {
     (nohash($($type:ty),+)) => {
         $(bulk_impl_traits!(@ [as_any _cmp _debug _clone] $type);)+
     };
+    (vars($($type:ty),+)) => {
+        $(
+            impl Resolve for $type {
+                type Result = ();
+                stage_default_methods!(ALL);
+                stage_default_methods!(is_friendly_with_all);
+                fn resolve(self: Box<Self>) -> Self::Result {
+                    unimplemented!("cannot resolve strings")
+                }
+            }
+            impl Simplify for $type {
+                fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+                    write!(file, "{}", self)
+                }
+            }
+        )+
+    };
     ($($type:ty),+) => {
         $(bulk_impl_traits!(@ [ALL] $type);)+
     }
@@ -155,6 +172,7 @@ bulk_impl_traits!(i8, i16, i32, i64, isize);
 bulk_impl_traits!(u8, u16, u32, u64, usize);
 bulk_impl_traits!(nohash(f32, f64));
 bulk_impl_traits!(i128, u128);
+bulk_impl_traits!(vars(char, String));
 
 #[derive(PartialEq, PartialOrd)]
 pub enum Context<R> {
