@@ -467,22 +467,23 @@ where
     )
 }
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub struct TransformedValue<T, R> {
+#[derive(Hash, Clone, PartialEq, PartialOrd)]
+pub struct TransformedValue<T, F> {
     val: T,
-    func: fn(T) -> R,
+    func: F,
 }
 
-impl<T: Hash, R> Hash for TransformedValue<T, R> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.val.hash(state)
+impl<T: Debug, F> Debug for TransformedValue<T, F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TransformedValue").field(&&self.val).finish()
     }
 }
 
-impl<T: 'static, R: 'static> Resolve for TransformedValue<T, R>
+impl<T: 'static, R: 'static, F: Fn(T) -> R + 'static> Resolve
+    for TransformedValue<T, std::rc::Rc<F>>
 where
     T: Clone + Hash + Debug + PartialOrd + Simplify,
-    R: Clone + Debug + PartialOrd,
+    F: Hash + PartialEq + PartialOrd,
 {
     type Result = R;
     stage_default_methods!(ALL);
