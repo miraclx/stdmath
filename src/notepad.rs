@@ -869,7 +869,7 @@ mod tests {
         ]);
         assert_eq!(
             val.repr().expect("failed to represent math context"),
-            "((a + b + c) + (val1 * val2 * val3))"
+            "((a * b * c) + (val1 * val2 * val3))"
         );
     }
 }
