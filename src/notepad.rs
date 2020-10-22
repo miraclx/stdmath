@@ -703,15 +703,18 @@ mod tests {
     }
     #[test]
     fn trait_clone() {
-        let val = sum(Type::Normal(9..=12));
+        let val1 = sum(Type::Normal(9..=12));
+        let val2 = val1.clone();
         assert_eq!(
-            val.repr().expect("failed to represent math context"),
+            val1.repr().expect("failed to represent math context"),
             "(9 + 10 + 11 + 12)"
         );
+        assert_eq!(val1.resolve(), 42);
         assert_eq!(
-            val.repr().expect("failed to represent math context"),
+            val2.repr().expect("failed to represent math context"),
             "(9 + 10 + 11 + 12)"
         );
+        assert_eq!(val2.resolve(), 42);
     }
     #[test]
     fn basic_repr_compute() {
