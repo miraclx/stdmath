@@ -814,6 +814,7 @@ mod tests {
         let mut repr = String::new();
         val.simplify(&mut repr)
             .expect("failed to represent math context");
+        assert_eq!(format!("{:?}", val), "TransformedValue(50)");
         assert_eq!(repr, "50");
         assert_eq!(Box::new(val).resolve(), 100);
     }
