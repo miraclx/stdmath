@@ -499,33 +499,39 @@ impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     }
 }
 
-fn sigma<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Context<R>
+type Sigma<R> = Context<R>;
+
+fn sigma<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Sigma<R>
 where
     T: Clone + Hash + Debug + PartialOrd + Simplify,
-    R: Clone + Debug + PartialOrd,
 {
+    let func = std::rc::Rc::new(func);
     Context::Add(
         range
             .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue { val: val, func }) as Box<dyn Resolve<Result = R>>
-                )
+                Type::Normal(Box::new(TransformedValue {
+                    val: val,
+                    func: func.clone(),
+                }) as Box<dyn Resolve<Result = R>>)
             })
             .collect(),
     )
 }
 
-fn product<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Context<R>
+type Product<R> = Context<R>;
+
+fn product<I: Iterator<Item = T>, T: 'static, R: 'static>(range: I, func: fn(T) -> R) -> Product<R>
 where
     T: Clone + Hash + Debug + PartialOrd + Simplify,
-    R: Clone + Debug + PartialOrd,
 {
+    let func = std::rc::Rc::new(func);
     Context::Mul(
         range
             .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue { val: val, func }) as Box<dyn Resolve<Result = R>>
-                )
+                Type::Normal(Box::new(TransformedValue {
+                    val: val,
+                    func: func.clone(),
+                }) as Box<dyn Resolve<Result = R>>)
             })
             .collect(),
     )
