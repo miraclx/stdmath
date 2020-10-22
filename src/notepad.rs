@@ -806,7 +806,10 @@ mod tests {
     fn transformed_value() {
         let val = TransformedValue {
             val: 50,
-            func: |val| val + 50,
+            func: {
+                let func: fn(_) -> _ = |val| val + 50;
+                std::rc::Rc::new(func)
+            },
         };
         let mut repr = String::new();
         val.simplify(&mut repr)
