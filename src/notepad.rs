@@ -768,7 +768,6 @@ mod tests {
         let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
         let val3 = val1 + val2;
         match val3
-            .clone()
             .repr()
             .expect("failed to represent math context")
             .as_str()
