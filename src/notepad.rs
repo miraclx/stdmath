@@ -832,6 +832,19 @@ mod tests {
         assert_eq!(val.resolve(), 55);
     }
     #[test]
+    fn sigma_transform() {
+        // ∑(1 → 5) [x => x ^ 2]
+        // = (1 ^ 2) + (2 ^ 2) + (3 ^ 2) + (4 ^ 2) + (5 ^ 2)
+        // = (1) + (4) + (9) + (16) + (25)
+        // = 55
+        let val = sigma(1..=5u8, |val| val.pow(2));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(1 + 2 + 3 + 4 + 5)"
+        );
+        assert_eq!(val.resolve(), 55);
+    }
+    #[test]
     fn product_basic() {
         let val = product(1..=10, |val| val);
         assert_eq!(
@@ -839,6 +852,19 @@ mod tests {
             "(1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10)"
         );
         assert_eq!(val.resolve(), 3628800);
+    }
+    #[test]
+    fn product_transform() {
+        // ∏(1 → 5) [x => x ^ 2]
+        // = (1 ^ 2) * (2 ^ 2) * (3 ^ 2) * (4 ^ 2) * (5 ^ 2)
+        // = (1) * (4) * (9) * (16) * (25)
+        // = 14400
+        let val = product(1..=5u16, |val| val.pow(2));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+        assert_eq!(val.resolve(), 14400);
     }
     #[test]
     fn repr_chars() {
