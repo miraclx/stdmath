@@ -759,7 +759,7 @@ mod tests {
     fn context_add_method_2b() {
         // (2 * 3) + (4 + 5)
         // ? 1: exclude rhs from lhs if present else merge rhs into lhs
-        //  ((2 * 3) + (4 + 5))
+        //  ((2 * 3) + 4 + 5)
         // ? 2: group variants
         //  ((2 * 3) + 4 + 5)
         // ? result:
