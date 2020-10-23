@@ -93,7 +93,7 @@ macro_rules! stage_default_methods {
     (is_friendly_with $($rest:tt)*) => {
         #[inline]
         fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
-            other.as_any().downcast_ref::<Self>().is_some()
+            other.as_any().is::<Self>()
         }
         stage_default_methods!($($rest)*);
     };
