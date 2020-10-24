@@ -957,6 +957,36 @@ mod tests {
         assert_eq!(val3.resolve(), 79);
     }
     #[test]
+    fn sigma_add_shared() {
+        // func := x => x * 2
+        // (∑(1 → 3) [func]) + (∑(4 → 5) [func])
+        // = (∑(1 → 5) [x => x * 2])
+        // = ((1 * 2) + (2 * 2) + (3 * 2) + (4 * 2) + (5 * 2))
+        // = ((2) + (4) + (6) + (8) + (10))
+        // = (2 + 4 + 6 + 8 + 10)
+        // = 30
+
+        let func = |x| x * 2;
+        let val1 = sigma(1..=3, func);
+        let val2 = sigma(4..=5, func);
+        let val3 = val1 + val2;
+        match val3
+            .repr()
+            .expect("failed to represent math context")
+            .as_str()
+        {
+            "(1 + 2 + 3 + 4 + 5)" | "(1 + 2 + 3 + 5 + 4)" => {}
+            // fixme: asserting between multiple matches
+            val => panic!(
+                r#"assertion failed: `(left == right)`
+  left: `{:?}`,
+ right: `"(1 + 2 + 3 + 4 + 5)" or "(1 + 2 + 3 + 5 + 4)"`"#,
+                val
+            ),
+        }
+        assert_eq!(val3.resolve(), 30);
+    }
+    #[test]
     fn product_basic() {
         let val = product(1..=10, |val| val);
         assert_eq!(
