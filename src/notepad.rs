@@ -845,11 +845,8 @@ mod tests {
     #[test]
     fn transformed_value() {
         let val = TransformedValue(50, |val| val + 50);
-        let mut repr = String::new();
-        val.simplify(&mut repr)
-            .expect("failed to represent math context");
         assert_eq!(format!("{:?}", val), "TransformedValue(50)");
-        assert_eq!(repr, "50");
+        assert_eq!(val.repr().expect("failed to represent math context"), "50");
         assert_eq!(val.resolve(), 100);
     }
     #[test]
