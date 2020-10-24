@@ -468,21 +468,18 @@ where
 }
 
 #[derive(Clone)]
-pub struct TransformedValue<T, F> {
-    val: T,
-    func: F,
-}
+pub struct TransformedValue<T, F>(T, F);
 
 impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.func.type_id().hash(state);
-        self.val.hash(state);
+        self.1.type_id().hash(state);
+        self.0.hash(state);
     }
 }
 
 impl<T: Debug, F> Debug for TransformedValue<T, F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TransformedValue").field(&&self.val).finish()
+        f.debug_tuple("TransformedValue").field(&self.0).finish()
     }
 }
 
@@ -490,15 +487,15 @@ impl<T: PartialEq + 'static, F1: 'static, F2: 'static> PartialEq<TransformedValu
     for TransformedValue<T, F1>
 {
     fn eq(&self, other: &TransformedValue<T, F2>) -> bool {
-        self.val == other.val && (&other.func as &dyn Any).is::<F1>()
+        self.0 == other.0 && (&other.1 as &dyn Any).is::<F1>()
     }
 }
 impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>>
     for TransformedValue<T, F1>
 {
     fn partial_cmp(&self, other: &TransformedValue<T, F2>) -> Option<Ordering> {
-        if (&other.func as &dyn Any).is::<F1>() {
-            return self.val.partial_cmp(&other.val);
+        if (&other.1 as &dyn Any).is::<F1>() {
+            return self.0.partial_cmp(&other.0);
         }
         None
     }
@@ -515,13 +512,13 @@ where
     type Result = R;
     stage_default_methods!(is_friendly_with ALL);
     fn resolve(self: Box<Self>) -> Self::Result {
-        (self.func)(self.val)
+        (self.1)(self.0)
     }
 }
 
 impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        self.val.simplify(file)
+        self.0.simplify(file)
     }
 }
 
@@ -538,9 +535,7 @@ where
     Context::Add(
         iter.into_iter()
             .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue { val, func }) as Box<dyn Resolve<Result = R>>
-                )
+                Type::Normal(Box::new(TransformedValue(val, func)) as Box<dyn Resolve<Result = R>>)
             })
             .collect(),
     )
@@ -559,9 +554,7 @@ where
     Context::Mul(
         iter.into_iter()
             .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue { val, func }) as Box<dyn Resolve<Result = R>>
-                )
+                Type::Normal(Box::new(TransformedValue(val, func)) as Box<dyn Resolve<Result = R>>)
             })
             .collect(),
     )
