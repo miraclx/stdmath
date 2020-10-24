@@ -156,8 +156,7 @@ macro_rules! bulk_impl_traits {
                 // fixme: maybe creating a custom struct wrapping
                 // fixme: strings would be a better alternative
                 type Result = usize;
-                stage_default_methods!(ALL);
-                stage_default_methods!(is_friendly_with_all);
+                stage_default_methods!(is_friendly_with_all ALL);
                 fn resolve(self: Box<Self>) -> Self::Result {
                     unimplemented!("cannot resolve strings")
                 }
@@ -265,8 +264,7 @@ where
         + std::ops::Sub<Output = R>,
 {
     type Result = R;
-    stage_default_methods!(ALL);
-    stage_default_methods!(is_friendly_with_all);
+    stage_default_methods!(is_friendly_with_all ALL);
     fn resolve(self: Box<Self>) -> Self::Result {
         let (vec, default, [normal_op, inverse_op]): (_, fn() -> R, [fn(R, R) -> R; 2]) =
             match *self {
@@ -488,8 +486,7 @@ where
     F: Hash + PartialEq + PartialOrd,
 {
     type Result = R;
-    stage_default_methods!(ALL);
-    stage_default_methods!(is_friendly_with);
+    stage_default_methods!(is_friendly_with ALL);
     fn resolve(self: Box<Self>) -> Self::Result {
         (self.func)(self.val)
     }
