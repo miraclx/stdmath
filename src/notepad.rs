@@ -12,6 +12,14 @@ use std::{
 
 pub trait Simplify {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
+    fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
+        Simplify::simplify(self, file)
+    }
+    fn repr(&self) -> Result<String, std::fmt::Error> {
+        let mut file = String::new();
+        self.repr_into(&mut file)?;
+        Ok(file)
+    }
 }
 
 pub trait Resolve: Simplify {
@@ -224,14 +232,6 @@ impl<R: 'static> Context<R> {
             + std::ops::Sub<Output = R>,
     {
         Box::new(self).resolve()
-    }
-    pub fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
-        Simplify::simplify(self, file)
-    }
-    pub fn repr(&self) -> Result<String, std::fmt::Error> {
-        let mut file = String::new();
-        self.repr_into(&mut file)?;
-        Ok(file)
     }
     fn dump(self) -> Vec<Type<Box<dyn Resolve<Result = R>>>> {
         match self {
