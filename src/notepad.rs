@@ -858,6 +858,7 @@ mod tests {
         let val2 = TransformedValue(50, func);
         assert_eq!(val1, val2);
     }
+    #[test]
     fn transformed_unshared_cmp() {
         let val1 = TransformedValue(50, |val: u8| val + 50); // 100
         let val2 = TransformedValue(80, |val: u8| val + 11); // 91
@@ -869,6 +870,7 @@ mod tests {
         assert!(val1 > val2);
         assert!(val1.resolve() < val2.resolve());
     }
+    #[test]
     fn transformed_shared_cmp() {
         let func = |x| x + 10;
         let val1 = TransformedValue(50, func); // 60
