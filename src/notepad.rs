@@ -467,7 +467,7 @@ where
     )
 }
 
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Clone)]
 pub struct TransformedValue<T, F> {
     val: T,
     func: F,
@@ -486,11 +486,31 @@ impl<T: Debug, F> Debug for TransformedValue<T, F> {
     }
 }
 
-impl<T: 'static, R: 'static, F: Fn(T) -> R + 'static> Resolve
-    for TransformedValue<T, std::rc::Rc<F>>
+impl<T: PartialEq + 'static, F1: 'static, F2: 'static> PartialEq<TransformedValue<T, F2>>
+    for TransformedValue<T, F1>
+{
+    fn eq(&self, other: &TransformedValue<T, F2>) -> bool {
+        self.val == other.val && (&other.func as &dyn Any).is::<F1>()
+    }
+}
+impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>>
+    for TransformedValue<T, F1>
+{
+    fn partial_cmp(&self, other: &TransformedValue<T, F2>) -> Option<Ordering> {
+        if (&other.func as &dyn Any).is::<F1>() {
+            return self.val.partial_cmp(&other.val);
+        }
+        None
+    }
+}
+
+impl<T, R, F: Fn(T) -> R + Copy> Resolve for TransformedValue<T, F>
 where
-    T: Clone + Hash + Debug + PartialOrd + Simplify,
-    F: Hash + PartialEq + PartialOrd,
+    T: Simplify + Clone + Hash + Debug + PartialOrd,
+    //
+    T: 'static,
+    R: 'static,
+    F: 'static,
 {
     type Result = R;
     stage_default_methods!(is_friendly_with ALL);
