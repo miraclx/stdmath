@@ -838,6 +838,17 @@ mod tests {
         assert_eq!(Box::new(val).resolve(), 100);
     }
     #[test]
+    fn transformed_eq() {
+        let val1 = TransformedValue(50, |val: u8| val + 50);
+        let val2 = TransformedValue(50, |val: u8| val + 50);
+        assert_ne!(val1, val2);
+
+        let func = |val: u8| val + 10;
+        let val1 = TransformedValue(50, func);
+        let val2 = TransformedValue(50, func);
+        assert_eq!(val1, val2);
+    }
+    #[test]
     fn sigma_basic() {
         let val = sigma(1..=10, |val| val);
         assert_eq!(
