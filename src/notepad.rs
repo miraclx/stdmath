@@ -871,6 +871,19 @@ mod tests {
         assert!(val1 > val2);
         assert!(val1.resolve() < val2.resolve());
     }
+    fn transformed_shared_cmp() {
+        let func = |x| x + 10;
+        let val1 = TransformedValue(50, func); // 60
+        let val2 = TransformedValue(80, func); // 90
+        assert!(val1 < val2);
+        assert!(val1.resolve() < val2.resolve());
+
+        let func = |x| x + 22;
+        let val1 = TransformedValue(60, func); // 82
+        let val2 = TransformedValue(32, func); // 54
+        assert!(val1 > val2);
+        assert!(val1.resolve() > val2.resolve());
+    }
     #[test]
     fn sigma_basic() {
         let val = sigma(1..=10, |val| val);
