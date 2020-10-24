@@ -887,6 +887,15 @@ mod tests {
         assert_eq!(val1.partial_cmp(&val2), Some(std::cmp::Ordering::Less));
         assert!(val1.resolve() < val2.resolve()); // 60 < 90
 
+        let func = |x| x + 64;
+        let val1 = TransformedValue(22, func); // 86
+        let val2 = TransformedValue(22, func); // 86
+        assert!(!(val1 < val2)); // !(22 < 22)
+        assert!(val1 == val2); // 22 == 22
+        assert!(!(val1 > val2)); // !(22 > 22)
+        assert_eq!(val1.partial_cmp(&val2), Some(std::cmp::Ordering::Equal));
+        assert!(val1.resolve() == val2.resolve()); // 86 == 86
+
         let func = |x| x + 22;
         let val1 = TransformedValue(60, func); // 82
         let val2 = TransformedValue(32, func); // 54
