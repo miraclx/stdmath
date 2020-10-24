@@ -928,6 +928,35 @@ mod tests {
         assert_eq!(val.resolve(), 55);
     }
     #[test]
+    fn sigma_add_unshared() {
+        // (∑(1 → 4) [x => x ^ 2]) + (∑(4 → 5) [x => x + 20])
+        // = ((1 ^ 2) + (2 ^ 2) + (3 ^ 2) + (4 ^ 2)) + ((4 + 20) + (5 + 20))
+        // = ((1) + (4) + (9) + (16)) + ((24) + (25))
+        // = (1 + 4 + 9 + 16) + (24 + 25)
+        // = (30) + (49)
+        // = (30 + 49)
+        // = 79
+
+        let val1 = sigma(1..=4, |val: u8| val.pow(2));
+        let val2 = sigma(4..=5, |val| val + 20);
+        let val3 = val1 + val2;
+        match val3
+            .repr()
+            .expect("failed to represent math context")
+            .as_str()
+        {
+            "(1 + 2 + 3 + 4 + (5 + 4))" | "(1 + 2 + 3 + 4 + (4 + 5))" => {}
+            // fixme: asserting between multiple matches
+            val => panic!(
+                r#"assertion failed: `(left == right)`
+  left: `{:?}`,
+ right: `"(1 + 2 + 3 + 4 + (4 + 5))" or "(1 + 2 + 3 + 4 + (5 + 4))"`"#,
+                val
+            ),
+        }
+        assert_eq!(val3.resolve(), 79);
+    }
+    #[test]
     fn product_basic() {
         let val = product(1..=10, |val| val);
         assert_eq!(
