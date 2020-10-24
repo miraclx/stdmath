@@ -470,18 +470,16 @@ where
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
-impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
+impl<T, R, F: Fn(T) -> R + Copy> TransformedValue<T, F> {
     fn resolve(self) -> R
     where
-        R: PartialOrd,
-        R: One
-            + Zero
-            + std::ops::Mul
-            + std::ops::Add
-            + std::ops::Div<Output = R>
-            + std::ops::Sub<Output = R>,
+        T: Simplify + Clone + Hash + Debug + PartialOrd,
+        //
+        T: 'static,
+        R: 'static,
+        F: 'static,
     {
-        Box::new(self).resolve()
+        Resolve::resolve(Box::new(self))
     }
 }
 
