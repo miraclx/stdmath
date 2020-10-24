@@ -470,6 +470,21 @@ where
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
+impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
+    fn resolve(self) -> R
+    where
+        R: PartialOrd,
+        R: One
+            + Zero
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div<Output = R>
+            + std::ops::Sub<Output = R>,
+    {
+        Box::new(self).resolve()
+    }
+}
+
 impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.1.type_id().hash(state);
