@@ -467,10 +467,17 @@ where
     )
 }
 
-#[derive(Hash, Clone, PartialEq, PartialOrd)]
+#[derive(Clone, PartialEq, PartialOrd)]
 pub struct TransformedValue<T, F> {
     val: T,
     func: F,
+}
+
+impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.func.type_id().hash(state);
+        self.val.hash(state);
+    }
 }
 
 impl<T: Debug, F> Debug for TransformedValue<T, F> {
