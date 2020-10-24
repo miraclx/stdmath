@@ -862,12 +862,18 @@ mod tests {
     fn transformed_unshared_cmp() {
         let val1 = TransformedValue(50, |val: u8| val + 50); // 100
         let val2 = TransformedValue(80, |val: u8| val + 11); // 91
-        assert!(val1 < val2);
+        assert!(!(val1 < val2)); // can't compare
+        assert!(val1 != val2); // can't compare
+        assert!(!(val1 > val2)); // can't compare
+        assert_eq!(val1.partial_cmp(&val2), None); // can't compare
         assert!(val1.resolve() > val2.resolve());
 
         let val1 = TransformedValue(60, |val: u8| val + 12); // 72
         let val2 = TransformedValue(32, |val: u8| val + 43); // 75
-        assert!(val1 > val2);
+        assert!(!(val1 < val2)); // can't compare
+        assert!(val1 != val2); // can't compare
+        assert!(!(val1 > val2)); // can't compare
+        assert_eq!(val1.partial_cmp(&val2), None); // can't compare
         assert!(val1.resolve() < val2.resolve());
     }
     #[test]
