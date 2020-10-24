@@ -881,14 +881,20 @@ mod tests {
         let func = |x| x + 10;
         let val1 = TransformedValue(50, func); // 60
         let val2 = TransformedValue(80, func); // 90
-        assert!(val1 < val2);
-        assert!(val1.resolve() < val2.resolve());
+        assert!(val1 < val2); // 50 < 80
+        assert!(val1 != val2); // 50 != 80
+        assert!(!(val1 > val2)); // !(50 > 80)
+        assert_eq!(val1.partial_cmp(&val2), Some(std::cmp::Ordering::Less));
+        assert!(val1.resolve() < val2.resolve()); // 60 < 90
 
         let func = |x| x + 22;
         let val1 = TransformedValue(60, func); // 82
         let val2 = TransformedValue(32, func); // 54
-        assert!(val1 > val2);
-        assert!(val1.resolve() > val2.resolve());
+        assert!(!(val1 < val2)); // !(60 < 32)
+        assert!(val1 != val2); // 60 != 32
+        assert!(val1 > val2); // 60 > 32
+        assert_eq!(val1.partial_cmp(&val2), Some(std::cmp::Ordering::Greater));
+        assert!(val1.resolve() > val2.resolve()); // 82 > 54
     }
     #[test]
     fn sigma_basic() {
