@@ -829,10 +829,7 @@ mod tests {
     }
     #[test]
     fn transformed_value() {
-        let val = TransformedValue {
-            val: 50,
-            func: |val| val + 50,
-        };
+        let val = TransformedValue(50, |val| val + 50);
         let mut repr = String::new();
         val.simplify(&mut repr)
             .expect("failed to represent math context");
