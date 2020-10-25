@@ -372,37 +372,57 @@ impl<R: 'static> Simplify for Context<R> {
     }
 }
 
-impl<R: 'static> std::ops::Add for Context<R>
-where
-    R: PartialOrd,
-    R: One
-        + Zero
-        + std::ops::Mul
-        + std::ops::Add
-        + std::ops::Div<Output = R>
-        + std::ops::Sub<Output = R>,
-{
-    type Output = Context<R>;
-    fn add(self, rhs: Self) -> Self::Output {
-        Context::Add(
-            if self.is_additive() {
-                Box::new(self.dump().into_iter()) as Box<dyn Iterator<Item = Type<Box<_>>>>
-            } else {
-                Box::new(std::iter::once(Type::Normal(
-                    Box::new(self) as Box<dyn Resolve<Result = R>>
-                )))
+macro_rules! impl_ops {
+    ($($trait:path[fn $method:ident($lhs_ident:ident, $rhs_ident:ident) -> $final_variant:path] => {$($rules:tt)+}),+) => {
+        $(
+            impl<R: 'static> $trait for Context<R>
+            where
+                R: PartialOrd,
+                R: One
+                    + Zero
+                    + std::ops::Mul
+                    + std::ops::Add
+                    + std::ops::Div<Output = R>
+                    + std::ops::Sub<Output = R>,
+            {
+                type Output = Context<R>;
+                fn $method(self, rhs: Self) -> Self::Output {
+                    let ($lhs_ident, $rhs_ident) = (self, rhs);
+                    $final_variant(impl_ops!($($rules)+).collect())
+                }
             }
-            .exclude(if rhs.is_additive() {
-                Box::new(rhs.dump().into_iter().flip()) as Box<dyn Iterator<Item = Type<Box<_>>>>
+        )+
+    };
+    (
+        base => $base_cond:expr , $base_true:expr , $base_false:expr ;
+        ctrl => $ctrl_cond:expr , $ctrl_true:expr , $ctrl_false:expr ;
+        incl => $incl_expr:expr;
+    ) => {
+        if $base_cond {
+            Box::new($base_true) as Box<dyn Iterator<Item = Type<Box<_>>>>
+        } else {
+            Box::new($base_false)
+        }
+        .exclude(
+            if $ctrl_cond {
+                Box::new($ctrl_true) as Box<dyn Iterator<Item = Type<Box<_>>>>
             } else {
-                Box::new(
-                    std::iter::once(Type::Normal(Box::new(rhs) as Box<dyn Resolve<Result = R>>))
-                        .flip(),
-                )
-            })
-            .include_overflow_with(|item| item.flip())
-            .collect(),
+                Box::new($ctrl_false)
+            }
         )
+        .include_overflow_with($incl_expr)
+    };
+}
+
+impl_ops! {
+    std::ops::Add[fn add(lhs, rhs) -> Context::Add] => {
+        base => lhs.is_additive()
+          , lhs.dump().into_iter()
+          , std::iter::once(Type::Normal(Box::new(lhs) as Box<dyn Resolve<Result = R>>));
+        ctrl => rhs.is_additive()
+          , rhs.dump().into_iter().flip()
+          , std::iter::once(Type::Normal(Box::new(rhs) as Box<dyn Resolve<Result = R>>)).flip();
+        incl => |item| item.flip();
     }
 }
 
