@@ -415,6 +415,47 @@ macro_rules! impl_ops {
 }
 
 impl_ops! {
+    // ((2 + 3 - 4) + (-2 + 3 - 6))
+    //   lhs := (2 + 3 - 4)
+    //   rhs := (-2 + 3 - 6)
+    // ? invert rhs
+    //   'rhs := -(-2 + 3 - 6)
+    //   'rhs := (2 - 3 + 6)
+    // ? exclude matching items in 'rhs from lhs
+    //   'lhs := (lhs ^ 'rhs)
+    //    = ((2 + 3 - 4) ^ (2 - 3 + 6))
+    //   'lhs := (3 - 4) [overflow = (-3 + 6)]
+    // ? invert the overflow
+    //   'overflow := -(-3 + 6)
+    //   'overflow := (3 - 6)
+    // ? merge 'overflow and 'lhs
+    //   result := ('lhs + 'overflow)
+    //    = (3 - 4) + (3 - 6)
+    // ? group typed variants
+    //   'result := (3 + 3) - (4 + 6)
+    //    = (6) - (10)
+    //    = -4
+
+    // ((1 - 2 + 3) + (-1 + 2 - 3))
+    //   lhs := (1 - 2 + 3)
+    //   rhs := (-1 + 2 - 3)
+    // ? invert rhs
+    //   'rhs := -(-1 + 2 - 3)
+    //   'rhs := (1 - 2 + 3)
+    // ? exclude matching items in 'rhs from lhs
+    //   'lhs := (lhs ^ 'rhs)
+    //    = ((1 - 2 + 3) ^ (1 - 2 + 3))
+    //   'lhs := () [overflow = ()]
+    // ? invert the overflow
+    //   'overflow := -()
+    //   'overflow := ()
+    // ? merge 'overflow and 'lhs
+    //   result := ('lhs + 'overflow)
+    //    = () + ()
+    // ? group typed variants
+    //   'result := () - ()
+    //    = () - ()
+    //    = 0
     std::ops::Add[fn add(lhs, rhs) -> Context::Add] => {
         base => lhs.is_additive()
           , lhs.dump().into_iter()
