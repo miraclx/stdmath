@@ -424,7 +424,20 @@ macro_rules! impl_ops {
               incl => impl_ops!(incl_default);
         )
     };
+    (rules default_inverse($sign:tt, $lhs:ident, $rhs:ident)) => {
+        impl_ops!(
+            rules
+              base => impl_ops!(ctx $sign $lhs)
+                , impl_ops!(dump_items $lhs)
+                , impl_ops!(dump_raw $lhs);
+              ctrl => impl_ops!(ctx $sign $rhs)
+                , impl_ops!(dump_items $rhs).flip()
+                , impl_ops!(dump_raw $rhs).flip();
+              incl => impl_ops!(incl_default);
+        )
+    };
     (ctx + $side:ident) => {$side.is_additive()};
+    (ctx * $side:ident) => {!$side.is_additive()};
     (dump_items $side:ident) => {$side.dump().into_iter()};
     (dump_raw $side:ident) => {
         std::iter::once(Type::Normal(Box::new($side) as Box<dyn Resolve<Result = R>>))
@@ -474,7 +487,10 @@ impl_ops! {
     //   'result := () - ()
     //    = () - ()
     //    = 0
-    std::ops::Add[fn add(lhs, rhs) -> Context::Add] => { default_normal(+, lhs, rhs) }
+    std::ops::Add[fn add(lhs, rhs) -> Context::Add] => { default_normal(+, lhs, rhs) },
+    std::ops::Sub[fn sub(lhs, rhs) -> Context::Add] => { default_inverse(+, lhs, rhs) },
+    std::ops::Mul[fn mul(lhs, rhs) -> Context::Mul] => { default_normal(*, lhs, rhs) },
+    std::ops::Div[fn div(lhs, rhs) -> Context::Mul] => { default_inverse(*, lhs, rhs) }
 }
 
 pub fn sum<I, T, X>(iter: I) -> Context<X>
