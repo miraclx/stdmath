@@ -388,12 +388,12 @@ macro_rules! impl_ops {
                 type Output = Context<R>;
                 fn $method(self, rhs: Self) -> Self::Output {
                     let ($lhs_ident, $rhs_ident) = (self, rhs);
-                    $final_variant(impl_ops!($($rules)+).collect())
+                    $final_variant(impl_ops!(rules $($rules)+).collect())
                 }
             }
         )+
     };
-    (
+    (rules
         base => $base_cond:expr , $base_true:expr , $base_false:expr ;
         ctrl => $ctrl_cond:expr , $ctrl_true:expr , $ctrl_false:expr ;
         incl => $incl_expr:expr;
@@ -412,6 +412,24 @@ macro_rules! impl_ops {
         )
         .include_overflow_with($incl_expr)
     };
+    (rules default_normal($sign:tt, $lhs:ident, $rhs:ident)) => {
+        impl_ops!(
+            rules
+              base => impl_ops!(ctx $sign $lhs)
+                , impl_ops!(dump_items $lhs)
+                , impl_ops!(dump_raw $lhs);
+              ctrl => impl_ops!(ctx $sign $rhs)
+                , impl_ops!(dump_items $rhs)
+                , impl_ops!(dump_raw $rhs);
+              incl => impl_ops!(incl_default);
+        )
+    };
+    (ctx + $side:ident) => {$side.is_additive()};
+    (dump_items $side:ident) => {$side.dump().into_iter()};
+    (dump_raw $side:ident) => {
+        std::iter::once(Type::Normal(Box::new($side) as Box<dyn Resolve<Result = R>>))
+    };
+    (incl_default) => {|item| item.flip()}
 }
 
 impl_ops! {
@@ -456,15 +474,7 @@ impl_ops! {
     //   'result := () - ()
     //    = () - ()
     //    = 0
-    std::ops::Add[fn add(lhs, rhs) -> Context::Add] => {
-        base => lhs.is_additive()
-          , lhs.dump().into_iter()
-          , std::iter::once(Type::Normal(Box::new(lhs) as Box<dyn Resolve<Result = R>>));
-        ctrl => rhs.is_additive()
-          , rhs.dump().into_iter().flip()
-          , std::iter::once(Type::Inverse(Box::new(rhs) as Box<dyn Resolve<Result = R>>));
-        incl => |item| item.flip();
-    }
+    std::ops::Add[fn add(lhs, rhs) -> Context::Add] => { default_normal(+, lhs, rhs) }
 }
 
 pub fn sum<I, T, X>(iter: I) -> Context<X>
