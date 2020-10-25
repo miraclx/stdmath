@@ -421,7 +421,7 @@ impl_ops! {
           , std::iter::once(Type::Normal(Box::new(lhs) as Box<dyn Resolve<Result = R>>));
         ctrl => rhs.is_additive()
           , rhs.dump().into_iter().flip()
-          , std::iter::once(Type::Normal(Box::new(rhs) as Box<dyn Resolve<Result = R>>)).flip();
+          , std::iter::once(Type::Inverse(Box::new(rhs) as Box<dyn Resolve<Result = R>>));
         incl => |item| item.flip();
     }
 }
