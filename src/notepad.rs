@@ -384,62 +384,25 @@ where
 {
     type Output = Context<R>;
     fn add(self, rhs: Self) -> Self::Output {
-        let mut res = vec![];
-        match (self.is_additive(), rhs.is_additive()) {
-            // todo: check if results are the same
-            // todo: dont merge if types don't match
-            (true, true) => {
-                // method 1
-                // both are additive
-                // merge both into an additive context
-
-                res.extend(
-                    self.dump()
-                        .into_iter()
-                        .exclude(rhs.dump().into_iter().flip())
-                        .include_overflow_with(|item| item.flip()),
-                );
+        Context::Add(
+            if self.is_additive() {
+                Box::new(self.dump().into_iter()) as Box<dyn Iterator<Item = Type<Box<_>>>>
+            } else {
+                Box::new(std::iter::once(Type::Normal(
+                    Box::new(self) as Box<dyn Resolve<Result = R>>
+                )))
             }
-            (true, false) => {
-                // method 2
-                // only I am additive
-                // extend res with self's contents
-                // push rhs as is into res
-
-                res.extend(
-                    self.dump()
-                        .into_iter()
-                        .exclude(
-                            std::iter::once(Type::Normal(
-                                Box::new(rhs) as Box<dyn Resolve<Result = R>>
-                            ))
-                            .flip(),
-                        )
-                        .include_overflow_with(|item| item.flip()),
-                );
-            }
-            (false, true) => {
-                // method 2
-                // only rhs is additive
-                // push self as is into res
-                // extend res with rhs's contents
-
-                res.extend(
-                    std::iter::once(Type::Normal(Box::new(self) as Box<dyn Resolve<Result = R>>))
-                        .exclude(rhs.dump().into_iter().flip())
-                        .include_overflow_with(|item| item.flip()),
+            .exclude(if rhs.is_additive() {
+                Box::new(rhs.dump().into_iter().flip()) as Box<dyn Iterator<Item = Type<Box<_>>>>
+            } else {
+                Box::new(
+                    std::iter::once(Type::Normal(Box::new(rhs) as Box<dyn Resolve<Result = R>>))
+                        .flip(),
                 )
-            }
-            _ => {
-                // method 3
-                // anything else
-                // push both self and rhs into an additive context
-
-                res.push(Type::Normal(Box::new(self)));
-                res.push(Type::Normal(Box::new(rhs)));
-            }
-        };
-        Context::Add(res)
+            })
+            .include_overflow_with(|item| item.flip())
+            .collect(),
+        )
     }
 }
 
