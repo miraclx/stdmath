@@ -187,13 +187,40 @@ bulk_impl_traits!(nohash(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
-#[derive(PartialEq, PartialOrd)]
 pub enum Context<R> {
     Add(Vec<Type<Box<dyn Resolve<Result = R>>>>),
     Mul(Vec<Type<Box<dyn Resolve<Result = R>>>>),
 }
 
-impl<R> Hash for Context<R> {
+impl<R: 'static> PartialEq for Context<R> {
+    fn eq(&self, other: &Self) -> bool {
+        let id_me = std::mem::discriminant(self);
+        let id_you = std::mem::discriminant(other);
+        if id_me == id_you {
+            self.get_ref() == other.get_ref()
+        } else {
+            false
+        }
+    }
+}
+
+impl<R: 'static> PartialOrd for Context<R> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let id_me = std::mem::discriminant(self);
+        let id_you = std::mem::discriminant(other);
+        if id_me == id_you {
+            self.get_ref().partial_cmp(other.get_ref())
+        } else {
+            Some(match (self, other) {
+                (Context::Add(_), Context::Mul(_)) => Ordering::Less,
+                (Context::Mul(_), Context::Add(_)) => Ordering::Greater,
+                _ => unreachable!(),
+            })
+        }
+    }
+}
+
+impl<R: 'static> Hash for Context<R> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.get_ref().hash(state)
     }
