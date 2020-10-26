@@ -1,5 +1,7 @@
 #![feature(step_trait)]
 
+pub mod core;
+
 #[cfg(feature = "concurrency")]
 use rayon::prelude::*;
 
