@@ -1,11 +1,8 @@
-#[cfg(feature = "order")]
-use std::{collections::hash_map::DefaultHasher, hash::Hasher};
 use std::{
-    collections::{BTreeMap, HashMap},
-    hash::Hash,
+    collections::{hash_map::DefaultHasher, BTreeMap, HashMap},
+    hash::{Hash, Hasher},
 };
 
-#[cfg(feature = "order")]
 fn hash<T: Hash>(val: &T) -> u64 {
     let mut state = DefaultHasher::new();
     val.hash(&mut state);
@@ -33,7 +30,7 @@ pub struct ExcludedIterator<B, C: Iterator, R> {
     #[cfg(feature = "order")]
     hash_entries: BTreeMap<usize, u64>,
     #[cfg(not(feature = "order"))]
-    ctrl: HashMap<C::Item, usize>,
+    ctrl: HashMap<u64, Vec<C::Item>>,
     transformer: fn(C::Item) -> R,
     overflow: OverflowState<C::Item, R>,
 }
@@ -45,8 +42,8 @@ impl<B, C: Iterator, R> ExcludedIterator<B, C, R> {
         C: Iterator<Item = R>,
         C::Item: Eq + Hash,
     {
-        let mut _ctrl = HashMap::new();
-        ctrl.for_each(|item| *_ctrl.entry(item).or_default() += 1);
+        let mut _ctrl: HashMap<u64, Vec<C::Item>> = HashMap::new();
+        ctrl.for_each(|item| _ctrl.entry(hash(&item)).or_default().push(item));
         ExcludedIterator {
             base,
             ctrl: _ctrl,
@@ -126,7 +123,7 @@ impl<B, C, T, R> Iterator for ExcludedIterator<B, C, R>
 where
     B: Iterator<Item = T>,
     C: Iterator<Item = T>,
-    T: Clone + Eq + Hash,
+    T: Eq + Hash,
 {
     type Item = R;
     #[cfg(not(feature = "order"))]
@@ -137,11 +134,18 @@ where
                     if self.ctrl.is_empty() {
                         return Some((self.transformer)(val));
                     } else {
-                        match self.ctrl.get_mut(&val) {
-                            Some(count) => {
-                                *count -= 1;
-                                if *count == 0 {
-                                    self.ctrl.remove(&val);
+                        let hash = hash(&val);
+                        match self.ctrl.get_mut(&hash) {
+                            Some(items) => {
+                                let val_ = items
+                                    .last()
+                                    .expect("there should be at least one item here");
+                                if val != *val_ {
+                                    return Some((self.transformer)(val));
+                                }
+                                items.pop();
+                                if items.len() == 0 {
+                                    self.ctrl.remove(&hash);
                                 }
                             }
                             None => return Some((self.transformer)(val)),
@@ -151,15 +155,18 @@ where
                 None => match self.overflow {
                     OverflowState::Excluded => return None,
                     OverflowState::Included(handle) => {
-                        let (entry, count) =
-                            self.ctrl.iter_mut().next().map(|(entry, count)| {
-                                *count -= 1;
-                                (entry.clone(), *count)
+                        let (key, value, len) =
+                            self.ctrl.iter_mut().next().map(|(hash, items)| {
+                                (
+                                    *hash,
+                                    items.pop().expect("there should be at least one item here"),
+                                    items.len(),
+                                )
                             })?;
-                        if count == 0 {
-                            self.ctrl.remove(&entry);
+                        if len == 0 {
+                            self.ctrl.remove(&key);
                         }
-                        return Some(handle(entry));
+                        return Some(handle(value));
                     }
                 },
             };
