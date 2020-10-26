@@ -16,7 +16,7 @@ pub enum OverflowState<T, R> {
 }
 
 #[cfg(feature = "order")]
-#[derive(Clone, Default)]
+#[derive(Clone)]
 struct DictionaryEntry<T> {
     cursor: usize,
     slots: Vec<(usize, T)>,
