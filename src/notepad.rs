@@ -847,7 +847,7 @@ mod tests {
 
         // Add
         // (1 - 2 + 3) + (-1 + 2 - 3)
-        // (1 - 2 + 3 - 1 + 2 - 3) // op/ctx match: merge both sides
+        // (1 - 2 + 3 - 1 + 2 - 3) // ? op/ctx match: merge both sides
         // (1 - 1 + 2 - 2 + 3 - 3)
         // ()
         let add = val1.clone() + val2.clone();
@@ -856,7 +856,7 @@ mod tests {
 
         // Sub
         // (1 - 2 + 3) - (-1 + 2 - 3)
-        // (1 - 2 + 3 + 1 - 2 + 3) // op/ctx match: merge both sides
+        // (1 - 2 + 3 + 1 - 2 + 3) // ? op/ctx match: merge both sides
         // (1 + 3 + 1 + 3) - (2 + 2) // ? group variants
         // (8) - (4)
         // (4)
@@ -880,7 +880,7 @@ mod tests {
 
         // Mul
         // (1 / 2 * 3) * (1/1 * 2 / 3)
-        // (1 / 2 * 3 / 1 * 2 / 3)
+        // (1 / 2 * 3 / 1 * 2 / 3) // ? op/ctx match: merge both sides
         // (1 / 1 * 2 / 2 * 3 / 3)
         // ()
         let mul = val1.clone() * val2.clone();
@@ -889,7 +889,7 @@ mod tests {
 
         // Div
         // (1 / 2 * 3) / (1/1 * 2 / 3)
-        // (1 / 2 * 3 * 1 / 2 * 3) // op/ctx match: merge both sides
+        // (1 / 2 * 3 * 1 / 2 * 3) // ? op/ctx match: merge both sides
         // (1 * 3 * 1 * 3) / (2 * 2) // ? group variants
         // (9) / (4)
         // (2.25)
