@@ -1235,6 +1235,25 @@ mod tests {
         assert_eq!(val.resolve(), 14400);
     }
     #[test]
+    fn product_mul_unshared() {
+        // (∏(1 → 3) [x => x + 4]) * (∏(4 → 5) [x => x + 3])
+        // = ((1 + 4) * (2 + 4) * (3 + 4)) * ((4 + 3) * (5 + 3))
+        // = ((5) * (6) * (7)) * ((7) * (8))
+        // = (5 * 6 * 7) * (7 * 8)
+        // = (210) * (56)
+        // = (210 * 56)
+        // = 11760
+
+        let val1 = product(1..=3, |val| val + 4);
+        let val2 = product(4..=5, |val| val + 3);
+        let val3 = val1 * val2;
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * (4 * 5))"
+        );
+        assert_eq!(val3.resolve(), 11760);
+    }
+    #[test]
     fn repr_chars() {
         let val = sum(Type::Normal('a'..='f'));
         assert_eq!(
