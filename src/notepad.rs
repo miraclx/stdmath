@@ -25,10 +25,10 @@ pub trait Simplify {
 pub trait Resolve: Simplify {
     type Result;
     fn resolve(self: Box<Self>) -> Self::Result;
-    fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
 
     // methods needed for dynamicism
     fn as_any(&self) -> &dyn Any;
+    fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
         unimplemented!()
