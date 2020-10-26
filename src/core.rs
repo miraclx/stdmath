@@ -6,8 +6,8 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
 /// Provide a means to represent the state of a value. Normal or Reciprocal.
+#[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
 pub enum Type<T> {
     /// context        | value | identity | indirect identity
     /// -------------- | ----- | -------- | -----------------
@@ -176,9 +176,9 @@ impl<I: Iterator<Item = T>, T> Iterator for Type<I> {
     }
 }
 
-#[derive(Clone)]
 /// Provide a means to convert an iterator of `Type`s to their inverse variants
 /// e.g `[Type::Normal(x), Type::Flipped(y)]` becomes `[Type::Flipped(x), Type::Normal(y)]`
+#[derive(Clone)]
 pub struct FlippedIteratorOfTypes<I> {
     inner: I,
 }
