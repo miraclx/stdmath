@@ -1,6 +1,7 @@
 #![feature(step_trait)]
 
 pub mod core;
+pub mod exclude;
 
 #[cfg(feature = "concurrency")]
 use rayon::prelude::*;
