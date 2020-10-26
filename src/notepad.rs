@@ -245,7 +245,6 @@ impl<R: 'static> Context<R> {
     #[inline]
     pub fn resolve(self) -> R
     where
-        R: PartialOrd,
         R: One
             + Zero
             + std::ops::Mul
@@ -280,7 +279,6 @@ impl<R: 'static> Context<R> {
 
 impl<R: 'static> Resolve for Context<R>
 where
-    R: PartialOrd,
     R: One
         + Zero
         + std::ops::Mul
@@ -402,7 +400,6 @@ macro_rules! impl_ops {
         $(
             impl<R: 'static> $trait for Context<R>
             where
-                R: PartialOrd,
                 R: One
                     + Zero
                     + std::ops::Mul
