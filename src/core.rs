@@ -230,9 +230,7 @@ pub trait Resolve: Simplify {
     fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unimplemented!()
     }
-    fn _hash(&self, _state: &mut dyn Hasher) {
-        unimplemented!()
-    }
+    fn _hash(&self, _state: &mut dyn Hasher);
 }
 
 impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
