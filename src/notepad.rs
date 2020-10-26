@@ -841,6 +841,66 @@ mod tests {
         assert_eq!(val.resolve(), 3628800);
     }
     #[test]
+    fn context_op_method_1() {
+        let val1 = sum(vec![Type::Normal(1), Type::Inverse(2), Type::Normal(3)]);
+        let val2 = sum(vec![Type::Inverse(1), Type::Normal(2), Type::Inverse(3)]);
+
+        // Add
+        // (1 - 2 + 3) + (-1 + 2 - 3)
+        // (1 - 2 + 3 - 1 + 2 - 3) // op/ctx match: merge both sides
+        // (1 - 1 + 2 - 2 + 3 - 3)
+        // ()
+        let add = val1.clone() + val2.clone();
+        assert_eq!(add.repr().expect("failed to represent math context"), "");
+        assert_eq!(add.resolve(), 0);
+
+        // Sub
+        // (1 - 2 + 3) - (-1 + 2 - 3)
+        // (1 - 2 + 3 + 1 - 2 + 3) // op/ctx match: merge both sides
+        // (1 + 3 + 1 + 3) - (2 + 2) // ? group variants
+        // (8) - (4)
+        // (4)
+        let sub = val1.clone() - val2.clone();
+        assert_eq!(
+            sub.repr().expect("failed to represent math context"),
+            "((1 + 3 + 1 + 3) - (2 + 2))"
+        );
+        assert_eq!(sub.resolve(), 4);
+
+        let val1 = mul(vec![
+            Type::Normal(1.0),
+            Type::Inverse(2.0),
+            Type::Normal(3.0),
+        ]);
+        let val2 = mul(vec![
+            Type::Inverse(1.0),
+            Type::Normal(2.0),
+            Type::Inverse(3.0),
+        ]);
+
+        // Mul
+        // (1 / 2 * 3) * (1/1 * 2 / 3)
+        // (1 / 2 * 3 / 1 * 2 / 3)
+        // (1 / 1 * 2 / 2 * 3 / 3)
+        // ()
+        let mul = val1.clone() * val2.clone();
+        assert_eq!(mul.repr().expect("failed to represent math context"), "");
+        assert_eq!(mul.resolve(), 1.0);
+
+        // Div
+        // (1 / 2 * 3) / (1/1 * 2 / 3)
+        // (1 / 2 * 3 * 1 / 2 * 3) // op/ctx match: merge both sides
+        // (1 * 3 * 1 * 3) / (2 * 2) // ? group variants
+        // (9) / (4)
+        // (2.25)
+        let div = val1.clone() / val2.clone();
+        assert_eq!(
+            div.repr().expect("failed to represent math context"),
+            "((1 * 3 * 1 * 3) / (2 * 2))"
+        );
+        assert_eq!(div.resolve(), 2.25);
+    }
+    #[test]
     fn context_add_method_1() {
         // (1 - 2 + 3) + (-1 + 2 - 3)
         // ? 1: exclude inverse matches and merge
