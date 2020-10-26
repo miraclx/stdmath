@@ -11,5 +11,6 @@ rayon = {version = "1.4.0", optional = true}
 
 [features]
 cache = []
+order = []
 concurrency = ["rayon"]
 num_traits = ["num"]
