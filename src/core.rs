@@ -37,6 +37,7 @@ impl<T> Type<T> {
     /// let inv = val.flip();
     /// assert_eq!(inv, Type::Normal(30));
     /// ```
+    #[inline]
     pub fn flip(self) -> Self {
         match self {
             Type::Normal(val) => Type::Inverse(val),
@@ -56,6 +57,7 @@ impl<T> Type<T> {
     /// let val = Type::Inverse(());
     /// assert_eq!(val.is_inverted(), true);
     /// ```
+    #[inline]
     pub fn is_inverted(&self) -> bool {
         if let Type::Inverse(_) = self {
             return true;
@@ -75,6 +77,7 @@ impl<T> Type<T> {
     /// let val = Type::Inverse("hello");
     /// assert_eq!(val.unwrap(), "hello");
     /// ```
+    #[inline]
     pub fn unwrap(self) -> T {
         match self {
             Type::Normal(val) => val,
@@ -94,6 +97,7 @@ impl<T> Type<T> {
     /// let val = Type::Inverse(10);
     /// assert_eq!(val.map(|num| num * 20), Type::Inverse(200));
     /// ```
+    #[inline]
     pub fn map<P: Fn(T) -> R, R>(self, func: P) -> Type<R> {
         match self {
             Type::Normal(val) => Type::Normal(func(val)),
@@ -113,6 +117,7 @@ impl<T> Type<T> {
     /// let val = Type::Inverse("Hello");
     /// assert_eq!(val.as_ref().map(|txt| txt.len()), Type::Inverse(5));
     /// ```
+    #[inline]
     pub fn as_ref(&self) -> Type<&T> {
         match self {
             Type::Normal(val) => Type::Normal(val),
@@ -134,6 +139,7 @@ impl<T> Type<T> {
     /// val.as_mut().map(|v| *v += 20);
     /// assert_eq!(val, Type::Inverse(53));
     /// ```
+    #[inline]
     pub fn as_mut(&mut self) -> Type<&mut T> {
         match self {
             Type::Normal(val) => Type::Normal(val),
@@ -199,6 +205,7 @@ impl<I, T> Flippable<I> for I
 where
     I: Iterator<Item = Type<T>>,
 {
+    #[inline]
     fn flip(self) -> FlippedIteratorOfTypes<I> {
         FlippedIteratorOfTypes { inner: self }
     }
@@ -206,9 +213,11 @@ where
 
 pub trait Simplify {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
+    #[inline]
     fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
         Simplify::simplify(self, file)
     }
+    #[inline]
     fn repr(&self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
         self.repr_into(&mut file)?;
@@ -224,9 +233,11 @@ pub trait Resolve: Simplify {
     fn as_any(&self) -> &dyn Any;
     fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
+    #[inline]
     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
         unimplemented!()
     }
+    #[inline]
     fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unimplemented!()
     }
@@ -234,6 +245,7 @@ pub trait Resolve: Simplify {
 }
 
 impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
+    #[inline]
     fn eq(&self, other: &dyn Resolve<Result = X>) -> bool {
         if let Some(Ordering::Equal) = self._cmp(other) {
             return true;
@@ -245,24 +257,28 @@ impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
 impl<X> Eq for dyn Resolve<Result = X> {}
 
 impl<X> PartialOrd<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
+    #[inline]
     fn partial_cmp(&self, other: &dyn Resolve<Result = X>) -> Option<Ordering> {
         self._cmp(other)
     }
 }
 
 impl<X> Debug for dyn Resolve<Result = X> {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self._debug(f)
     }
 }
 
 impl<X> Clone for Box<dyn Resolve<Result = X>> {
+    #[inline]
     fn clone(&self) -> Self {
         self._clone()
     }
 }
 
 impl<X> Hash for Box<dyn Resolve<Result = X>> {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self._hash(state);
     }
@@ -395,6 +411,7 @@ pub enum Context<R> {
 }
 
 impl<R: 'static> PartialEq for Context<R> {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         let id_me = std::mem::discriminant(self);
         let id_you = std::mem::discriminant(other);
@@ -407,6 +424,7 @@ impl<R: 'static> PartialEq for Context<R> {
 }
 
 impl<R: 'static> PartialOrd for Context<R> {
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let id_me = unsafe { *(&std::mem::discriminant(self) as *const _ as *const usize) };
         let id_you = unsafe { *(&std::mem::discriminant(other) as *const _ as *const usize) };
@@ -419,12 +437,14 @@ impl<R: 'static> PartialOrd for Context<R> {
 }
 
 impl<R: 'static> Hash for Context<R> {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.get_ref().hash(state)
     }
 }
 
 impl<R> Debug for Context<R> {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let (name, vec) = match self {
             Context::Add(vec) => ("Add", vec),
@@ -435,6 +455,7 @@ impl<R> Debug for Context<R> {
 }
 
 impl<R> Clone for Context<R> {
+    #[inline]
     fn clone(&self) -> Self {
         match self {
             Context::Add(vec) => Context::Add(vec.clone()),
@@ -610,6 +631,7 @@ macro_rules! impl_ops {
                     + std::ops::Sub<Output = R>,
             {
                 type Output = Context<R>;
+                #[inline]
                 fn $method(self, rhs: Self) -> Self::Output {
                     let ($lhs_ident, $rhs_ident) = (self, rhs);
                     $final_variant(impl_ops!(rules $($rules)+).collect())
@@ -762,6 +784,7 @@ impl<T, R, F: Fn(T) -> R + Copy> TransformedValue<T, F> {
 }
 
 impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
+    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.1.type_id().hash(state);
         self.0.hash(state);
@@ -769,6 +792,7 @@ impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
 }
 
 impl<T: Debug, F> Debug for TransformedValue<T, F> {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("TransformedValue").field(&self.0).finish()
     }
@@ -777,6 +801,7 @@ impl<T: Debug, F> Debug for TransformedValue<T, F> {
 impl<T: PartialEq + 'static, F1: 'static, F2: 'static> PartialEq<TransformedValue<T, F2>>
     for TransformedValue<T, F1>
 {
+    #[inline]
     fn eq(&self, other: &TransformedValue<T, F2>) -> bool {
         self.0 == other.0 && (&other.1 as &dyn Any).is::<F1>()
     }
@@ -784,6 +809,7 @@ impl<T: PartialEq + 'static, F1: 'static, F2: 'static> PartialEq<TransformedValu
 impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>>
     for TransformedValue<T, F1>
 {
+    #[inline]
     fn partial_cmp(&self, other: &TransformedValue<T, F2>) -> Option<Ordering> {
         if (&other.1 as &dyn Any).is::<F1>() {
             return self.0.partial_cmp(&other.0);
@@ -802,12 +828,14 @@ where
 {
     type Result = R;
     stage_default_methods!(is_friendly_with ALL);
+    #[inline]
     fn resolve(self: Box<Self>) -> Self::Result {
         (self.1)(self.0)
     }
 }
 
 impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
+    #[inline]
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         self.0.simplify(file)
     }
