@@ -169,48 +169,6 @@ impl<I: Iterator<Item = T>, T> Iterator for Type<I> {
 }
 
 #[derive(Clone)]
-/// Provide a means to convert an iterator of `T` to one of `Type<T>`
-///
-/// # Examples
-/// ```
-/// # use stdmath::core::{Type, TypedIter};
-/// #
-/// let vals = TypedIter::Normal(1..=5).collect::<Vec<_>>();
-/// assert_eq!(vals, vec![
-///     Type::Normal(1),
-///     Type::Normal(2),
-///     Type::Normal(3),
-///     Type::Normal(4),
-///     Type::Normal(5)
-/// ]);
-///
-/// let vals = TypedIter::Inverse(6..=10).collect::<Vec<_>>();
-/// assert_eq!(vals, vec![
-///     Type::Inverse(6),
-///     Type::Inverse(7),
-///     Type::Inverse(8),
-///     Type::Inverse(9),
-///     Type::Inverse(10)
-/// ]);
-/// ```
-#[deprecated = "use Type<T: Iterator> instead"]
-pub enum TypedIter<I> {
-    Normal(I),
-    Inverse(I),
-}
-
-// turns an iterator of T's to an iterator of Type<T>'s
-impl<I: Iterator<Item = T>, T> Iterator for TypedIter<I> {
-    type Item = Type<T>;
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(match self {
-            TypedIter::Normal(iter) => Type::Normal(iter.next()?),
-            TypedIter::Inverse(iter) => Type::Inverse(iter.next()?),
-        })
-    }
-}
-
-#[derive(Clone)]
 /// Provide a means to convert an iterator of `Type`s to their inverse variants
 /// e.g `[Type::Normal(x), Type::Flipped(y)]` becomes `[Type::Flipped(x), Type::Normal(y)]`
 pub struct FlippedIteratorOfTypes<I> {
