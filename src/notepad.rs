@@ -904,6 +904,80 @@ mod tests {
         assert_eq!(val3.resolve(), 26);
     }
     #[test]
+    fn context_sub_method_1() {
+        // (1 - 2 + 3) - (-1 + 2 - 3)
+        // ? 1: exclude matches and merge
+        //  (1 - 2 + 3 + 1 - 2 + 3)
+        // ? 2: group variants
+        //  ((1 + 3 + 1 + 3) - (2 + 2))
+        // ? result:
+        //  ((8) - (4))
+        //  4
+        let val1 = sum(vec![Type::Normal(1), Type::Inverse(2), Type::Normal(3)]);
+        let val2 = sum(vec![Type::Inverse(1), Type::Normal(2), Type::Inverse(3)]);
+        let val3 = val1 - val2;
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "((1 + 3 + 1 + 3) - (2 + 2))"
+        );
+        assert_eq!(val3.resolve(), 4);
+    }
+    #[test]
+    fn context_sub_method_2a() {
+        // (2 + 3) - (4 * 5)
+        // ? 1: exclude the inverse of rhs from lhs if present else merge the inverse of rhs into lhs
+        //  (2 + 3 - (4 * 5))
+        // ? 2: group variants
+        //  ((2 + 3) - (4 * 5))
+        // ? result:
+        //  -15
+        let val1 = sum(vec![Type::Normal(2), Type::Normal(3)]);
+        let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
+        let val3 = val1 - val2;
+        println!("{:?}", val3.get_ref());
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "((2 + 3) - (4 * 5))"
+        );
+        assert_eq!(val3.resolve(), -15);
+    }
+    #[test]
+    fn context_sub_method_2b() {
+        // (2 * 3) - (4 + 5)
+        // ? 1: exclude the inverse of rhs from lhs if present else merge the inverse of rhs into lhs
+        //  ((2 * 3) - 4 - 5)
+        // ? 2: group variants
+        //  ((2 * 3) - (4 + 5))
+        // ? result:
+        //  -3
+        let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
+        let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
+        let val3 = val1 - val2;
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "((2 * 3) - (4 + 5))"
+        );
+        assert_eq!(val3.resolve(), -3);
+    }
+    #[test]
+    fn context_sub_method_3() {
+        // (2 * 3) - (4 * 5)
+        // ? 1: exclude the inverse of rhs from lhs if present else merge the inverse of rhs into lhs
+        //  ((2 * 3) - (4 * 5))
+        // ? 2: group variants
+        //  ((2 * 3) - (4 * 5))
+        // ? result:
+        //  -14
+        let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
+        let val2 = mul(vec![Type::Normal(4), Type::Normal(5)]);
+        let val3 = val1 - val2;
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "((2 * 3) - (4 * 5))"
+        );
+        assert_eq!(val3.resolve(), -14);
+    }
+    #[test]
     fn transformed_value() {
         let val = TransformedValue(50, |val| val + 50);
         assert_eq!(format!("{:?}", val), "TransformedValue(50)");
