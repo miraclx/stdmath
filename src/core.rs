@@ -365,11 +365,13 @@ macro_rules! bulk_impl_traits {
                 // fixme: strings would be a better alternative
                 type Result = usize;
                 stage_default_methods!(is_friendly_with_all ALL);
+                #[inline]
                 fn resolve(self: Box<Self>) -> Self::Result {
                     unimplemented!("cannot resolve strings")
                 }
             }
             impl Simplify for $type {
+                #[inline]
                 fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
                     write!(file, "{}", self)
                 }
