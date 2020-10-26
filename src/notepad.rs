@@ -1018,6 +1018,75 @@ mod tests {
         assert_eq!(div.resolve(), 0.25);
     }
     #[test]
+    fn context_op_method_3() {
+        let val1 = mul(Type::Normal(2..=3));
+        let val2 = mul(Type::Normal(4..=5));
+
+        // Add
+        // (2 * 3) + (4 * 5)
+        // ((2 * 3) + (4 * 5)) // ? neither side's ctx matches op: insert as-is
+        // (6 + 20)
+        // (26)
+        let add = val1.clone() + val2.clone();
+        assert_eq!(
+            add.repr().expect("failed to represent math context"),
+            "((2 * 3) + (4 * 5))"
+        );
+        assert_eq!(add.resolve(), 26);
+
+        // Sub
+        // (2 * 3) - (4 * 5)
+        // ((2 * 3) - (4 * 5)) // ? neither side's ctx matches op: insert as-is
+        // ((2 * 3) - (4 * 5)) // ? group variants
+        // ((6) - (20))
+        // (-14)
+        let sub = val1.clone() - val2.clone();
+        assert_eq!(
+            sub.repr().expect("failed to represent math context"),
+            "((2 * 3) - (4 * 5))"
+        );
+        assert_eq!(sub.resolve(), -14);
+
+        let val1 = sum(vec![
+            Type::Normal(1.0),
+            Type::Inverse(2.0),
+            Type::Normal(3.0),
+        ]);
+        let val2 = sum(vec![
+            Type::Inverse(1.0),
+            Type::Normal(2.0),
+            Type::Inverse(3.0),
+        ]);
+
+        // Mul
+        // (1 - 2 + 3) * (-1 + 2 - 3)
+        // ((1 - 2 + 3) * (-1 + 2 - 3)) // ? neither side's ctx matches op: insert as-is
+        // (((1 + 3) - 2) * (2 - (1 + 3))) // ? group variants
+        // (((4) - 2) * (2 - (4)))
+        // ((2) * (-2))
+        // (-4)
+        let mul = val1.clone() * val2.clone();
+        assert_eq!(
+            mul.repr().expect("failed to represent math context"),
+            "(((1 + 3) - 2) * (2 - (1 + 3)))"
+        );
+        assert_eq!(mul.resolve(), -4.0);
+
+        // Div
+        // (1 - 2 + 3) / (-1 + 2 - 3)
+        // ((1 - 2 + 3) / (-1 + 2 - 3)) // op/ctx mismatch: no-op
+        // (((1 + 3) - 2) / (2 - (1 + 3))) ? group variants
+        // (((4) - 2) / (2 - (4)))
+        // ((2) / (-2))
+        // (-1)
+        let mul = val1.clone() / val2.clone();
+        assert_eq!(
+            mul.repr().expect("failed to represent math context"),
+            "(((1 + 3) - 2) / (2 - (1 + 3)))"
+        );
+        assert_eq!(mul.resolve(), -1.0);
+    }
+    #[test]
     fn context_add_method_1() {
         // (1 - 2 + 3) + (-1 + 2 - 3)
         // ? 1: exclude inverse matches and merge
