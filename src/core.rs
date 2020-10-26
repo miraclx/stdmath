@@ -27,7 +27,7 @@ impl<T> Type<T> {
     /// # Examples
     ///
     /// ```
-    /// # use stdmath::core::Typ{mul, sum, Context, Type}e;
+    /// # use stdmath::core::Type;
     /// #
     /// let val = Type::Normal(10);
     /// let inv = val.flip();
