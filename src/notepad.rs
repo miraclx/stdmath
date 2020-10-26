@@ -879,20 +879,10 @@ mod tests {
         let val1 = mul(vec![Type::Normal(2), Type::Normal(3)]);
         let val2 = sum(vec![Type::Normal(4), Type::Normal(5)]);
         let val3 = val1 + val2;
-        match val3
-            .repr()
-            .expect("failed to represent math context")
-            .as_str()
-        {
-            "((2 * 3) + 4 + 5)" | "((2 * 3) + 5 + 4)" => {}
-            // fixme: asserting between multiple matches
-            val => panic!(
-                r#"assertion failed: `(left == right)`
-  left: `{:?}`,
- right: `"((2 * 3) + 4 + 5)" or "((2 * 3) + 5 + 4)"`"#,
-                val
-            ),
-        }
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "((2 * 3) + 4 + 5)"
+        );
         assert_eq!(val3.resolve(), 15);
     }
     #[test]
@@ -1013,20 +1003,10 @@ mod tests {
         let val1 = sigma(1..=4, |val: u8| val.pow(2));
         let val2 = sigma(4..=5, |val| val + 20);
         let val3 = val1 + val2;
-        match val3
-            .repr()
-            .expect("failed to represent math context")
-            .as_str()
-        {
-            "(1 + 2 + 3 + 4 + (5 + 4))" | "(1 + 2 + 3 + 4 + (4 + 5))" => {}
-            // fixme: asserting between multiple matches
-            val => panic!(
-                r#"assertion failed: `(left == right)`
-  left: `{:?}`,
- right: `"(1 + 2 + 3 + 4 + (4 + 5))" or "(1 + 2 + 3 + 4 + (5 + 4))"`"#,
-                val
-            ),
-        }
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "(1 + 2 + 3 + 4 + (4 + 5))"
+        );
         assert_eq!(val3.resolve(), 79);
     }
     #[test]
@@ -1043,20 +1023,10 @@ mod tests {
         let val1 = sigma(1..=3, func);
         let val2 = sigma(4..=5, func);
         let val3 = val1 + val2;
-        match val3
-            .repr()
-            .expect("failed to represent math context")
-            .as_str()
-        {
-            "(1 + 2 + 3 + 4 + 5)" | "(1 + 2 + 3 + 5 + 4)" => {}
-            // fixme: asserting between multiple matches
-            val => panic!(
-                r#"assertion failed: `(left == right)`
-  left: `{:?}`,
- right: `"(1 + 2 + 3 + 4 + 5)" or "(1 + 2 + 3 + 5 + 4)"`"#,
-                val
-            ),
-        }
+        assert_eq!(
+            val3.repr().expect("failed to represent math context"),
+            "(1 + 2 + 3 + 4 + 5)"
+        );
         assert_eq!(val3.resolve(), 30);
     }
     #[test]
