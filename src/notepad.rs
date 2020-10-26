@@ -1175,22 +1175,22 @@ mod tests {
     }
     #[test]
     fn sigma_add_unshared() {
-        // (∑(1 → 4) [x => x ^ 2]) + (∑(4 → 5) [x => x + 20])
-        // = ((1 ^ 2) + (2 ^ 2) + (3 ^ 2) + (4 ^ 2)) + ((4 + 20) + (5 + 20))
-        // = ((1) + (4) + (9) + (16)) + ((24) + (25))
-        // = (1 + 4 + 9 + 16) + (24 + 25)
-        // = (30) + (49)
-        // = (30 + 49)
-        // = 79
+        // (∑(1 → 3) [x => x ^ 2]) + (∑(4 → 5) [x => x + 20])
+        // = ((1 ^ 2) + (2 ^ 2) + (3 ^ 2)) + ((4 + 20) + (5 + 20))
+        // = ((1) + (4) + (9)) + ((24) + (25))
+        // = (1 + 4 + 9) + (24 + 25)
+        // = (14) + (49)
+        // = (14 + 49)
+        // = 63
 
-        let val1 = sigma(1..=4, |val: u8| val.pow(2));
+        let val1 = sigma(1..=3, |val: u8| val.pow(2));
         let val2 = sigma(4..=5, |val| val + 20);
         let val3 = val1 + val2;
         assert_eq!(
             val3.repr().expect("failed to represent math context"),
-            "(1 + 2 + 3 + 4 + (4 + 5))"
+            "(1 + 2 + 3 + (4 + 5))"
         );
-        assert_eq!(val3.resolve(), 79);
+        assert_eq!(val3.resolve(), 63);
     }
     #[test]
     fn sigma_add_shared() {
