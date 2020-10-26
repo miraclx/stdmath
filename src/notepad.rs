@@ -136,11 +136,12 @@ macro_rules! stage_default_methods {
 }
 
 macro_rules! bulk_impl_traits {
-    (@ [$($methods:tt)+] $type:ty) => {
+    (@ [$($methods:tt)+] $type:ty {$($items:item)*}) => {
         impl Resolve for $type {
             type Result = $type;
             stage_default_methods!($($methods)+);
             stage_default_methods!(is_friendly_with_all);
+            $($items)*
             #[inline]
             fn resolve(self: Box<Self>) -> Self::Result {
                 *self
@@ -153,8 +154,15 @@ macro_rules! bulk_impl_traits {
             }
         }
     };
-    (nohash($($type:ty),+)) => {
-        $(bulk_impl_traits!(@ [as_any _cmp _debug _clone] $type);)+
+    (float($($type:ty),+)) => {
+        $(
+            bulk_impl_traits!(@ [as_any _cmp _debug _clone] $type {
+                #[inline]
+                fn _hash(&self, mut state: &mut dyn Hasher) {
+                    self.to_le_bytes().hash(&mut state)
+                }
+            });
+        )+
     };
     (vars($($type:ty),+)) => {
         $(
@@ -177,13 +185,13 @@ macro_rules! bulk_impl_traits {
         )+
     };
     ($($type:ty),+) => {
-        $(bulk_impl_traits!(@ [ALL] $type);)+
+        $(bulk_impl_traits!(@ [ALL] $type {});)+
     }
 }
 
 bulk_impl_traits!(i8, i16, i32, i64, isize);
 bulk_impl_traits!(u8, u16, u32, u64, usize);
-bulk_impl_traits!(nohash(f32, f64));
+bulk_impl_traits!(float(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
