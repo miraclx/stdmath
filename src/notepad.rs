@@ -195,10 +195,7 @@ pub enum Context<R> {
 
 impl<R> Hash for Context<R> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            Context::Add(vec) => vec.hash(state),
-            Context::Mul(vec) => vec.hash(state),
-        }
+        self.get_ref().hash(state)
     }
 }
 
