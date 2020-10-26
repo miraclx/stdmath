@@ -419,8 +419,8 @@ macro_rules! impl_ops {
                 , impl_ops!(dump_items $lhs)
                 , impl_ops!(dump_raw $lhs);
               ctrl => impl_ops!(ctx $sign $rhs)
-                , impl_ops!(dump_items $rhs)
-                , impl_ops!(dump_raw $rhs);
+                , impl_ops!(dump_items $rhs).flip()
+                , impl_ops!(dump_raw $rhs).flip();
               incl => impl_ops!(incl_default);
         )
     };
@@ -431,8 +431,8 @@ macro_rules! impl_ops {
                 , impl_ops!(dump_items $lhs)
                 , impl_ops!(dump_raw $lhs);
               ctrl => impl_ops!(ctx $sign $rhs)
-                , impl_ops!(dump_items $rhs).flip()
-                , impl_ops!(dump_raw $rhs).flip();
+                , impl_ops!(dump_items $rhs)
+                , impl_ops!(dump_raw $rhs);
               incl => impl_ops!(incl_default);
         )
     };
