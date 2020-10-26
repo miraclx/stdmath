@@ -4,7 +4,7 @@ A collection of useful mathematical methods implemented in Rust
 
 ![CI](https://github.com/miraclx/stdmath/workflows/CI/badge.svg) ![Apache 2.0](https://img.shields.io/github/license/miraclx/stdmath)
 
-> STDMATH HAS MORPHED. It's no longer just a "collection of useful mathematical methods implemented in Rust" but now a math expression optimization library. Documentation hasn't been updated to reflect this but if you can, please see the tests [here](https://github.com/miraclx/stdmath/blob/master/src/notepad.rs). There's still a lot of work to do, so this is heavily WIP.
+> STDMATH HAS MORPHED. It's no longer just a "collection of useful mathematical methods implemented in Rust" but now a math expression optimization library. Documentation hasn't been updated to reflect this but if you can, please see the tests [here](https://github.com/miraclx/stdmath/blob/master/src/core.rs). There's still a lot of work to do, so this is heavily WIP.
 
 ## Methods
 
