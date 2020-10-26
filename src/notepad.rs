@@ -220,7 +220,7 @@ impl<R> Clone for Context<R> {
 
 impl<R: 'static> Context<R> {
     #[inline]
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         R: PartialOrd,
         R: One
@@ -233,14 +233,14 @@ impl<R: 'static> Context<R> {
         Box::new(self).resolve()
     }
     #[inline]
-    fn dump(self) -> Vec<Type<Box<dyn Resolve<Result = R>>>> {
+    pub fn dump(self) -> Vec<Type<Box<dyn Resolve<Result = R>>>> {
         match self {
             Context::Add(vec) => vec,
             Context::Mul(vec) => vec,
         }
     }
     #[inline]
-    fn get_ref(&self) -> &Vec<Type<Box<dyn Resolve<Result = R>>>> {
+    pub fn get_ref(&self) -> &Vec<Type<Box<dyn Resolve<Result = R>>>> {
         match self {
             Context::Add(vec) => vec,
             Context::Mul(vec) => vec,
@@ -524,7 +524,7 @@ pub struct TransformedValue<T, F>(T, F);
 
 impl<T, R, F: Fn(T) -> R + Copy> TransformedValue<T, F> {
     #[inline]
-    fn resolve(self) -> R
+    pub fn resolve(self) -> R
     where
         T: Simplify + Clone + Hash + Debug + PartialOrd,
         //
