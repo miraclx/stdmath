@@ -518,8 +518,11 @@ impl_ops! {
     //    = () - ()
     //    = 0
     std::ops::Add[fn add(lhs, rhs) -> Context::Add] => { default_normal(+, lhs, rhs) },
+    // TODO! DOCS
     std::ops::Sub[fn sub(lhs, rhs) -> Context::Add] => { default_inverse(+, lhs, rhs) },
+    // TODO! DOCS
     std::ops::Mul[fn mul(lhs, rhs) -> Context::Mul] => { default_normal(*, lhs, rhs) },
+    // TODO! DOCS
     std::ops::Div[fn div(lhs, rhs) -> Context::Mul] => { default_inverse(*, lhs, rhs) }
 }
 
