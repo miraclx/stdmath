@@ -27,10 +27,10 @@ pub struct ExcludedIterator<B, C: Iterator, R> {
     base: B,
     #[cfg(feature = "order")]
     ctrl: HashMap<u64, DictionaryEntry<C::Item>>,
-    #[cfg(feature = "order")]
-    hash_entries: BTreeMap<usize, u64>,
     #[cfg(not(feature = "order"))]
     ctrl: HashMap<u64, Vec<C::Item>>,
+    #[cfg(feature = "order")]
+    hash_entries: BTreeMap<usize, u64>,
     transformer: fn(C::Item) -> R,
     overflow: OverflowState<C::Item, R>,
 }
