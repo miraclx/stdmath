@@ -206,16 +206,12 @@ impl<R: 'static> PartialEq for Context<R> {
 
 impl<R: 'static> PartialOrd for Context<R> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let id_me = std::mem::discriminant(self);
-        let id_you = std::mem::discriminant(other);
+        let id_me = unsafe { *(&std::mem::discriminant(self) as *const _ as *const usize) };
+        let id_you = unsafe { *(&std::mem::discriminant(other) as *const _ as *const usize) };
         if id_me == id_you {
             self.get_ref().partial_cmp(other.get_ref())
         } else {
-            Some(match (self, other) {
-                (Context::Add(_), Context::Mul(_)) => Ordering::Less,
-                (Context::Mul(_), Context::Add(_)) => Ordering::Greater,
-                _ => unreachable!(),
-            })
+            id_me.partial_cmp(&id_you)
         }
     }
 }
