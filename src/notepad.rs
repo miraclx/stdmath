@@ -159,7 +159,7 @@ macro_rules! bulk_impl_traits {
             bulk_impl_traits!(@ [as_any _cmp _debug _clone] $type {
                 #[inline]
                 fn _hash(&self, mut state: &mut dyn Hasher) {
-                    self.to_le_bytes().hash(&mut state)
+                    self.to_bits().hash(&mut state)
                 }
             });
         )+
