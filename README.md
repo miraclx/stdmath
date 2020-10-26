@@ -64,7 +64,7 @@ vec![
 
 <img src="https://render.githubusercontent.com/render/math?math=%5Cdisplaystyle+%5Cfrac%7B1%7D%7B%5Cpi%7D%3D%5Cfrac%7B%5Csqrt%7B8%7D%7D%7B9801%7D%5Csum_%7Bn%3D0%7D%5E%7B%5Cinfty%7D%5Cfrac%7B%284n%29%21%7D%7B%28n%21%29%5E4%7D%5Ctimes%5Cfrac%7B26390n+%2B+1103%7D%7B396%5E%7B4n%7D%7D" alt="\frac{1}{\pi}=\frac{\sqrt{8}}{9801}\sum_{n=0}^{\infty}\frac{(4n)!}{(n!)^4}\times\frac{26390n + 1103}{396^{4n}}">
 
-# License
+## License
 
 `stdmath` is licensed under the Apache License, Version 2.0.
 See ([LICENSE](LICENSE) or <http://www.apache.org/licenses/LICENSE-2.0>) for more details.
