@@ -268,7 +268,7 @@ mod tests {
         let mut exc = ((3..6).chain(11..=15)).exclude(1..=10);
         let included = exc.by_ref().collect::<Vec<_>>();
         let mut overflow = exc.include_overflow().collect::<Vec<_>>();
-        overflow.sort();
+        overflow.sort(); // not necessary if feature="order"
         assert_eq!(included, vec![11, 12, 13, 14, 15]);
         assert_eq!(overflow, vec![1, 2, 6, 7, 8, 9, 10]);
     }
@@ -288,7 +288,7 @@ mod tests {
             .exclude(1..=10)
             .include_overflow()
             .collect::<Vec<_>>();
-        list.sort();
+        list.sort(); // not necessary if feature="order"
         assert_eq!(list, [1, 2, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
     }
     #[test]
@@ -297,7 +297,7 @@ mod tests {
             .exclude(1..=10)
             .include_overflow_with(|val| val.pow(2))
             .collect::<Vec<_>>();
-        list.sort();
+        list.sort(); // not necessary if feature="order"
         assert_eq!(list, vec![1, 4, 11, 12, 13, 14, 15, 49, 64, 81, 100]);
     }
     #[test]
