@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn convert_iter_t_to_iter_type_t() {
         assert_eq!(
-            TypedIter::Normal(1..=6).collect::<Vec<_>>(),
+            Type::Normal(1..=6).collect::<Vec<_>>(),
             vec![
                 Type::Normal(1),
                 Type::Normal(2),
@@ -397,10 +397,7 @@ mod tests {
         );
 
         assert_eq!(
-            (3..=7)
-                .map(|val| Type::Normal(val))
-                .flip()
-                .collect::<Vec<_>>(),
+            Type::Normal(3..=7).flip().collect::<Vec<_>>(),
             vec![
                 Type::Inverse(3),
                 Type::Inverse(4),
