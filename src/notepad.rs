@@ -150,7 +150,7 @@ macro_rules! bulk_impl_traits {
         impl Simplify for $type {
             #[inline]
             fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-                write!(file, "{:?}", self)
+                write!(file, "{}", self)
             }
         }
     };
