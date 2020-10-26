@@ -901,6 +901,64 @@ mod tests {
         assert_eq!(div.resolve(), 2.25);
     }
     #[test]
+    fn context_op_method_2a() {
+        let val1 = sum(Type::Normal(2..=3));
+        let val2 = mul(Type::Normal(4..=5));
+
+        // Add
+        // (2 + 3) + (4 * 5)
+        // (2 + 3 + (4 * 5)) // ? rhs' ctx doesn't match the op: merge only lhs
+        // (2 + 3 + 20)
+        // (25)
+        let add = val1.clone() + val2.clone();
+        assert_eq!(
+            add.repr().expect("failed to represent math context"),
+            "(2 + 3 + (4 * 5))"
+        );
+        assert_eq!(add.resolve(), 25);
+
+        // Sub
+        // (2 + 3) - (4 * 5)
+        // (2 + 3 - (4 * 5)) // ? rhs' ctx doesn't match the op: merge only lhs
+        // ((2 + 3) - (4 * 5)) // ? group variants
+        // ((5) - (20))
+        // (-15)
+        let sub = val1.clone() - val2.clone();
+        assert_eq!(
+            sub.repr().expect("failed to represent math context"),
+            "((2 + 3) - (4 * 5))"
+        );
+        assert_eq!(sub.resolve(), -15);
+
+        let val1 = mul(Type::Normal(vec![2.0, 3.0].into_iter()));
+        let val2 = sum(Type::Normal(vec![4.0, 5.0].into_iter()));
+
+        // Mul
+        // (2 * 3) * (4 + 5)
+        // (2 * 3 * (4 + 5)) // ? rhs' ctx doesn't match the op: merge only lhs
+        // (2 * 3 * 9)
+        // (54)
+        let mul = val1.clone() * val2.clone();
+        assert_eq!(
+            mul.repr().expect("failed to represent math context"),
+            "(2 * 3 * (4 + 5))"
+        );
+        assert_eq!(mul.resolve(), 54.0);
+
+        // Div
+        // (2 * 3) / (4 + 5)
+        // (2 * 3 / (4 + 5)) // ? op/ctx match: merge both sides
+        // ((2 * 3) / (4 + 5)) // ? group variants
+        // ((6) / (9))
+        // (0.66)
+        let div = val1.clone() / val2.clone();
+        assert_eq!(
+            div.repr().expect("failed to represent math context"),
+            "((2 * 3) / (4 + 5))"
+        );
+        assert_eq!(div.resolve(), 0.6666666666666666);
+    }
+    #[test]
     fn context_add_method_1() {
         // (1 - 2 + 3) + (-1 + 2 - 3)
         // ? 1: exclude inverse matches and merge
