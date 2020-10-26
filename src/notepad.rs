@@ -204,10 +204,11 @@ impl<R> Hash for Context<R> {
 
 impl<R> Debug for Context<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Context::Add(vec) => vec.fmt(f),
-            Context::Mul(vec) => vec.fmt(f),
-        }
+        let (name, vec) = match self {
+            Context::Add(vec) => ("Add", vec),
+            Context::Mul(vec) => ("Mul", vec),
+        };
+        f.debug_tuple(name).field(vec).finish()
     }
 }
 
