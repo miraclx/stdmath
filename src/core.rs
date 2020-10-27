@@ -6,7 +6,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-/// Provide a means to represent the state of a value. Normal or Reciprocal.
+/// Provides a means to represent the state of a value.
 #[derive(Eq, PartialEq, Copy, Clone, Hash, Debug, Ord, PartialOrd)]
 pub enum Type<T> {
     /// context        | value | identity | indirect identity
