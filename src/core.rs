@@ -200,14 +200,16 @@ pub trait Flippable<I> {
     fn flip(self) -> FlippedIteratorOfTypes<I>;
 }
 
-// adds the .flip() method to all iterators whose items are Type<T>
-impl<I, T> Flippable<I> for I
+// adds the .flip() method to all types that can be an iterator whose items are Type<T>
+impl<I, T> Flippable<I::IntoIter> for I
 where
-    I: Iterator<Item = Type<T>>,
+    I: IntoIterator<Item = Type<T>>,
 {
     #[inline]
-    fn flip(self) -> FlippedIteratorOfTypes<I> {
-        FlippedIteratorOfTypes { inner: self }
+    fn flip(self) -> FlippedIteratorOfTypes<I::IntoIter> {
+        FlippedIteratorOfTypes {
+            inner: self.into_iter(),
+        }
     }
 }
 
