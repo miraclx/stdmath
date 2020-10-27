@@ -220,6 +220,7 @@ impl<I: Iterator<Item = Type<T>>, T> Iterator for FlippedIteratorOfTypes<I> {
     }
 }
 
+/// An interface for flipping an iterator of types.
 pub trait Flippable<I> {
     fn flip(self) -> FlippedIteratorOfTypes<I>;
 }
