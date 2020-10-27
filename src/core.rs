@@ -36,6 +36,15 @@ impl<T> Type<T> {
     /// let val = Type::Inverse(30);
     /// let inv = val.flip();
     /// assert_eq!(inv, Type::Normal(30));
+    ///
+    /// // flip a type wrapping an iterator
+    /// let vals = Type::Inverse(6..=8).flip();
+    /// assert_eq!(vals, Type::Normal(6..=8));
+    /// assert_eq!(vals.collect::<Vec<_>>(), vec![
+    ///     Type::Normal(6),
+    ///     Type::Normal(7),
+    ///     Type::Normal(8)
+    /// ])
     /// ```
     #[inline]
     pub fn flip(self) -> Self {
