@@ -225,7 +225,33 @@ pub trait Flippable<I> {
     fn flip(self) -> FlippedIteratorOfTypes<I>;
 }
 
-// adds the .flip() method to all types that can be an iterator whose items are Type<T>
+/// Adds the `.flip()` helper method for all objects that can become an iterator of `Type<T>`.
+///
+/// # Examples
+/// ```
+/// # use stdmath::core::Type;
+/// #
+/// // Invert the odd numbers within this iteration
+/// assert_eq!(
+///     Type::Normal(2..=7)
+///         .fuse() // lock the iterator, workaround for `.map()` disambiguation
+///         .map(|item: Type<u8>| {
+///             if item.as_ref().map(|val: &u8| val % 2 != 0).unwrap() {
+///                 return item.flip();
+///             }
+///             item
+///         })
+///         .collect::<Vec<_>>(),
+///     vec![
+///         Type::Normal(2),
+///         Type::Inverse(3),
+///         Type::Normal(4),
+///         Type::Inverse(5),
+///         Type::Normal(6),
+///         Type::Inverse(7),
+///     ]
+/// );
+/// ```
 impl<I, T> Flippable<I::IntoIter> for I
 where
     I: IntoIterator<Item = Type<T>>,
