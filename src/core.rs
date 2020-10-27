@@ -191,8 +191,23 @@ impl<I: Iterator<Item = T>, T> Iterator for Type<I> {
     }
 }
 
-/// Provide a means to convert an iterator of `Type`s to their inverse variants
-/// e.g `[Type::Normal(x), Type::Flipped(y)]` becomes `[Type::Flipped(x), Type::Normal(y)]`
+/// An iterator that flips the type variant of it's items.
+///
+/// # Examples
+/// ```
+/// # use stdmath::core::{Type, Flippable, FlippedIteratorOfTypes};
+/// #
+/// let vals: FlippedIteratorOfTypes<_> = vec![
+///     Type::Normal(1),
+///     Type::Inverse(2),
+///     Type::Normal(3)
+/// ].flip();
+/// assert_eq!(vals.collect::<Vec<_>>(), vec![
+///     Type::Inverse(1),
+///     Type::Normal(2),
+///     Type::Inverse(3)
+/// ]);
+/// ```
 #[derive(Clone)]
 pub struct FlippedIteratorOfTypes<I> {
     inner: I,
