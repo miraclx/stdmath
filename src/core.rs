@@ -22,7 +22,7 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
-    /// Inverts the state of the Type
+    /// Inverts the state of the Type.
     ///
     /// # Examples
     ///
@@ -53,7 +53,7 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Normal(val),
         }
     }
-    /// Matches the type variant, returning true if self is [`Type::Inverse`](#variant.Inverse)
+    /// Matches the type variant, returning true if self is [`Type::Inverse`](#variant.Inverse).
     ///
     /// # Examples
     ///
@@ -73,7 +73,7 @@ impl<T> Type<T> {
         };
         false
     }
-    /// Extracts the value contained in a variant of `Type`
+    /// Extracts the value contained in a variant of `Type`.
     ///
     /// # Examples
     ///
@@ -113,7 +113,7 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(func(val)),
         }
     }
-    /// Converts from a `&Type<T>` to a `Type<&T>`
+    /// Converts from a `&Type<T>` to a `Type<&T>`.
     ///
     /// # Examples
     ///
@@ -133,7 +133,7 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Inverse(val),
         }
     }
-    /// Converts from a `&mut Type<T>` to a `Type<&mut T>`
+    /// Converts from a `&mut Type<T>` to a `Type<&mut T>`.
     ///
     /// # Examples
     ///
@@ -157,7 +157,7 @@ impl<T> Type<T> {
     }
 }
 
-/// Provide a means to convert an iterator of `T` to one of `Type<T>`
+/// Provide a means to convert an iterator of `T` to one of `Type<T>`.
 ///
 /// # Examples
 /// ```
