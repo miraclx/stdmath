@@ -935,7 +935,6 @@ mod tests {
                 Type::Inverse(15),
                 Type::Normal(20)
             ]
-            .into_iter()
             .flip()
             .collect::<Vec<_>>(),
             vec![
