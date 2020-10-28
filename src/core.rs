@@ -492,6 +492,26 @@ pub trait Resolve: Simplify {
     fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unimplemented!()
     }
+    /// This method enables hashing trait objects that implements `Resolve`
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// use std::hash::{Hash, Hasher};
+    ///
+    /// #[derive(Hash)]
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn _hash(&self, state: &mut dyn Hasher) {
+    ///         // proxy for hashing Self
+    ///         Hash::hash(self, &mut state)
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// This is required for dynamicism between varied types that impl `Resolve`.
     fn _hash(&self, _state: &mut dyn Hasher);
 }
 
