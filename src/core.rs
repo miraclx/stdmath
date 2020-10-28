@@ -293,6 +293,17 @@ where
 /// assert_eq!(val.repr().expect("failed to represent context"), "(2+5j)");
 /// ```
 pub trait Simplify {
+    /// This method serializes `self` into the `file`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use stdmath::core::Simplify;
+    ///
+    /// let mut file = String::new();
+    /// 50_u8.simplify(&mut file).expect("failed to simplify");
+    /// assert_eq!(file, "50".to_string());
+    /// ```
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
     #[inline]
     fn repr(&self) -> Result<String, std::fmt::Error> {
