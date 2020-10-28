@@ -293,7 +293,7 @@ where
 /// assert_eq!(val.repr().expect("failed to represent context"), "(2+5j)");
 /// ```
 pub trait Simplify {
-    /// This method serializes `self` into the `file`.
+    /// This method serializes `self` into any `file` that implements [`Write`](std::fmt::Write).
     ///
     /// # Examples
     ///
