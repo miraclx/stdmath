@@ -53,7 +53,7 @@ impl<T> Type<T> {
             Type::Inverse(val) => Type::Normal(val),
         }
     }
-    /// Matches the type variant, returning true if self is [`Type::Inverse`](#variant.Inverse).
+    /// Matches the type variant, returning true if self is [`Type::Inverse`].
     ///
     /// # Examples
     ///
@@ -293,7 +293,7 @@ where
 /// assert_eq!(val.repr().expect("failed to represent context"), "(2+5j)");
 /// ```
 pub trait Simplify {
-    /// This method serializes `self` into any `file` that implements [`Write`](std::fmt::Write).
+    /// This method serializes `self` into any `file` that implements [`Write`].
     ///
     /// # Examples
     ///
@@ -305,7 +305,7 @@ pub trait Simplify {
     /// assert_eq!(file, "50".to_string());
     /// ```
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
-    /// This helper method serializes `self` into a [`String`](std::string::String).
+    /// This helper method serializes `self` into a [`String`].
     ///
     /// # Examples
     ///
