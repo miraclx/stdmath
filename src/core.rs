@@ -467,6 +467,27 @@ pub trait Resolve: Simplify {
     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
         unimplemented!()
     }
+    /// This method enables debugging trait objects that implements `Resolve`
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// use std::fmt;
+    ///
+    /// #[derive(Debug)]
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn _debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    ///         // proxy for debugging Self
+    ///         fmt::Debug::fmt(self, f)
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// While this is a provided method, it's default implementation is to panic from unimplementation (See [`unimplemented!()`]).
+    /// So, if debugging is ever needed, you'd have to overload this method.
     #[inline]
     fn _debug(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         unimplemented!()
