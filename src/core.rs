@@ -444,6 +444,25 @@ pub trait Resolve: Simplify {
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
+    /// This method enables cloning trait objects that implements `Resolve`
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// #[derive(Clone)]
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
+    ///         // return a Resolve trait object from a clone of Self
+    ///         Box::new(self.clone()) as Box<dyn Resolve<Result = Self::Result>>
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// While this is a provided method, it's default implementation is to panic from unimplementation (See [`unimplemented!()`]).
+    /// So, if cloning functionality is ever needed, you'd have to overload this method.
     #[inline]
     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
         unimplemented!()
