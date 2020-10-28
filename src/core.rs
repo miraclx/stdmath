@@ -427,18 +427,18 @@ macro_rules! stage_default_methods {
     };
     (as_any $($rest:tt)*) => {
         #[inline]
-        fn as_any(&self) -> &dyn Any {
+        fn as_any(&self) -> &dyn ::std::any::Any {
             self
         }
         stage_default_methods!($($rest)*);
     };
     (_cmp $($rest:tt)*) => {
         #[inline]
-        fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering> {
+        fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<::std::cmp::Ordering> {
             other
                 .as_any()
                 .downcast_ref::<Self>()
-                .map_or(None, |other| PartialOrd::partial_cmp(self, other))
+                .map_or(None, |other| ::std::cmp::PartialOrd::partial_cmp(self, other))
         }
         stage_default_methods!($($rest)*);
     };
@@ -458,8 +458,8 @@ macro_rules! stage_default_methods {
     };
     (_debug $($rest:tt)*) => {
         #[inline]
-        fn _debug(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            Debug::fmt(self, f)
+        fn _debug(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+            ::std::fmt::Debug::fmt(self, f)
         }
         stage_default_methods!($($rest)*);
     };
@@ -472,8 +472,8 @@ macro_rules! stage_default_methods {
     };
     (_hash $($rest:tt)*) => {
         #[inline]
-        fn _hash(&self, mut state: &mut dyn Hasher) {
-            self.hash(&mut state)
+        fn _hash(&self, mut state: &mut dyn ::std::hash::Hasher) {
+            ::std::hash::Hash::hash(self, &mut state)
         }
         stage_default_methods!($($rest)*);
     };
