@@ -264,6 +264,34 @@ where
     }
 }
 
+/// Trait for values that can be simplified.
+///
+/// ## How is this different from `Debug` or `Display`
+///
+/// `Simplify` indicates the property for a value to be represented within a context.
+/// Not all values have the same representation across all these traits.
+/// It's perfectly fine to defer the `Simplify` implementation to either traits.
+///
+/// ## How can I implement `Simplify`?
+///
+/// `Simplify` only requires the implementation of the `simplify` method, with the others
+/// generated from default implementations.
+///
+/// ```
+/// use std::fmt;
+/// use stdmath::core::Simplify;
+///
+/// struct Complex<T>(T, T);
+///
+/// impl<T: fmt::Display> Simplify for Complex<T> {
+///     fn simplify(&self, file: &mut dyn fmt::Write) -> fmt::Result {
+///         write!(file, "({}+{}j)", self.0, self.1)
+///     }
+/// }
+///
+/// let val = Complex(2, 5);
+/// assert_eq!(val.repr().expect("failed to represent context"), "(2+5j)");
+/// ```
 pub trait Simplify {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
     #[inline]
