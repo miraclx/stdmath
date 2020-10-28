@@ -363,6 +363,7 @@ pub trait Simplify {
 pub trait Resolve: Simplify {
     /// The result of the object resolution.
     type Result;
+    /// This method resolves `self` into it's equivalent [`Result`][Self::Result] type.
     fn resolve(self: Box<Self>) -> Self::Result;
 
     // methods needed for dynamicism
