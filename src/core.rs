@@ -265,13 +265,13 @@ where
 }
 
 pub trait Simplify {
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
+    fn simplify(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>>;
     #[inline]
-    fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
+    fn repr_into(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
         Simplify::simplify(self, file)
     }
     #[inline]
-    fn repr(&self) -> Result<String, std::fmt::Error> {
+    fn repr(&self) -> Result<String, Box<dyn std::error::Error>> {
         let mut file = String::new();
         self.repr_into(&mut file)?;
         Ok(file)
@@ -410,8 +410,9 @@ macro_rules! bulk_impl_traits {
         }
         impl Simplify for $type {
             #[inline]
-            fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-                write!(file, "{}", self)
+            fn simplify(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
+                write!(file, "{}", self)?;
+                Ok(())
             }
         }
     };
@@ -441,8 +442,9 @@ macro_rules! bulk_impl_traits {
             }
             impl Simplify for $type {
                 #[inline]
-                fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-                    write!(file, "{}", self)
+                fn simplify(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
+                    write!(file, "{}", self)?;
+                    Ok(())
                 }
             }
         )+
@@ -592,7 +594,7 @@ where
 }
 
 impl<R: 'static> Simplify for Context<R> {
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
         let (is_additive, vec) = (self.is_additive(), self.get_ref());
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
@@ -667,7 +669,8 @@ impl<R: 'static> Simplify for Context<R> {
                 }
             ),
             (None, None) => Ok(()),
-        }
+        }?;
+        Ok(())
     }
 }
 
@@ -889,7 +892,7 @@ where
 
 impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     #[inline]
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, file: &mut dyn Write) -> Result<(), Box<dyn std::error::Error>> {
         self.0.simplify(file)
     }
 }
