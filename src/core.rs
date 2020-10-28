@@ -419,6 +419,7 @@ impl<X> Hash for Box<dyn Resolve<Result = X>> {
     }
 }
 
+#[macro_export]
 macro_rules! stage_default_methods {
     () => {};
     (ALL) => {
