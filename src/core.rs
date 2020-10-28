@@ -367,6 +367,22 @@ pub trait Resolve: Simplify {
     fn resolve(self: Box<Self>) -> Self::Result;
 
     // methods needed for dynamicism
+
+    /// This method transposes `self` into a dynamic [`Any`][std::any::Any] representation.
+    ///
+    /// ```compile_fail
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn as_any(&self) -> &dyn Any {
+    ///         // cast a reference to self as a dynamic reference
+    ///         self
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// This is required for dynamicism between varied types that impl `Resolve`.
     fn as_any(&self) -> &dyn Any;
     fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
