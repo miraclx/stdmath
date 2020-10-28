@@ -384,6 +384,34 @@ pub trait Resolve: Simplify {
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
     fn as_any(&self) -> &dyn Any;
+    /// This method determines whether the type behind the dynamic reference `other`
+    /// is a type that is friendly with `self` during simplification & resolution.
+    ///
+    /// # What this means
+    ///
+    /// During simplification, friendly values can be included within the same bracket scope.
+    ///
+    /// Given `(1 + 2 + (3 + 4))`
+    ///
+    /// - `2` and `1` are friendly
+    /// - `3` and `2` are unfriendly
+    /// - `4` and `3` are friendly
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
+    ///         // check if other is a valid object whose type matches MyValue
+    ///         other.as_any().is::<Self>()
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// This is required for dynamicism between varied types that impl `Resolve`.
     fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
     #[inline]
