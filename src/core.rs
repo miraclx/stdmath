@@ -324,6 +324,42 @@ pub trait Simplify {
     }
 }
 
+/// Trait for objects that can be resolved to a value.
+///
+/// ## How can I implement `Resolve`?
+///
+/// `Resolve` primarily requires the implementation of the `resolve` method. But also depends on all methods being implemented.
+/// The default behaviour of a provided method is to panic from unimplementation (See [`unimplemented!()`]).
+///
+/// You can use the helpful [`stage_default_methods!()`] macro to apply default implementations of these methods.
+///
+/// `Resolve` requries that your type implements [`Simplify`].
+///
+/// ```
+/// use std::fmt;
+/// use stdmath::{stage_default_methods, core::{Simplify, Resolve}};
+///
+/// #[derive(Debug, Hash, Clone, PartialEq, PartialOrd)]
+/// struct Add(u8, u8);
+///
+/// impl Simplify for Add {
+///     fn simplify(&self, file: &mut dyn fmt::Write) -> fmt::Result {
+///         write!(file, "({} + {})", self.0, self.1)
+///     }
+/// }
+///
+/// impl Resolve for Add {
+///     type Result = u8;
+///     stage_default_methods!(is_friendly_with ALL);
+///     fn resolve(self: Box<Self>) -> Self::Result {
+///         self.0 + self.1
+///     }
+/// }
+///
+/// let val = Add(10, 20);
+/// assert_eq!(val.repr().expect("failed to represent context"), "(10 + 20)");
+/// assert_eq!(Box::new(val).resolve(), 30);
+/// ```
 pub trait Resolve: Simplify {
     type Result;
     fn resolve(self: Box<Self>) -> Self::Result;
