@@ -361,6 +361,7 @@ pub trait Simplify {
 /// assert_eq!(Box::new(val).resolve(), 30);
 /// ```
 pub trait Resolve: Simplify {
+    /// The result of the object resolution.
     type Result;
     fn resolve(self: Box<Self>) -> Self::Result;
 
