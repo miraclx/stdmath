@@ -295,13 +295,9 @@ where
 pub trait Simplify {
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
     #[inline]
-    fn repr_into(&self, file: &mut dyn Write) -> std::fmt::Result {
-        Simplify::simplify(self, file)
-    }
-    #[inline]
     fn repr(&self) -> Result<String, std::fmt::Error> {
         let mut file = String::new();
-        self.repr_into(&mut file)?;
+        Simplify::simplify(self, &mut file)?;
         Ok(file)
     }
 }
