@@ -413,6 +413,36 @@ pub trait Resolve: Simplify {
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
     fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool;
+    /// This method partially compares `self` with the type behind the dynamic reference `other`
+    ///
+    /// # Partial Comparison
+    ///
+    /// - returns `None` if `other` is not a type that matches `Self`.
+    /// - returns `None` if `other` is not partially comparable to `Self`.
+    /// - returns `Some(Ordering)` otherwise.
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// use std::cmp::PartialOrd;
+    ///
+    /// #[derive(PartialEq, PartialOrd)]
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering> {
+    ///         // attempt casting other to the type MyValue
+    ///         // after conversion, partially compare both types
+    ///         other
+    ///             .as_any()
+    ///             .downcast_ref::<Self>()
+    ///             .map_or(None, |other| PartialOrd::partial_cmp(self, other))
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// This is required for dynamicism between varied types that impl `Resolve`.
     fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering>;
     #[inline]
     fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
