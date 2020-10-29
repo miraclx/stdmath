@@ -771,6 +771,13 @@ impl<R: 'static> Context<R> {
         }
         false
     }
+    #[inline]
+    pub fn to_valid_or(self, f: fn(Box<dyn Resolve<Result = R>>) -> Self) -> Self {
+        if let Context::Nil(val) = self {
+            return f(val);
+        }
+        self
+    }
 }
 
 impl<R: 'static> Resolve for Context<R>
