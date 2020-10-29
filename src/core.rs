@@ -680,6 +680,7 @@ bulk_impl_traits!(vars(char, String));
 pub enum Context<R> {
     Add(Vec<Type<Box<dyn Resolve<Result = R>>>>),
     Mul(Vec<Type<Box<dyn Resolve<Result = R>>>>),
+    Nil(Box<dyn Resolve<Result = R>>),
 }
 
 impl<R: 'static> PartialEq for Context<R> {
@@ -789,6 +790,7 @@ where
             match *self {
                 Context::Add(vec) => (vec, || R::zero(), [std::ops::Add::add, std::ops::Sub::sub]),
                 Context::Mul(vec) => (vec, || R::one(), [std::ops::Mul::mul, std::ops::Div::div]),
+                Context::Nil(val) => return val.resolve(),
             };
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
