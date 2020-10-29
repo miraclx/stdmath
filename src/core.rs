@@ -784,6 +784,7 @@ where
     type Result = R;
     stage_default_methods!(is_friendly_with_all ALL);
     fn resolve(self: Box<Self>) -> Self::Result {
+        #[allow(clippy::type_complexity)]
         let (vec, default, [normal_op, inverse_op]): (_, fn() -> R, [fn(R, R) -> R; 2]) =
             match *self {
                 Context::Add(vec) => (vec, || R::zero(), [std::ops::Add::add, std::ops::Sub::sub]),
@@ -816,6 +817,7 @@ impl<R: 'static> Simplify for Context<R> {
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
             let is_inverted = item.is_inverted();
+            #[allow(clippy::type_complexity)]
             let this: &mut Option<((&(dyn Resolve<Result = R>), i32), (String, bool))> =
                 if !is_inverted {
                     &mut normal
