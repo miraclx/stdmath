@@ -677,6 +677,7 @@ bulk_impl_traits!(float(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
+#[derive(Hash)]
 pub enum ContextVal<M, S> {
     Multiple(M),
     Single(S),
