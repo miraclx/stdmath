@@ -684,13 +684,15 @@ pub enum ContextVal<M, S> {
 }
 
 impl<M, S> ContextVal<M, S> {
-    fn multiple(self) -> Option<M> {
+    #[inline]
+    pub fn multiple(self) -> Option<M> {
         match self {
             ContextVal::Multiple(m) => Some(m),
             _ => None,
         }
     }
-    fn single(self) -> Option<S> {
+    #[inline]
+    pub fn single(self) -> Option<S> {
         match self {
             ContextVal::Single(s) => Some(s),
             _ => None,
