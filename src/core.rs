@@ -916,7 +916,10 @@ macro_rules! impl_ops {
                 type Output = Context<R>;
                 #[inline]
                 fn $method(self, rhs: Self) -> Self::Output {
-                    let ($lhs_ident, $rhs_ident) = (self, rhs);
+                    let ($lhs_ident, $rhs_ident) = (
+                        self.to_valid_or(|val| $final_variant(vec![Type::Normal(val)])),
+                        rhs.to_valid_or(|val| $final_variant(vec![Type::Normal(val)]))
+                    );
                     $final_variant(impl_ops!(rules $($rules)+).collect())
                 }
             }
