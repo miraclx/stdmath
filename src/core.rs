@@ -677,6 +677,26 @@ bulk_impl_traits!(float(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
+pub enum ContextVal<M, S> {
+    Multiple(M),
+    Single(S),
+}
+
+impl<M, S> ContextVal<M, S> {
+    fn multiple(self) -> Option<M> {
+        match self {
+            ContextVal::Multiple(m) => Some(m),
+            _ => None,
+        }
+    }
+    fn single(self) -> Option<S> {
+        match self {
+            ContextVal::Single(s) => Some(s),
+            _ => None,
+        }
+    }
+}
+
 pub enum Context<R> {
     Add(Vec<Type<Box<dyn Resolve<Result = R>>>>),
     Mul(Vec<Type<Box<dyn Resolve<Result = R>>>>),
