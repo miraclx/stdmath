@@ -846,8 +846,14 @@ where
 }
 
 impl<R: 'static> Simplify for Context<R> {
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        let (is_additive, vec) = (self.is_additive(), self.get_ref());
+    fn simplify(&self, mut file: &mut dyn Write) -> std::fmt::Result {
+        let (is_additive, vec) = (
+            self.is_additive(),
+            match self.get_ref() {
+                ContextVal::Multiple(vec) => vec,
+                ContextVal::Single(val) => return val.simplify(&mut file),
+            },
+        );
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
             let is_inverted = item.is_inverted();
