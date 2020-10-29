@@ -1001,7 +1001,7 @@ macro_rules! impl_ops {
     };
     (ctx + $side:ident) => {$side.is_additive()};
     (ctx * $side:ident) => {!$side.is_additive()};
-    (dump_items $side:ident) => {$side.dump().multiple().unwrap().into_iter()};
+    (dump_items $side:ident) => {$side.dump().multiple().expect("expected a defined context, please transpose this Nil context").into_iter()};
     (dump_raw $side:ident) => {
         std::iter::once(Type::Normal(Box::new($side) as Box<dyn Resolve<Result = R>>))
     };
