@@ -771,17 +771,22 @@ impl<R: 'static> Context<R> {
         Box::new(self).resolve()
     }
     #[inline]
-    pub fn dump(self) -> Vec<Type<Box<dyn Resolve<Result = R>>>> {
+    pub fn dump(
+        self,
+    ) -> ContextVal<Vec<Type<Box<dyn Resolve<Result = R>>>>, Box<dyn Resolve<Result = R>>> {
         match self {
-            Context::Add(vec) => vec,
-            Context::Mul(vec) => vec,
+            Context::Add(vec) | Context::Mul(vec) => ContextVal::Multiple(vec),
+            Context::Nil(val) => ContextVal::Single(val),
         }
     }
     #[inline]
-    pub fn get_ref(&self) -> &Vec<Type<Box<dyn Resolve<Result = R>>>> {
+    pub fn get_ref(
+        &self,
+    ) -> ContextVal<&Vec<Type<Box<dyn Resolve<Result = R>>>>, &Box<dyn Resolve<Result = R>>> {
         match self {
-            Context::Add(vec) => vec,
-            Context::Mul(vec) => vec,
+            Context::Add(vec) => ContextVal::Multiple(vec),
+            Context::Mul(vec) => ContextVal::Multiple(vec),
+            Context::Nil(val) => ContextVal::Single(val),
         }
     }
     #[inline]
