@@ -740,11 +740,12 @@ impl<R: 'static> Hash for Context<R> {
 impl<R> Debug for Context<R> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (name, vec) = match self {
+        let (name, val): (_, &dyn Debug) = match self {
             Context::Add(vec) => ("Add", vec),
             Context::Mul(vec) => ("Mul", vec),
+            Context::Nil(val) => ("Nil", val),
         };
-        f.debug_tuple(name).field(vec).finish()
+        f.debug_tuple(name).field(val).finish()
     }
 }
 
