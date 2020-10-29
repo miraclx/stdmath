@@ -1,7 +1,10 @@
 use std::{
-    collections::{hash_map::DefaultHasher, BTreeMap, HashMap},
+    collections::{hash_map::DefaultHasher, HashMap},
     hash::{Hash, Hasher},
 };
+
+#[cfg(feature = "order")]
+use std::collections::BTreeMap;
 
 fn hash<T: Hash>(val: &T) -> u64 {
     let mut state = DefaultHasher::new();
