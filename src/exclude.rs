@@ -144,7 +144,7 @@ where
                                     return Some((self.transformer)(val));
                                 }
                                 items.pop();
-                                if items.len() == 0 {
+                                if items.is_empty() {
                                     self.ctrl.remove(&hash);
                                 }
                             }
