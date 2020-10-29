@@ -753,6 +753,7 @@ impl<R> Clone for Context<R> {
         match self {
             Context::Add(vec) => Context::Add(vec.clone()),
             Context::Mul(vec) => Context::Mul(vec.clone()),
+            Context::Nil(val) => Context::Nil(val.clone()),
         }
     }
 }
