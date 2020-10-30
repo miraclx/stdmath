@@ -1132,6 +1132,10 @@ where
     )
 }
 
+pub fn value<T: Resolve + 'static>(val: T) -> Context<T::Result> {
+    Context::Nil(Box::new(val))
+}
+
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
