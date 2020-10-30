@@ -1064,6 +1064,36 @@ impl_ops! {
     std::ops::Div[fn div(lhs, rhs) -> Context::Mul] => { default_inverse(*, lhs, rhs) }
 }
 
+macro_rules! impl_ops_with_primitives {
+    ($trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty)]) => {
+        impl $trait$(::$trait_path)*<Context<$lhs>> for $lhs {
+            type Output = Context<$lhs>;
+            fn $method(self, rhs: Context<$lhs>) -> Self::Output {
+                $trait$(::$trait_path)*::$method(Context::Nil(Box::new(self)), rhs)
+            }
+        }
+        impl $trait$(::$trait_path)*<$lhs> for Context<$lhs> {
+            type Output = Context<$lhs>;
+            fn $method(self, rhs: $lhs) -> Self::Output {
+                $trait$(::$trait_path)*::$method(self, Context::Nil(Box::new(rhs)))
+            }
+        }
+    };
+    ($($lhs:ty),+) => {
+        $(
+            impl_ops_with_primitives!(std::ops::Add::[add($lhs)]);
+            impl_ops_with_primitives!(std::ops::Sub::[sub($lhs)]);
+            impl_ops_with_primitives!(std::ops::Mul::[mul($lhs)]);
+            impl_ops_with_primitives!(std::ops::Div::[div($lhs)]);
+        )+
+    };
+}
+
+impl_ops_with_primitives!(i8, i16, i32, i64, isize);
+impl_ops_with_primitives!(u8, u16, u32, u64, usize);
+impl_ops_with_primitives!(f32, f64);
+impl_ops_with_primitives!(i128, u128);
+
 pub fn sum<I, T, X>(iter: I) -> Context<X>
 where
     I: IntoIterator<Item = Type<T>>,

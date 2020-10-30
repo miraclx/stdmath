@@ -65,7 +65,6 @@ mod traits {
     bulk_impl_traits!((i8, i16, i32, i64, isize) => (0, 1));
     bulk_impl_traits!((u8, u16, u32, u64, usize) => (0, 1));
     bulk_impl_traits!(@ (f32, f64) => (0.0, 1.0));
-    #[cfg(has_i128)]
     bulk_impl_traits!((i128, u128) => (0, 1));
 }
 
