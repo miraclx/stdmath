@@ -1065,27 +1065,28 @@ impl_ops! {
 }
 
 macro_rules! impl_ops_with_primitives {
-    ($trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty)]) => {
-        impl $trait$(::$trait_path)*<Context<$lhs>> for $lhs {
-            type Output = Context<$lhs>;
-            fn $method(self, rhs: Context<$lhs>) -> Self::Output {
+    (($($generics:tt)*) $trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty, $rhs:ty)]) => {
+        impl<$($generics)*> $trait$(::$trait_path)*<Context<$rhs>> for $lhs {
+            type Output = Context<$rhs>;
+            fn $method(self, rhs: Context<$rhs>) -> Self::Output {
                 $trait$(::$trait_path)*::$method(Context::Nil(Box::new(self)), rhs)
             }
         }
-        impl $trait$(::$trait_path)*<$lhs> for Context<$lhs> {
-            type Output = Context<$lhs>;
+        impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for Context<$rhs> {
+            type Output = Context<$rhs>;
             fn $method(self, rhs: $lhs) -> Self::Output {
                 $trait$(::$trait_path)*::$method(self, Context::Nil(Box::new(rhs)))
             }
         }
     };
+    (($($generics:tt)*) $lhs:ty: $rhs:ty) => {
+        impl_ops_with_primitives!(($($generics)*) std::ops::Add::[add($lhs, $rhs)]);
+        impl_ops_with_primitives!(($($generics)*) std::ops::Sub::[sub($lhs, $rhs)]);
+        impl_ops_with_primitives!(($($generics)*) std::ops::Mul::[mul($lhs, $rhs)]);
+        impl_ops_with_primitives!(($($generics)*) std::ops::Div::[div($lhs, $rhs)]);
+    };
     ($($lhs:ty),+) => {
-        $(
-            impl_ops_with_primitives!(std::ops::Add::[add($lhs)]);
-            impl_ops_with_primitives!(std::ops::Sub::[sub($lhs)]);
-            impl_ops_with_primitives!(std::ops::Mul::[mul($lhs)]);
-            impl_ops_with_primitives!(std::ops::Div::[div($lhs)]);
-        )+
+        $(impl_ops_with_primitives!(() $lhs: <$lhs as Resolve>::Result);)+
     };
 }
 
@@ -1093,6 +1094,19 @@ impl_ops_with_primitives!(i8, i16, i32, i64, isize);
 impl_ops_with_primitives!(u8, u16, u32, u64, usize);
 impl_ops_with_primitives!(f32, f64);
 impl_ops_with_primitives!(i128, u128);
+impl_ops_with_primitives!(
+    (
+        T: Simplify + Clone + Hash + Debug + PartialOrd + 'static,
+        R: One
+            + Zero
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div<Output = R>
+            + std::ops::Sub<Output = R> + 'static,
+        F: Fn(T) -> R + Clone + 'static,
+    )
+    TransformedValue<T, F>: R
+);
 
 pub fn sum<I, T, X>(iter: I) -> Context<X>
 where
