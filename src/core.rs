@@ -513,6 +513,27 @@ pub trait Resolve: Simplify {
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
     fn _hash(&self, _state: &mut dyn Hasher);
+    /// This method allows wrapping a resolvable value into a context
+    ///
+    /// # Behaviour
+    /// If the underlying value is already a context, it returns that,
+    /// otherwise, wrap it within a Nil context
+    ///
+    /// # Example
+    ///
+    /// ```compile_fail
+    /// struct MyValue;
+    /// impl Resolve for MyValue {
+    ///     ...
+    ///     fn to_context(self) -> Context<Self::Result> {
+    ///         // wrap self within a context
+    ///         stdmath::core::value(self)
+    ///     }
+    ///     ...
+    /// }
+    /// ```
+    ///
+    /// This is required for dynamicism between varied types that impl `Resolve`.
     fn to_context(self) -> Context<Self::Result>;
 }
 
