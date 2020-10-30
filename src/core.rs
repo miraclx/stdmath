@@ -513,6 +513,7 @@ pub trait Resolve: Simplify {
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
     fn _hash(&self, _state: &mut dyn Hasher);
+    fn to_context(self) -> Context<Self::Result>;
 }
 
 impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
@@ -613,6 +614,13 @@ macro_rules! stage_default_methods {
         }
         stage_default_methods!($($rest)*);
     };
+    (to_context $($rest:tt)*) => {
+        #[inline]
+        fn to_context(self) -> Context<Self::Result> {
+            Context::Nil(Box::new(self))
+        }
+        stage_default_methods!($($rest)*);
+    };
 }
 
 macro_rules! bulk_impl_traits {
@@ -620,7 +628,7 @@ macro_rules! bulk_impl_traits {
         impl Resolve for $type {
             type Result = $type;
             stage_default_methods!($($methods)+);
-            stage_default_methods!(is_friendly_with_all);
+            stage_default_methods!(is_friendly_with_all to_context);
             $($items)*
             #[inline]
             fn resolve(self: Box<Self>) -> Self::Result {
@@ -652,7 +660,7 @@ macro_rules! bulk_impl_traits {
                 // fixme: maybe creating a custom struct wrapping
                 // fixme: strings would be a better alternative
                 type Result = usize;
-                stage_default_methods!(is_friendly_with_all ALL);
+                stage_default_methods!(is_friendly_with_all to_context ALL);
                 #[inline]
                 fn resolve(self: Box<Self>) -> Self::Result {
                     unimplemented!("cannot resolve strings")
@@ -821,6 +829,9 @@ where
 {
     type Result = R;
     stage_default_methods!(is_friendly_with_all ALL);
+    fn to_context(self) -> Context<Self::Result> {
+        self
+    }
     fn resolve(self: Box<Self>) -> Self::Result {
         #[allow(clippy::type_complexity)]
         let (vec, default, [normal_op, inverse_op]): (_, fn() -> R, [fn(R, R) -> R; 2]) =
@@ -1200,7 +1211,7 @@ where
     F: 'static,
 {
     type Result = R;
-    stage_default_methods!(is_friendly_with ALL);
+    stage_default_methods!(is_friendly_with to_context ALL);
     #[inline]
     fn resolve(self: Box<Self>) -> Self::Result {
         (self.1)(self.0)
