@@ -706,6 +706,54 @@ pub enum Context<R> {
     Nil(Box<dyn Resolve<Result = R>>),
 }
 
+impl<R: 'static> Context<R> {
+    #[inline]
+    pub fn resolve(self) -> R
+    where
+        R: One
+            + Zero
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div<Output = R>
+            + std::ops::Sub<Output = R>,
+    {
+        Box::new(self).resolve()
+    }
+    #[inline]
+    pub fn dump(
+        self,
+    ) -> ContextVal<Vec<Type<Box<dyn Resolve<Result = R>>>>, Box<dyn Resolve<Result = R>>> {
+        match self {
+            Context::Add(vec) | Context::Mul(vec) => ContextVal::Multiple(vec),
+            Context::Nil(val) => ContextVal::Single(val),
+        }
+    }
+    #[inline]
+    pub fn get_ref(
+        &self,
+    ) -> ContextVal<&Vec<Type<Box<dyn Resolve<Result = R>>>>, &Box<dyn Resolve<Result = R>>> {
+        match self {
+            Context::Add(vec) => ContextVal::Multiple(vec),
+            Context::Mul(vec) => ContextVal::Multiple(vec),
+            Context::Nil(val) => ContextVal::Single(val),
+        }
+    }
+    #[inline]
+    pub fn is_additive(&self) -> bool {
+        if let Context::Add(_) = self {
+            return true;
+        }
+        false
+    }
+    #[inline]
+    pub fn to_valid_or(self, f: fn(Box<dyn Resolve<Result = R>>) -> Self) -> Self {
+        if let Context::Nil(val) = self {
+            return f(val);
+        }
+        self
+    }
+}
+
 impl<R: 'static> PartialEq for Context<R> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -759,54 +807,6 @@ impl<R> Clone for Context<R> {
             Context::Mul(vec) => Context::Mul(vec.clone()),
             Context::Nil(val) => Context::Nil(val.clone()),
         }
-    }
-}
-
-impl<R: 'static> Context<R> {
-    #[inline]
-    pub fn resolve(self) -> R
-    where
-        R: One
-            + Zero
-            + std::ops::Mul
-            + std::ops::Add
-            + std::ops::Div<Output = R>
-            + std::ops::Sub<Output = R>,
-    {
-        Box::new(self).resolve()
-    }
-    #[inline]
-    pub fn dump(
-        self,
-    ) -> ContextVal<Vec<Type<Box<dyn Resolve<Result = R>>>>, Box<dyn Resolve<Result = R>>> {
-        match self {
-            Context::Add(vec) | Context::Mul(vec) => ContextVal::Multiple(vec),
-            Context::Nil(val) => ContextVal::Single(val),
-        }
-    }
-    #[inline]
-    pub fn get_ref(
-        &self,
-    ) -> ContextVal<&Vec<Type<Box<dyn Resolve<Result = R>>>>, &Box<dyn Resolve<Result = R>>> {
-        match self {
-            Context::Add(vec) => ContextVal::Multiple(vec),
-            Context::Mul(vec) => ContextVal::Multiple(vec),
-            Context::Nil(val) => ContextVal::Single(val),
-        }
-    }
-    #[inline]
-    pub fn is_additive(&self) -> bool {
-        if let Context::Add(_) = self {
-            return true;
-        }
-        false
-    }
-    #[inline]
-    pub fn to_valid_or(self, f: fn(Box<dyn Resolve<Result = R>>) -> Self) -> Self {
-        if let Context::Nil(val) = self {
-            return f(val);
-        }
-        self
     }
 }
 
