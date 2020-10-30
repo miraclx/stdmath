@@ -1121,11 +1121,12 @@ where
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
-impl<T, R, F: Fn(T) -> R + Copy> TransformedValue<T, F> {
+impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
     #[inline]
     pub fn resolve(self) -> R
     where
         T: Simplify + Clone + Hash + Debug + PartialOrd,
+        F: Clone,
         //
         T: 'static,
         R: 'static,
@@ -1170,9 +1171,10 @@ impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedVa
     }
 }
 
-impl<T, R, F: Fn(T) -> R + Copy> Resolve for TransformedValue<T, F>
+impl<T, R, F: Fn(T) -> R> Resolve for TransformedValue<T, F>
 where
     T: Simplify + Clone + Hash + Debug + PartialOrd,
+    F: Clone,
     //
     T: 'static,
     R: 'static,
