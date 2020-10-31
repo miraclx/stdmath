@@ -1126,12 +1126,14 @@ macro_rules! impl_ops_with_primitives {
     (($($generics:tt)*) $trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty, $rhs:ty)]) => {
         impl<$($generics)*> $trait$(::$trait_path)*<Context<$rhs>> for $lhs {
             type Output = Context<$rhs>;
+            #[inline]
             fn $method(self, rhs: Context<$rhs>) -> Self::Output {
                 $trait$(::$trait_path)*::$method(self.to_context(), rhs)
             }
         }
         impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for Context<$rhs> {
             type Output = Context<$rhs>;
+            #[inline]
             fn $method(self, rhs: $lhs) -> Self::Output {
                 $trait$(::$trait_path)*::$method(self, rhs.to_context())
             }
