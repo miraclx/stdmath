@@ -1140,6 +1140,25 @@ impl_ops_with_primitives!(
     TransformedValue<T, F>: R
 );
 
+#[macro_export]
+macro_rules! ctx {
+    () => {};
+    ($val: ident) => {
+        ctx!($val,);
+    };
+    ($val: ident = $var: expr) => {
+        ctx!($val = $var,);
+    };
+    ($val: ident = $var: expr, $($rest:tt)*) => {
+        let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);
+        ctx!($($rest)*);
+    };
+    ($val: ident, $($rest:tt)*) => {
+        let $val: $crate::core::Context<_>;
+        ctx!($($rest)*);
+    };
+}
+
 pub fn sum<I, T, X>(iter: I) -> Context<X>
 where
     I: IntoIterator<Item = Type<T>>,
