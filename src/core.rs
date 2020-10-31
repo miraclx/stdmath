@@ -1101,13 +1101,13 @@ macro_rules! impl_ops_with_primitives {
         impl<$($generics)*> $trait$(::$trait_path)*<Context<$rhs>> for $lhs {
             type Output = Context<$rhs>;
             fn $method(self, rhs: Context<$rhs>) -> Self::Output {
-                $trait$(::$trait_path)*::$method(Context::Nil(Box::new(self)), rhs)
+                $trait$(::$trait_path)*::$method(self.to_context(), rhs)
             }
         }
         impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for Context<$rhs> {
             type Output = Context<$rhs>;
             fn $method(self, rhs: $lhs) -> Self::Output {
-                $trait$(::$trait_path)*::$method(self, Context::Nil(Box::new(rhs)))
+                $trait$(::$trait_path)*::$method(self, rhs.to_context())
             }
         }
     };
