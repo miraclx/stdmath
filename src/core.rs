@@ -1940,4 +1940,31 @@ mod tests {
             Context::Nil(Box::new(TransformedValue(10, func)))
         );
     }
+    #[test]
+    fn test_ctx() {
+        ctx!(a = 10, b = 20);
+        let c = a + b;
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        ctx!(a = 10, b = 20, c = a + b);
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        ctx!(a, b, c);
+        a = 10.to_context();
+        b = 20.to_context();
+        c = a + b;
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+    }
 }
