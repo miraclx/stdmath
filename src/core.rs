@@ -850,6 +850,7 @@ where
 {
     type Result = R;
     stage_default_methods!(is_friendly_with_all ALL);
+    #[inline]
     fn to_context(self) -> Context<Self::Result> {
         self
     }
