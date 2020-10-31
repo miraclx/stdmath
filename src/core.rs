@@ -1972,6 +1972,13 @@ mod tests {
             assert_eq!(c.resolve(), 30);
         });
 
+        let c = ctx!({a = 10, b = 20} a + b);
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
         ctx!(a, b, c);
         a = 10.to_context();
         b = 20.to_context();
