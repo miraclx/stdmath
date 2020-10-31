@@ -1930,9 +1930,22 @@ mod tests {
         );
     }
     fn to_context() {
+        // nil transform
         assert_eq!(5_u8.to_context(), Context::Nil(Box::new(5_u8)));
         assert_eq!(20_usize.to_context(), Context::Nil(Box::new(20_usize)));
 
+        assert_ne!(
+            TransformedValue(10, |val| val).to_context(),
+            Context::Nil(Box::new(TransformedValue(10, |val| val)))
+        );
+
+        let func = |val| val;
+        assert_eq!(
+            TransformedValue(10, func).to_context(),
+            Context::Nil(Box::new(TransformedValue(10, func)))
+        );
+
+        // no-op transform
         assert_eq!(
             sum(Type::Normal(3..=5)).to_context(),
             Context::Add(vec![
@@ -1949,17 +1962,6 @@ mod tests {
                 Type::Normal(Box::new(9)),
                 Type::Normal(Box::new(10))
             ])
-        );
-
-        assert_ne!(
-            TransformedValue(10, |val| val).to_context(),
-            Context::Nil(Box::new(TransformedValue(10, |val| val)))
-        );
-
-        let func = |val| val;
-        assert_eq!(
-            TransformedValue(10, func).to_context(),
-            Context::Nil(Box::new(TransformedValue(10, func)))
         );
     }
     #[test]
