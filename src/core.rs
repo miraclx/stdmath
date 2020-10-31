@@ -592,7 +592,7 @@ macro_rules! stage_default_methods {
     };
     (_cmp $($rest:tt)*) => {
         #[inline]
-        fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<::std::cmp::Ordering> {
+        fn _cmp(&self, other: &dyn $crate::core::Resolve<Result = Self::Result>) -> Option<::std::cmp::Ordering> {
             other
                 .as_any()
                 .downcast_ref::<Self>()
@@ -602,14 +602,14 @@ macro_rules! stage_default_methods {
     };
     (is_friendly_with $($rest:tt)*) => {
         #[inline]
-        fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
+        fn is_friendly_with(&self, other: &dyn $crate::core::Resolve<Result = Self::Result>) -> bool {
             other.as_any().is::<Self>()
         }
         stage_default_methods!($($rest)*);
     };
     (is_friendly_with_all $($rest:tt)*) => {
         #[inline]
-        fn is_friendly_with(&self, _other: &dyn Resolve<Result = Self::Result>) -> bool {
+        fn is_friendly_with(&self, _other: &dyn $crate::core::Resolve<Result = Self::Result>) -> bool {
             true
         }
         stage_default_methods!($($rest)*);
@@ -623,8 +623,8 @@ macro_rules! stage_default_methods {
     };
     (_clone $($rest:tt)*) => {
         #[inline]
-        fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
-            Box::new(self.clone()) as Box<dyn Resolve<Result = Self::Result>>
+        fn _clone(&self) -> Box<dyn $crate::core::Resolve<Result = Self::Result>> {
+            Box::new(self.clone()) as Box<dyn $crate::core::Resolve<Result = Self::Result>>
         }
         stage_default_methods!($($rest)*);
     };
@@ -637,8 +637,8 @@ macro_rules! stage_default_methods {
     };
     (to_context $($rest:tt)*) => {
         #[inline]
-        fn to_context(self) -> Context<Self::Result> {
-            Context::Nil(Box::new(self))
+        fn to_context(self) -> $crate::core::Context<Self::Result> {
+            $crate::core::Context::Nil(Box::new(self))
         }
         stage_default_methods!($($rest)*);
     };
