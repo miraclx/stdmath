@@ -1949,6 +1949,7 @@ mod tests {
     }
     #[test]
     fn test_ctx() {
+        // define a & b within this context
         ctx!(a = 10, b = 20);
         let c = a + b;
         assert_eq!(
@@ -1957,6 +1958,7 @@ mod tests {
         );
         assert_eq!(c.resolve(), 30);
 
+        // define a, b & c within this context
         ctx!(a = 10, b = 20, c = a + b);
         assert_eq!(
             c.repr().expect("failed to represent math context"),
@@ -1964,6 +1966,7 @@ mod tests {
         );
         assert_eq!(c.resolve(), 30);
 
+        // privatize all variables
         ctx!({a = 10, b = 20, c = a + b} {
             assert_eq!(
                 c.repr().expect("failed to represent math context"),
@@ -1972,6 +1975,7 @@ mod tests {
             assert_eq!(c.resolve(), 30);
         });
 
+        // privatize a & b, export result
         let c = ctx!({a = 10, b = 20} a + b);
         assert_eq!(
             c.repr().expect("failed to represent math context"),
@@ -1979,6 +1983,7 @@ mod tests {
         );
         assert_eq!(c.resolve(), 30);
 
+        // declare variables as Contexts
         ctx!(a, b, c);
         a = 10.to_context();
         b = 20.to_context();
