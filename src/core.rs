@@ -581,14 +581,14 @@ impl<X> Hash for Box<dyn Resolve<Result = X>> {
 macro_rules! stage_default_methods {
     () => {};
     (ALL) => {
-        stage_default_methods!(as_any _cmp _debug _clone _hash);
+        $crate::stage_default_methods!(as_any _cmp _debug _clone _hash);
     };
     (as_any $($rest:tt)*) => {
         #[inline]
         fn as_any(&self) -> &dyn ::std::any::Any {
             self
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (_cmp $($rest:tt)*) => {
         #[inline]
@@ -598,49 +598,49 @@ macro_rules! stage_default_methods {
                 .downcast_ref::<Self>()
                 .map_or(None, |other| ::std::cmp::PartialOrd::partial_cmp(self, other))
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (is_friendly_with $($rest:tt)*) => {
         #[inline]
         fn is_friendly_with(&self, other: &dyn $crate::core::Resolve<Result = Self::Result>) -> bool {
             other.as_any().is::<Self>()
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (is_friendly_with_all $($rest:tt)*) => {
         #[inline]
         fn is_friendly_with(&self, _other: &dyn $crate::core::Resolve<Result = Self::Result>) -> bool {
             true
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (_debug $($rest:tt)*) => {
         #[inline]
         fn _debug(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
             ::std::fmt::Debug::fmt(self, f)
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (_clone $($rest:tt)*) => {
         #[inline]
         fn _clone(&self) -> ::std::prelude::v1::Box<dyn $crate::core::Resolve<Result = Self::Result>> {
             ::std::prelude::v1::Box::new(::std::prelude::v1::Clone::clone(self)) as ::std::prelude::v1::Box<dyn $crate::core::Resolve<Result = Self::Result>>
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (_hash $($rest:tt)*) => {
         #[inline]
         fn _hash(&self, mut state: &mut dyn ::std::hash::Hasher) {
             ::std::hash::Hash::hash(self, &mut state)
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
     (to_context $($rest:tt)*) => {
         #[inline]
         fn to_context(self) -> $crate::core::Context<Self::Result> {
             $crate::core::Context::Nil(::std::prelude::v1::Box::new(self))
         }
-        stage_default_methods!($($rest)*);
+        $crate::stage_default_methods!($($rest)*);
     };
 }
 
@@ -974,22 +974,22 @@ impl<R: 'static> Simplify for Context<R> {
 macro_rules! ctx {
     () => {};
     ($val: ident) => {
-        ctx!($val,);
+        $crate::ctx!($val,);
     };
     ($val: ident = $var: expr) => {
-        ctx!($val = $var,);
+        $crate::ctx!($val = $var,);
     };
     ($val: ident = $var: expr, $($rest:tt)*) => {
         let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);
-        ctx!($($rest)*);
+        $crate::ctx!($($rest)*);
     };
     ($val: ident, $($rest:tt)*) => {
         let $val: $crate::core::Context<_>;
-        ctx!($($rest)*);
+        $crate::ctx!($($rest)*);
     };
     ({$($vars:tt)*} $expr:expr) => {
         {
-            ctx!($($vars)*);
+            $crate::ctx!($($vars)*);
             $expr
         }
     }
