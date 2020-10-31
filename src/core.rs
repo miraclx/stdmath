@@ -537,9 +537,9 @@ pub trait Resolve: Simplify {
     fn to_context(self) -> Context<Self::Result>;
 }
 
-impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
+impl<X> PartialEq for dyn Resolve<Result = X> {
     #[inline]
-    fn eq(&self, other: &dyn Resolve<Result = X>) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         if let Some(Ordering::Equal) = self._cmp(other) {
             return true;
         }
@@ -549,9 +549,9 @@ impl<X> PartialEq<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
 
 impl<X> Eq for dyn Resolve<Result = X> {}
 
-impl<X> PartialOrd<dyn Resolve<Result = X>> for dyn Resolve<Result = X> {
+impl<X> PartialOrd for dyn Resolve<Result = X> {
     #[inline]
-    fn partial_cmp(&self, other: &dyn Resolve<Result = X>) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self._cmp(other)
     }
 }
