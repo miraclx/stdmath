@@ -1269,7 +1269,7 @@ impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
     }
 }
 
-pub type Sigma<R> = Context<R>;
+type Sigma<R> = Context<R>;
 
 pub fn sigma<I: IntoIterator<Item = T>, T, R, F: Fn(T) -> R + Copy>(iter: I, func: F) -> Sigma<R>
 where
@@ -1288,7 +1288,7 @@ where
     )
 }
 
-pub type Product<R> = Context<R>;
+type Product<R> = Context<R>;
 
 pub fn product<I: IntoIterator<Item = T>, T, R, F: Fn(T) -> R + Copy>(
     iter: I,
