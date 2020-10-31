@@ -350,7 +350,7 @@ pub trait Simplify {
 ///
 /// impl Resolve for Add {
 ///     type Result = u8;
-///     stage_default_methods!(is_friendly_with ALL);
+///     stage_default_methods!(is_friendly_with to_context ALL);
 ///     fn resolve(self: Box<Self>) -> Self::Result {
 ///         self.0 + self.1
 ///     }
