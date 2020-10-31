@@ -2016,7 +2016,7 @@ mod tests {
         );
     }
     #[test]
-    fn test_ctx() {
+    fn test_ctx_macro() {
         // define a & b within this context
         ctx!(a = 10, b = 20);
         let c = a + b;
