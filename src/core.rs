@@ -1916,6 +1916,19 @@ mod tests {
         );
     }
     #[test]
+    fn test_to_context() {
+        let val = 3.to_context() + 5.to_context();
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 + 5)"
+        );
+
+        let val = 3.to_context() * 5.to_context();
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 * 5)"
+        );
+    }
     fn to_context() {
         assert_eq!(5_u8.to_context(), Context::Nil(Box::new(5_u8)));
         assert_eq!(20_usize.to_context(), Context::Nil(Box::new(20_usize)));
