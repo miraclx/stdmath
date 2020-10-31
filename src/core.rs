@@ -1916,6 +1916,32 @@ mod tests {
         );
     }
     #[test]
+    fn op_prim_rhs() {
+        let val = sum(Type::Normal(3..=5)) + 6_i32;
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 + 4 + 5 + 6)"
+        );
+
+        let val = sum(Type::Normal(3..=5)) * 6_i32;
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "((3 + 4 + 5) * 6)"
+        );
+
+        let val = mul(Type::Normal(3..=5)) * 6_i32;
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 * 4 * 5 * 6)"
+        );
+
+        let val = mul(Type::Normal(3..=5)) + 6_i32;
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "((3 * 4 * 5) + 6)"
+        );
+    }
+    #[test]
     fn to_context() {
         // nil transform
         assert_eq!(5_u8.to_context(), Context::Nil(Box::new(5_u8)));
