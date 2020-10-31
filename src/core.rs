@@ -987,6 +987,7 @@ macro_rules! ctx {
         let $val: $crate::core::Context<_>;
         ctx!($($rest)*);
     };
+    ($expr: expr) => { $expr }
 }
 
 macro_rules! impl_ops {
@@ -1957,6 +1958,14 @@ mod tests {
             "(10 + 20)"
         );
         assert_eq!(c.resolve(), 30);
+
+        ctx!(a = 10, b = 20, c = a + b, {
+            assert_eq!(
+                c.repr().expect("failed to represent math context"),
+                "(10 + 20)"
+            );
+            assert_eq!(c.resolve(), 30);
+        });
 
         ctx!(a, b, c);
         a = 10.to_context();
