@@ -739,12 +739,7 @@ impl<R: 'static> Context<R> {
     #[inline]
     pub fn resolve(self) -> R
     where
-        R: One
-            + Zero
-            + std::ops::Mul
-            + std::ops::Add
-            + std::ops::Div<Output = R>
-            + std::ops::Sub<Output = R>,
+        R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
     {
         Box::new(self).resolve()
     }
@@ -841,12 +836,7 @@ impl<R> Clone for Context<R> {
 
 impl<R: 'static> Resolve for Context<R>
 where
-    R: One
-        + Zero
-        + std::ops::Mul
-        + std::ops::Add
-        + std::ops::Div<Output = R>
-        + std::ops::Sub<Output = R>,
+    R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
 {
     type Result = R;
     stage_default_methods!(is_friendly_with_all ALL);
@@ -1004,8 +994,8 @@ macro_rules! impl_ops {
                     + Zero
                     + std::ops::Mul
                     + std::ops::Add
-                    + std::ops::Div<Output = R>
-                    + std::ops::Sub<Output = R>,
+                    + std::ops::Div
+                    + std::ops::Sub,
             {
                 type Output = Context<R>;
                 #[inline]
@@ -1161,8 +1151,8 @@ impl_ops_with_primitives!(
             + Zero
             + std::ops::Mul
             + std::ops::Add
-            + std::ops::Div<Output = R>
-            + std::ops::Sub<Output = R> + 'static,
+            + std::ops::Div
+            + std::ops::Sub + 'static,
         F: Fn(T) -> R + Clone + 'static,
     )
     TransformedValue<T, F>: R

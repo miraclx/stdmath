@@ -20,12 +20,16 @@ mod traits {
     }
 
     /// Defines a additive identity element for Self.
-    pub trait Zero: Sized + std::ops::Add<Self, Output = Self> {
+    pub trait Zero:
+        Sized + std::ops::Add<Self, Output = Self> + std::ops::Sub<Self, Output = Self>
+    {
         fn zero() -> Self;
     }
 
     /// Defines a multiplicative identity element for Self.
-    pub trait One: Sized + std::ops::Mul<Self, Output = Self> {
+    pub trait One:
+        Sized + std::ops::Mul<Self, Output = Self> + std::ops::Div<Self, Output = Self>
+    {
         fn one() -> Self;
     }
 
