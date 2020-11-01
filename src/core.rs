@@ -969,8 +969,15 @@ macro_rules! ctx {
     ($val: ident = $var: expr) => {
         $crate::ctx!($val = $var,);
     };
+    (($($val: ident),+) = $var: expr) => {
+        $crate::ctx!(($($val),+) = $var,);
+    };
     ($val: ident = $var: expr, $($rest:tt)*) => {
         let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);
+        $crate::ctx!($($rest)*);
+    };
+    (($($val: ident),+) = $var: expr, $($rest:tt)*) => {
+        $(let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);)+
         $crate::ctx!($($rest)*);
     };
     ($val: ident, $($rest:tt)*) => {
