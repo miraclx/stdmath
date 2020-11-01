@@ -3,14 +3,6 @@
 pub mod core;
 pub mod exclude;
 
-#[cfg(feature = "concurrency")]
-use rayon::prelude::*;
-
-#[cfg(feature = "num_traits")]
-mod traits {
-    pub use num::traits::{One, Pow, Zero};
-}
-
 #[cfg(not(feature = "num_traits"))]
 mod traits {
     /// Trait for pow-supported numbers.
