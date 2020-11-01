@@ -77,3 +77,17 @@ where
 {
     mul(Type::Normal(T::one()..=val))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_factorial() {
+        let val = factorial(5);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+        assert_eq!(val.resolve(), 120);
+    }
+}
