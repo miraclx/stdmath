@@ -90,4 +90,26 @@ mod tests {
         );
         assert_eq!(val.resolve(), 120);
     }
+    #[test]
+    fn test_op() {
+        let val1 = factorial(5);
+        assert_eq!(
+            val1.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+
+        let val2 = factorial(3);
+        assert_eq!(
+            val2.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3)"
+        );
+
+        let res = val1 / val2;
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "(4 * 5)"
+        );
+
+        assert_eq!(res.resolve(), 20);
+    }
 }
