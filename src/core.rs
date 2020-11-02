@@ -1283,6 +1283,10 @@ pub struct TransformedValue<T, F>(T, F);
 
 impl<T: Resolve, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
     #[inline]
+    pub fn new(val: T, func: F) -> Self {
+        Self(val, func)
+    }
+    #[inline]
     pub fn resolve(self) -> R
     where
         T: Clone + Hash + Debug + PartialOrd,
