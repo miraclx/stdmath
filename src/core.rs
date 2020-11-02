@@ -1186,14 +1186,14 @@ impl_ops_with_primitives!(f32, f64);
 impl_ops_with_primitives!(i128, u128);
 impl_ops_with_primitives!(
     (
-        T: Simplify + Clone + Hash + Debug + PartialOrd + 'static,
+        T: Resolve + Clone + Hash + Debug + PartialOrd + 'static,
         R: One
             + Zero
             + std::ops::Mul
             + std::ops::Add
             + std::ops::Div
             + std::ops::Sub + 'static,
-        F: Fn(T) -> R + Clone + 'static,
+        F: Fn(T::Result) -> R + Clone + 'static,
     )
     TransformedValue<T, F>: R
 );
@@ -1225,11 +1225,11 @@ where
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
-impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
+impl<T: Resolve, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
     #[inline]
     pub fn resolve(self) -> R
     where
-        T: Simplify + Clone + Hash + Debug + PartialOrd,
+        T: Clone + Hash + Debug + PartialOrd,
         F: Clone,
         //
         T: 'static,
@@ -1275,9 +1275,9 @@ impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedVa
     }
 }
 
-impl<T, R, F: Fn(T) -> R> Resolve for TransformedValue<T, F>
+impl<T: Resolve, R, F: Fn(T::Result) -> R> Resolve for TransformedValue<T, F>
 where
-    T: Simplify + Clone + Hash + Debug + PartialOrd,
+    T: Clone + Hash + Debug + PartialOrd,
     F: Clone,
     //
     T: 'static,
@@ -1288,7 +1288,7 @@ where
     stage_default_methods!(is_friendly_with to_context ALL);
     #[inline]
     fn resolve(self: Box<Self>) -> Self::Result {
-        (self.1)(self.0)
+        (self.1)(Box::new(self.0).resolve())
     }
 }
 
@@ -1301,9 +1301,12 @@ impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
 
 type Sigma<R> = Context<R>;
 
-pub fn sigma<I: IntoIterator<Item = T>, T, R, F: Fn(T) -> R + Copy>(iter: I, func: F) -> Sigma<R>
+pub fn sigma<I: IntoIterator<Item = T>, T, R, F: Fn(T::Result) -> R + Copy>(
+    iter: I,
+    func: F,
+) -> Sigma<R>
 where
-    T: Simplify + Clone + Hash + Debug + PartialOrd,
+    T: Resolve + Clone + Hash + Debug + PartialOrd,
     //
     T: 'static,
     R: 'static,
@@ -1320,12 +1323,12 @@ where
 
 type Product<R> = Context<R>;
 
-pub fn product<I: IntoIterator<Item = T>, T, R, F: Fn(T) -> R + Copy>(
+pub fn product<I: IntoIterator<Item = T>, T, R, F: Fn(T::Result) -> R + Copy>(
     iter: I,
     func: F,
 ) -> Product<R>
 where
-    T: Simplify + Clone + Hash + Debug + PartialOrd,
+    T: Resolve + Clone + Hash + Debug + PartialOrd,
     //
     T: 'static,
     R: 'static,
