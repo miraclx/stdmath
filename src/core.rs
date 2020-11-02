@@ -973,17 +973,18 @@ macro_rules! ctx {
         $crate::ctx!(($($val),+) = $var,);
     };
     ($val: ident = $var: expr, $($rest:tt)*) => {
-        let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);
+        let $val: $crate::core::Context<_> = $crate::ctx!({$var});
         $crate::ctx!($($rest)*);
     };
     (($($val: ident),+) = $var: expr, $($rest:tt)*) => {
-        $(let $val: $crate::core::Context<_> = $crate::core::Resolve::to_context($var);)+
+        $(let $val: $crate::core::Context<_> = $crate::ctx!({$var});)+
         $crate::ctx!($($rest)*);
     };
     ($val: ident, $($rest:tt)*) => {
         let $val: $crate::core::Context<_>;
         $crate::ctx!($($rest)*);
     };
+    ({$val: expr}) => { $crate::core::Resolve::to_context($val) };
     ({$($vars:tt)*} $expr:expr) => {
         {
             $crate::ctx!($($vars)*);
@@ -2070,6 +2071,16 @@ mod tests {
         a = 10.to_context();
         b = 20.to_context();
         c = a + b;
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        // contextify expressions
+        let a = ctx!({ 10 });
+        let b = ctx!({ 20 });
+        let c = a + b;
         assert_eq!(
             c.repr().expect("failed to represent math context"),
             "(10 + 20)"
