@@ -73,17 +73,50 @@ where
     mul(Type::Normal(T::one()..=val))
 }
 
+#[derive(Debug, Hash, Clone, PartialEq, PartialOrd)]
+pub struct Factorial<T>(pub T);
+
+impl<T: One + Resolve + 'static> Factorial<T> {
+    pub fn resolve(self) -> T::Result
+    where
+        T: Clone + std::hash::Hash + PartialOrd + std::fmt::Display + std::fmt::Debug,
+        T::Result: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
+        std::ops::RangeInclusive<T>: Iterator<Item = T>,
+    {
+        Resolve::resolve(Box::new(self))
+    }
+}
+
+impl<T: std::fmt::Display> Simplify for Factorial<T> {
+    fn simplify(&self, file: &mut dyn std::fmt::Write) -> std::fmt::Result {
+        write!(file, "{}!", self.0)
+    }
+}
+
+impl<T: One + Resolve + 'static> Resolve for Factorial<T>
+where
+    T: Clone + std::hash::Hash + PartialOrd + std::fmt::Display + std::fmt::Debug,
+    T::Result: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
+    std::ops::RangeInclusive<T>: Iterator<Item = T>,
+{
+    type Result = T::Result;
+    stage_default_methods!(is_friendly_with_all ALL);
+    fn to_context(self) -> Context<Self::Result> {
+        mul(Type::Normal(T::one()..=self.0))
+    }
+    fn resolve(self: Box<Self>) -> Self::Result {
+        self.to_context().resolve()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn test_factorial() {
-        let val = factorial(5);
-        assert_eq!(
-            val.repr().expect("failed to represent math context"),
-            "(1 * 2 * 3 * 4 * 5)"
-        );
-        assert_eq!(val.resolve(), 120);
+        let val = Factorial(20u64);
+        assert_eq!(val.repr().expect("failed to represent math context"), "20!");
+        assert_eq!(val.resolve(), 2432902008176640000);
     }
     #[test]
     fn test_op() {
