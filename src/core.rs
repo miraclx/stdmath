@@ -790,6 +790,25 @@ impl<R: 'static> Context<R> {
         }
         self
     }
+    #[inline]
+    fn typed_map_handle<X: 'static>(
+        vec: Vec<Type<Box<dyn Resolve<Result = R>>>>,
+        f: fn(R) -> X,
+    ) -> Vec<Type<Box<dyn Resolve<Result = X>>>> {
+        vec.into_iter()
+            .map(|item| {
+                item.map(|val| Box::new(TransformedValue(val, f)) as Box<dyn Resolve<Result = X>>)
+            })
+            .collect()
+    }
+    #[inline]
+    pub fn type_map<X: 'static>(self, f: fn(R) -> X) -> Context<X> {
+        match self {
+            Context::Add(vec) => Context::Add(Self::typed_map_handle(vec, f)),
+            Context::Mul(vec) => Context::Mul(Self::typed_map_handle(vec, f)),
+            Context::Nil(val) => Context::Nil(Box::new(TransformedValue(val, f))),
+        }
+    }
 }
 
 impl<R: 'static> PartialEq for Context<R> {
