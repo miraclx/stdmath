@@ -991,7 +991,38 @@ macro_rules! ctx {
             $crate::ctx!($($vars)*);
             $expr
         }
-    }
+    };
+}
+
+#[macro_export]
+macro_rules! mul {
+    [$($var:expr),+] => {
+        $crate::Context::Mul( ::std::vec![ $($var),+ ] )
+    };
+}
+
+#[macro_export]
+macro_rules! add {
+    [$($var:expr),+] => {
+        $crate::Context::Add( ::std::vec![ $($var),+ ] )
+    };
+}
+
+#[macro_export]
+macro_rules! n {
+    ($val:expr) => {
+        $crate::Type::Normal(::std::prelude::v1::Box::new($val)
+            as ::std::prelude::v1::Box<dyn $crate::Resolve<Result = _>>)
+    };
+}
+
+#[macro_export]
+macro_rules! i {
+    ($val:expr) => {
+        $crate::Type::Inverse(
+            Box::new($val) as ::std::prelude::v1::Box<dyn $crate::Resolve<Result = _>>
+        )
+    };
 }
 
 macro_rules! impl_ops {
