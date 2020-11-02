@@ -707,6 +707,7 @@ bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
 impl<X> Simplify for Box<dyn Resolve<Result = X>> {
+    #[inline]
     fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
         (&**self).simplify(file)
     }
@@ -714,7 +715,28 @@ impl<X> Simplify for Box<dyn Resolve<Result = X>> {
 
 impl<X: 'static> Resolve for Box<dyn Resolve<Result = X>> {
     type Result = X;
-    stage_default_methods!(is_friendly_with to_context ALL);
+    #[inline]
+    fn as_any(&self) -> &dyn Any {
+        (**self).as_any()
+    }
+    #[inline]
+    fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering> {
+        (**self)._cmp(other)
+    }
+    #[inline]
+    fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
+        (**self).is_friendly_with(other)
+    }
+    #[inline]
+    fn _hash(&self, state: &mut dyn Hasher) {
+        (**self)._hash(state)
+    }
+    #[inline]
+    fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
+        self.clone()
+    }
+    stage_default_methods!(to_context _debug);
+    #[inline]
     fn resolve(self: Box<Self>) -> Self::Result {
         (*self).resolve()
     }
@@ -2190,5 +2212,14 @@ mod tests {
                 .expect("failed to represent math context"),
             "((a + c) - (b + d))"
         );
+    }
+    #[test]
+    fn boxed_proxy_cmp() {
+        use std::cmp::Ordering;
+
+        let val = Box::new(10) as Box<dyn Resolve<Result = _>>;
+        assert_eq!(val._cmp(&15), Some(Ordering::Less)); // 10 < 15
+        assert_eq!(val._cmp(&10), Some(Ordering::Equal)); // 10 == 10
+        assert_eq!(val._cmp(&9), Some(Ordering::Greater)); // 10 > 9
     }
 }
