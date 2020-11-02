@@ -566,14 +566,14 @@ impl<X> Debug for dyn Resolve<Result = X> {
 impl<X> Clone for Box<dyn Resolve<Result = X>> {
     #[inline]
     fn clone(&self) -> Self {
-        self._clone()
+        (**self)._clone()
     }
 }
 
 impl<X> Hash for Box<dyn Resolve<Result = X>> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self._hash(state);
+        (**self)._hash(state);
     }
 }
 
@@ -705,6 +705,20 @@ bulk_impl_traits!(u8, u16, u32, u64, usize);
 bulk_impl_traits!(float(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
+
+impl<X> Simplify for Box<dyn Resolve<Result = X>> {
+    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+        (&**self).simplify(file)
+    }
+}
+
+impl<X: 'static> Resolve for Box<dyn Resolve<Result = X>> {
+    type Result = X;
+    stage_default_methods!(is_friendly_with to_context ALL);
+    fn resolve(self: Box<Self>) -> Self::Result {
+        (*self).resolve()
+    }
+}
 
 #[derive(Hash, PartialEq, PartialOrd)]
 pub enum ContextVal<M, S> {
