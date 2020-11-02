@@ -1076,9 +1076,8 @@ macro_rules! n {
 #[macro_export]
 macro_rules! i {
     ($val:expr) => {
-        $crate::Type::Inverse(
-            Box::new($val) as ::std::prelude::v1::Box<dyn $crate::Resolve<Result = _>>
-        )
+        $crate::Type::Inverse(::std::prelude::v1::Box::new($val)
+            as ::std::prelude::v1::Box<dyn $crate::Resolve<Result = _>>)
     };
 }
 
