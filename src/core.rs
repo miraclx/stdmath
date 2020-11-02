@@ -2031,6 +2031,14 @@ mod tests {
         );
         assert_eq!(c.resolve(), 30);
 
+        // multi-define a & b to 20
+        ctx!((a, b) = 20, c = a + b);
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(20 + 20)"
+        );
+        assert_eq!(c.resolve(), 40);
+
         // privatize all variables
         ctx!({a = 10, b = 20, c = a + b} {
             assert_eq!(
@@ -2038,6 +2046,15 @@ mod tests {
                 "(10 + 20)"
             );
             assert_eq!(c.resolve(), 30);
+        });
+
+        // privately multi-define a & b to 20
+        ctx!({(a, b) = 20, c = a + b} {
+            assert_eq!(
+                c.repr().expect("failed to represent math context"),
+                "(20 + 20)"
+            );
+            assert_eq!(c.resolve(), 40);
         });
 
         // privatize a & b, export result
