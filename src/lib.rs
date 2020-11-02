@@ -119,7 +119,7 @@ mod tests {
         assert_eq!(val.resolve(), 2432902008176640000);
     }
     #[test]
-    fn test_op() {
+    fn test_op_gt() {
         let val1 = factorial(5);
         assert_eq!(
             val1.repr().expect("failed to represent math context"),
@@ -136,6 +136,47 @@ mod tests {
         assert_eq!(
             res.repr().expect("failed to represent math context"),
             "(4 * 5)"
+        );
+
+        assert_eq!(res.resolve(), 20);
+    }
+    #[test]
+    fn test_op_eq() {
+        let val1 = factorial(5);
+        assert_eq!(
+            val1.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+
+        let val2 = factorial(5);
+        assert_eq!(
+            val2.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+
+        let res = val1 / val2;
+        assert_eq!(res.repr().expect("failed to represent math context"), "");
+
+        assert_eq!(res.resolve(), 1);
+    }
+    #[test]
+    fn test_op_lt() {
+        let val1 = factorial(3);
+        assert_eq!(
+            val1.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3)"
+        );
+
+        let val2 = factorial(5);
+        assert_eq!(
+            val2.repr().expect("failed to represent math context"),
+            "(1 * 2 * 3 * 4 * 5)"
+        );
+
+        let res = val1 / val2;
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "1/(4 * 5)"
         );
 
         assert_eq!(res.resolve(), 20);
