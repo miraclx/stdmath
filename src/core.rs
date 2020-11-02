@@ -2218,8 +2218,9 @@ mod tests {
         use std::cmp::Ordering;
 
         let val = Box::new(10) as Box<dyn Resolve<Result = _>>;
-        assert_eq!(val._cmp(&15), Some(Ordering::Less)); // 10 < 15
-        assert_eq!(val._cmp(&10), Some(Ordering::Equal)); // 10 == 10
-        assert_eq!(val._cmp(&9), Some(Ordering::Greater)); // 10 > 9
+
+        assert_eq!(Resolve::_cmp(&val, &15), Some(Ordering::Less)); // 10 < 15
+        assert_eq!(Resolve::_cmp(&val, &10), Some(Ordering::Equal)); // 10 == 10
+        assert_eq!(Resolve::_cmp(&val, &9), Some(Ordering::Greater)); // 10 > 9
     }
 }
