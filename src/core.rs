@@ -820,7 +820,7 @@ impl<R: 'static> Context<R> {
         vec.into_iter()
             .map(|item| {
                 item.map(|val| {
-                    Box::new(TransformedValue(val, f.clone())) as Box<dyn Resolve<Result = X>>
+                    Box::new(TransformedValue::new(val, f.clone())) as Box<dyn Resolve<Result = X>>
                 })
             })
             .collect()
@@ -830,7 +830,7 @@ impl<R: 'static> Context<R> {
         match self {
             Context::Add(vec) => Context::Add(Self::typed_map_handle(vec, f)),
             Context::Mul(vec) => Context::Mul(Self::typed_map_handle(vec, f)),
-            Context::Nil(val) => Context::Nil(Box::new(TransformedValue(val, f))),
+            Context::Nil(val) => Context::Nil(Box::new(TransformedValue::new(val, f))),
         }
     }
 }
@@ -1375,7 +1375,9 @@ where
     Context::Add(
         iter.into_iter()
             .map(|val| {
-                Type::Normal(Box::new(TransformedValue(val, func)) as Box<dyn Resolve<Result = R>>)
+                Type::Normal(
+                    Box::new(TransformedValue::new(val, func)) as Box<dyn Resolve<Result = R>>
+                )
             })
             .collect(),
     )
@@ -1397,7 +1399,9 @@ where
     Context::Mul(
         iter.into_iter()
             .map(|val| {
-                Type::Normal(Box::new(TransformedValue(val, func)) as Box<dyn Resolve<Result = R>>)
+                Type::Normal(
+                    Box::new(TransformedValue::new(val, func)) as Box<dyn Resolve<Result = R>>
+                )
             })
             .collect(),
     )
@@ -1787,34 +1791,34 @@ mod tests {
     }
     #[test]
     fn transformed_value() {
-        let val = TransformedValue(50, |val| val + 50);
+        let val = TransformedValue::new(50, |val| val + 50);
         assert_eq!(format!("{:?}", val), "TransformedValue(50)");
         assert_eq!(val.repr().expect("failed to represent math context"), "50");
         assert_eq!(val.resolve(), 100);
     }
     #[test]
     fn transformed_eq() {
-        let val1 = TransformedValue(50, |val: u8| val + 50);
-        let val2 = TransformedValue(50, |val: u8| val + 50);
+        let val1 = TransformedValue::new(50, |val| val + 50);
+        let val2 = TransformedValue::new(50, |val| val + 50);
         assert_ne!(val1, val2);
 
-        let func = |val: u8| val + 10;
-        let val1 = TransformedValue(50, func);
-        let val2 = TransformedValue(50, func);
+        let func = |val| val + 10;
+        let val1 = TransformedValue::new(50, func);
+        let val2 = TransformedValue::new(50, func);
         assert_eq!(val1, val2);
     }
     #[test]
     fn transformed_unshared_cmp() {
-        let val1 = TransformedValue(50, |val| val + 50); // 100
-        let val2 = TransformedValue(80, |val| val + 11); // 91
+        let val1 = TransformedValue::new(50, |val| val + 50); // 100
+        let val2 = TransformedValue::new(80, |val| val + 11); // 91
         assert!(!(val1 < val2)); // can't compare
         assert!(val1 != val2); // can't compare
         assert!(!(val1 > val2)); // can't compare
         assert_eq!(val1.partial_cmp(&val2), None); // can't compare
         assert!(val1.resolve() > val2.resolve());
 
-        let val1 = TransformedValue(60, |val| val + 12); // 72
-        let val2 = TransformedValue(32, |val| val + 43); // 75
+        let val1 = TransformedValue::new(60, |val| val + 12); // 72
+        let val2 = TransformedValue::new(32, |val| val + 43); // 75
         assert!(!(val1 < val2)); // can't compare
         assert!(val1 != val2); // can't compare
         assert!(!(val1 > val2)); // can't compare
@@ -1824,8 +1828,8 @@ mod tests {
     #[test]
     fn transformed_shared_cmp() {
         let func = |x| x + 10;
-        let val1 = TransformedValue(50, func); // 60
-        let val2 = TransformedValue(80, func); // 90
+        let val1 = TransformedValue::new(50, func); // 60
+        let val2 = TransformedValue::new(80, func); // 90
         assert!(val1 < val2); // 50 < 80
         assert!(val1 != val2); // 50 != 80
         assert!(!(val1 > val2)); // !(50 > 80)
@@ -1833,8 +1837,8 @@ mod tests {
         assert!(val1.resolve() < val2.resolve()); // 60 < 90
 
         let func = |x| x + 64;
-        let val1 = TransformedValue(22, func); // 86
-        let val2 = TransformedValue(22, func); // 86
+        let val1 = TransformedValue::new(22, func); // 86
+        let val2 = TransformedValue::new(22, func); // 86
         assert!(!(val1 < val2)); // !(22 < 22)
         assert!(val1 == val2); // 22 == 22
         assert!(!(val1 > val2)); // !(22 > 22)
@@ -1842,8 +1846,8 @@ mod tests {
         assert!(val1.resolve() == val2.resolve()); // 86 == 86
 
         let func = |x| x + 22;
-        let val1 = TransformedValue(60, func); // 82
-        let val2 = TransformedValue(32, func); // 54
+        let val1 = TransformedValue::new(60, func); // 82
+        let val2 = TransformedValue::new(32, func); // 54
         assert!(!(val1 < val2)); // !(60 < 32)
         assert!(val1 != val2); // 60 != 32
         assert!(val1 > val2); // 60 > 32
@@ -2079,14 +2083,14 @@ mod tests {
         );
 
         assert_ne!(
-            TransformedValue(10, |val| val).to_context(),
-            Context::Nil(Box::new(TransformedValue(10, |val| val)))
+            TransformedValue::new(10, |val| val).to_context(),
+            Context::Nil(Box::new(TransformedValue::new(10, |val| val)))
         );
 
         let func = |val| val;
         assert_eq!(
-            TransformedValue(10, func).to_context(),
-            Context::Nil(Box::new(TransformedValue(10, func)))
+            TransformedValue::new(10, func).to_context(),
+            Context::Nil(Box::new(TransformedValue::new(10, func)))
         );
 
         // no-op transform
