@@ -77,6 +77,7 @@ where
 pub struct Factorial<T>(pub T);
 
 impl<T: One + Resolve + 'static> Factorial<T> {
+    #[inline]
     pub fn resolve(self) -> T::Result
     where
         T: Clone + std::hash::Hash + PartialOrd + std::fmt::Display + std::fmt::Debug,
