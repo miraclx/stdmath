@@ -2143,5 +2143,14 @@ mod tests {
             "(1 + 2 + (3 * 4) + 5 + (6 + 7))"
         );
         assert_eq!(eqn.resolve(), 33);
+
+        // (a - b + c - d)
+        // (a + c) - (b + d)
+        assert_eq!(
+            add![n!('a'), i!('b'), n!('c'), i!('d')]
+                .repr()
+                .expect("failed to represent math context"),
+            "((a + c) - (b + d))"
+        );
     }
 }
