@@ -791,18 +791,20 @@ impl<R: 'static> Context<R> {
         self
     }
     #[inline]
-    fn typed_map_handle<X: 'static>(
+    fn typed_map_handle<X: 'static, F: Fn(R) -> X + Clone + 'static>(
         vec: Vec<Type<Box<dyn Resolve<Result = R>>>>,
-        f: fn(R) -> X,
+        f: F,
     ) -> Vec<Type<Box<dyn Resolve<Result = X>>>> {
         vec.into_iter()
             .map(|item| {
-                item.map(|val| Box::new(TransformedValue(val, f)) as Box<dyn Resolve<Result = X>>)
+                item.map(|val| {
+                    Box::new(TransformedValue(val, f.clone())) as Box<dyn Resolve<Result = X>>
+                })
             })
             .collect()
     }
     #[inline]
-    pub fn type_map<X: 'static>(self, f: fn(R) -> X) -> Context<X> {
+    pub fn type_map<X: 'static, F: Fn(R) -> X + Clone + 'static>(self, f: F) -> Context<X> {
         match self {
             Context::Add(vec) => Context::Add(Self::typed_map_handle(vec, f)),
             Context::Mul(vec) => Context::Mul(Self::typed_map_handle(vec, f)),
