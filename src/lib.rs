@@ -63,7 +63,7 @@ mod traits {
     bulk_impl_traits!((i128, u128) => (0, 1));
 }
 
-pub use self::core::{mul, sum, Context, Resolve, Simplify, Type};
+pub use self::core::{mul, product, sigma, sum, Context, Resolve, Simplify, Type};
 pub use traits::{One, Pow, Zero};
 
 pub fn factorial<T: One + Resolve + 'static>(val: T) -> Context<T::Result>
@@ -161,13 +161,14 @@ mod tests {
     }
     #[test]
     fn test_op_lt() {
-        let val1 = factorial(3);
+        let func = |v| v as f32;
+        let val1 = product(1..=3, func);
         assert_eq!(
             val1.repr().expect("failed to represent math context"),
             "(1 * 2 * 3)"
         );
 
-        let val2 = factorial(5);
+        let val2 = product(1..=5, func);
         assert_eq!(
             val2.repr().expect("failed to represent math context"),
             "(1 * 2 * 3 * 4 * 5)"
@@ -179,6 +180,6 @@ mod tests {
             "1/(4 * 5)"
         );
 
-        assert_eq!(res.resolve(), 20);
+        assert_eq!(res.resolve(), 0.05);
     }
 }
