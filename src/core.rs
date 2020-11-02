@@ -2128,4 +2128,20 @@ mod tests {
         );
         assert_eq!(c.resolve(), 30);
     }
+    #[test]
+    fn test_helper_macros() {
+        // (1 + 2 + (3 * 4) + 5 + (6 + 7))
+        let eqn = add![
+            n!(1),
+            n!(2),
+            n!(mul![n!(3), n!(4)]),
+            n!(5),
+            n!(add![n!(6), n!(7)])
+        ];
+        assert_eq!(
+            eqn.repr().expect("failed to represent math context"),
+            "(1 + 2 + (3 * 4) + 5 + (6 + 7))"
+        );
+        assert_eq!(eqn.resolve(), 33);
+    }
 }
