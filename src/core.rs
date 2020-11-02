@@ -984,6 +984,7 @@ macro_rules! ctx {
         let $val: $crate::core::Context<_>;
         $crate::ctx!($($rest)*);
     };
+    ({( $($val: expr),+ )}) => { ( $( $crate::ctx!({ $val }) ),+ ) };
     ({$val: expr}) => { $crate::core::Resolve::to_context($val) };
     ({$($vars:tt)*} $expr:expr) => {
         {
@@ -2080,6 +2081,15 @@ mod tests {
         // contextify expressions
         let a = ctx!({ 10 });
         let b = ctx!({ 20 });
+        let c = a + b;
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        // destructure tuple expression
+        let (a, b) = ctx!({ (10, 20) });
         let c = a + b;
         assert_eq!(
             c.repr().expect("failed to represent math context"),
