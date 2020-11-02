@@ -2217,10 +2217,12 @@ mod tests {
     fn boxed_proxy_cmp() {
         use std::cmp::Ordering;
 
+        // Where T = dyn Resolve, a Box<T> is comparable to a T and vice versa
+
         let val = Box::new(10) as Box<dyn Resolve<Result = _>>;
 
-        assert_eq!(Resolve::_cmp(&val, &15), Some(Ordering::Less)); // 10 < 15
-        assert_eq!(Resolve::_cmp(&val, &10), Some(Ordering::Equal)); // 10 == 10
-        assert_eq!(Resolve::_cmp(&val, &9), Some(Ordering::Greater)); // 10 > 9
+        assert_eq!(Resolve::_cmp(&val, &15), Some(Ordering::Less)); // Box[10] < 15
+        assert_eq!(Resolve::_cmp(&val, &10), Some(Ordering::Equal)); // Box[10] == 10
+        assert_eq!(Resolve::_cmp(&val, &9), Some(Ordering::Greater)); // Box[10] > 9
     }
 }
