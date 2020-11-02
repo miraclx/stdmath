@@ -3,7 +3,6 @@
 pub mod core;
 pub mod exclude;
 
-#[cfg(not(feature = "num_traits"))]
 mod traits {
     /// Trait for pow-supported numbers.
     pub trait Pow<RHS> {
