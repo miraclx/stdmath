@@ -2219,6 +2219,15 @@ mod tests {
                 .expect("failed to represent math context"),
             "((a + c) - (b + d))"
         );
+
+        // (a / b * c / d)
+        // (a * c) / (b * d)
+        assert_eq!(
+            mul![n!('a'), i!('b'), n!('c'), i!('d')]
+                .repr()
+                .expect("failed to represent math context"),
+            "((a * c) / (b * d))"
+        );
     }
     #[test]
     fn boxed_proxy_cmp() {
