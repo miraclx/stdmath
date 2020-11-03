@@ -1210,18 +1210,18 @@ impl_ops! {
 
 macro_rules! impl_ops_with_primitives {
     (($($generics:tt)*) $trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty, $rhs:ty)]) => {
-        impl<$($generics)*> $trait$(::$trait_path)*<Context<$rhs>> for $lhs {
-            type Output = Context<$rhs>;
+        impl<$($generics)*> $trait$(::$trait_path)*<$rhs> for $lhs {
+            type Output = Context<<$rhs as Resolve>::Result>;
             #[inline]
-            fn $method(self, rhs: Context<$rhs>) -> Self::Output {
-                $trait$(::$trait_path)*::$method(self.to_context(), rhs)
+            fn $method(self, rhs: $rhs) -> Self::Output {
+                $trait$(::$trait_path)*::$method(self.to_context(), rhs.to_context())
             }
         }
-        impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for Context<$rhs> {
-            type Output = Context<$rhs>;
+        impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for $rhs {
+            type Output = Context<<$rhs as Resolve>::Result>;
             #[inline]
             fn $method(self, rhs: $lhs) -> Self::Output {
-                $trait$(::$trait_path)*::$method(self, rhs.to_context())
+                $trait$(::$trait_path)*::$method(self.to_context(), rhs.to_context())
             }
         }
     };
@@ -1232,7 +1232,7 @@ macro_rules! impl_ops_with_primitives {
         impl_ops_with_primitives!(($($generics)*) std::ops::Div::[div($lhs, $rhs)]);
     };
     ($($lhs:ty),+) => {
-        $(impl_ops_with_primitives!(() $lhs: <$lhs as Resolve>::Result);)+
+        $(impl_ops_with_primitives!(() $lhs: Context<<$lhs as Resolve>::Result>);)+
     };
 }
 
@@ -1251,7 +1251,7 @@ impl_ops_with_primitives!(
             + std::ops::Sub + 'static,
         F: Fn(T::Result) -> R + Clone + 'static,
     )
-    TransformedValue<T, F>: R
+    TransformedValue<T, F>: Context<R>
 );
 
 pub fn sum<I, T, X>(iter: I) -> Context<X>
