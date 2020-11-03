@@ -1217,13 +1217,10 @@ macro_rules! impl_ops_with_primitives {
                 $trait$(::$trait_path)*::$method(self.to_context(), rhs.to_context())
             }
         }
-        impl<$($generics)*> $trait$(::$trait_path)*<$lhs> for $rhs {
-            type Output = Context<<$rhs as Resolve>::Result>;
-            #[inline]
-            fn $method(self, rhs: $lhs) -> Self::Output {
-                $trait$(::$trait_path)*::$method(self.to_context(), rhs.to_context())
-            }
-        }
+    };
+    (reciprocate ($($generics:tt)*) $lhs:ty: $rhs:ty) => {
+        impl_ops_with_primitives!(($($generics)*) $lhs: $rhs);
+        impl_ops_with_primitives!(($($generics)*) $rhs: $lhs);
     };
     (($($generics:tt)*) $lhs:ty: $rhs:ty) => {
         impl_ops_with_primitives!(($($generics)*) std::ops::Add::[add($lhs, $rhs)]);
@@ -1232,7 +1229,7 @@ macro_rules! impl_ops_with_primitives {
         impl_ops_with_primitives!(($($generics)*) std::ops::Div::[div($lhs, $rhs)]);
     };
     ($($lhs:ty),+) => {
-        $(impl_ops_with_primitives!(() $lhs: Context<<$lhs as Resolve>::Result>);)+
+        $(impl_ops_with_primitives!(reciprocate () $lhs: Context<<$lhs as Resolve>::Result>);)+
     };
 }
 
@@ -1241,6 +1238,7 @@ impl_ops_with_primitives!(u8, u16, u32, u64, usize);
 impl_ops_with_primitives!(f32, f64);
 impl_ops_with_primitives!(i128, u128);
 impl_ops_with_primitives!(
+    reciprocate
     (
         T: Resolve + Clone + Hash + Debug + PartialOrd + 'static,
         R: One
