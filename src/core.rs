@@ -2078,6 +2078,19 @@ mod tests {
             val.repr().expect("failed to represent math context"),
             "((3 * 4 * 5) + 6)"
         );
+
+        let val = mul(Type::Normal(3..=5)) + TransformedValue::new(10, |val| val);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "((3 * 4 * 5) + (10))"
+        );
+
+        let func = |val| val;
+        let val = sigma(3..=5, func) + TransformedValue::new(10, func);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(3 + 4 + 5 + 10)"
+        );
     }
     #[test]
     fn op_prim_lhs() {
@@ -2103,6 +2116,19 @@ mod tests {
         assert_eq!(
             val.repr().expect("failed to represent math context"),
             "(2 + (3 * 4 * 5))"
+        );
+
+        let val = TransformedValue::new(10, |val| val) + mul(Type::Normal(3..=5));
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(10 + ((3 * 4 * 5)))"
+        );
+
+        let func = |val| val;
+        let val = TransformedValue::new(10, func) + sigma(3..=5, func);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(10 + 3 + 4 + 5)"
         );
     }
     #[test]
