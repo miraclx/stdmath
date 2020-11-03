@@ -1081,6 +1081,16 @@ macro_rules! i {
     };
 }
 
+#[macro_export]
+macro_rules! f {
+    () => {
+        |val| $crate::core::TransformedValue::new(val, ::std::convert::identity)
+    };
+    ($func:expr) => {
+        |val| $crate::core::TransformedValue::new(val, $func)
+    };
+}
+
 macro_rules! impl_ops {
     ($($trait:path[fn $method:ident($lhs_ident:ident, $rhs_ident:ident) -> $final_variant:path] => {$($rules:tt)+}),+) => {
         $(
