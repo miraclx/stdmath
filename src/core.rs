@@ -2361,6 +2361,15 @@ mod tests {
             "(1 * 2)"
         );
         assert_eq!(res.resolve(), 2);
+
+        // (2 * 3) / (2 * 3 * 4)
+        // (1/4)
+        // (1/4.0) [map: cast to float]
+        // = 0.25
+        let val = mul(Type::Normal(2..=3)) / mul(Type::Normal(2..=4));
+        let res = val.type_map(|x| x as f64);
+        assert_eq!(res.repr().expect("failed to represent math context"), "1/4");
+        assert_eq!(res.resolve(), 0.25);
     }
     #[test]
     fn boxed_proxy_cmp() {
