@@ -2307,9 +2307,14 @@ mod tests {
         assert_eq!(Resolve::_cmp(&val, &15), Some(Ordering::Less)); // Box[10] < 15
         assert_eq!(Resolve::_cmp(&val, &10), Some(Ordering::Equal)); // Box[10] == 10
         assert_eq!(Resolve::_cmp(&val, &9), Some(Ordering::Greater)); // Box[10] > 9
+        assert_eq!(Resolve::_cmp(&val, &TransformedValue::new(10, |v| v)), None); // Box[10] =!= f(10)
 
         assert_eq!(Resolve::_cmp(&15, &val), Some(Ordering::Greater)); // 15 > Box[10]
         assert_eq!(Resolve::_cmp(&10, &val), Some(Ordering::Equal)); // 10 == Box[10]
         assert_eq!(Resolve::_cmp(&9, &val), Some(Ordering::Less)); // 9 < Box[10]
+
+        assert_eq!(Resolve::_cmp(&TransformedValue::new(10, |v| v), &val), None); // f(10) =!= Box[10]
+
+        ()
     }
 }
