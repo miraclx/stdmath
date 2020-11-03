@@ -2305,6 +2305,32 @@ mod tests {
                 .expect("failed to represent math context"),
             "((a * c) / (b * d))"
         );
+
+        // create a no-op function, equivalent to |x| x;
+        let f = f!();
+        let val = f(10) + f(20);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(val.resolve(), 30);
+
+        // explicitly create a no-op function
+        let f = f!(|x| x);
+        let val = f(10) + f(20);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(val.resolve(), 30);
+
+        // use unique functions to transform for each value
+        let val = f!(|x| x)(10) + f!(|x| x)(20);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(10 + (20))"
+        );
+        assert_eq!(val.resolve(), 30);
     }
     #[test]
     fn boxed_proxy_cmp() {
