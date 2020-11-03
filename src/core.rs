@@ -1251,6 +1251,20 @@ impl_ops_with_primitives!(
     )
     TransformedValue<T, F>: Context<R>
 );
+impl_ops_with_primitives!(
+    (
+        T: Resolve + Clone + Hash + Debug + PartialOrd + 'static,
+        R: One
+            + Zero
+            + std::ops::Mul
+            + std::ops::Add
+            + std::ops::Div
+            + std::ops::Sub + 'static,
+        F1: Fn(T::Result) -> R + Clone + 'static,
+        F2: Fn(T::Result) -> R + Clone + 'static,
+    )
+    TransformedValue<T, F1>: TransformedValue<T, F2>
+);
 
 pub fn sum<I, T, X>(iter: I) -> Context<X>
 where
