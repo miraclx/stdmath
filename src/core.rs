@@ -2370,6 +2370,14 @@ mod tests {
         let res = val.type_map(|x| x as f64);
         assert_eq!(res.repr().expect("failed to represent math context"), "1/4");
         assert_eq!(res.resolve(), 0.25);
+
+        let func = |val| val;
+        let val = sum(Type::Normal(1..=4)).type_map(func) - TransformedValue::new(2, func);
+        assert_eq!(
+            val.repr().expect("failed to represent math context"),
+            "(1 + 3 + 4)"
+        );
+        assert_eq!(val.resolve(), 8);
     }
     #[test]
     fn boxed_proxy_cmp() {
