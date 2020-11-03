@@ -1303,10 +1303,10 @@ where
 #[derive(Clone)]
 pub struct TransformedValue<T, F>(T, F);
 
-impl<T: Resolve, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
+impl<T: Resolve + 'static, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
     #[inline]
-    pub fn new(val: T, func: F) -> Self {
-        Self(val, func)
+    pub fn new(val: T, func: F) -> TransformedValue<Box<dyn Resolve<Result = T::Result>>, F> {
+        TransformedValue(Box::new(val), func)
     }
     #[inline]
     pub fn resolve(self) -> R
@@ -1314,7 +1314,6 @@ impl<T: Resolve, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
         T: Clone + Hash + Debug + PartialOrd,
         F: Clone,
         //
-        T: 'static,
         R: 'static,
         F: 'static,
     {
