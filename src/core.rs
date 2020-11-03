@@ -1809,6 +1809,35 @@ mod tests {
         assert_eq!(val.resolve(), 100);
     }
     #[test]
+    fn transformed_value_ops() {
+        // support ops between transformed value-s without the explicit casting to a context
+
+        // (50 (+ 50)) + (10 (+ 20))
+        // (100) + (30)
+        // 130
+        let val1 = TransformedValue::new(50, |val| val + 50);
+        let val2 = TransformedValue::new(10, |val| val + 20);
+        let res = val1 + val2;
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "(50 + (10))"
+        );
+        assert_eq!(res.resolve(), 130);
+
+        // (50 (+ 10)) + (10 (+ 10))
+        // (60) + (20)
+        // 80
+        let func = |val| val + 10;
+        let val1 = TransformedValue::new(50, func);
+        let val2 = TransformedValue::new(10, func);
+        let res = val1 + val2;
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "(50 + 10)"
+        );
+        assert_eq!(res.resolve(), 80);
+    }
+    #[test]
     fn transformed_eq() {
         let val1 = TransformedValue::new(50, |val| val + 50);
         let val2 = TransformedValue::new(50, |val| val + 50);
