@@ -2333,6 +2333,36 @@ mod tests {
         assert_eq!(val.resolve(), 30);
     }
     #[test]
+    fn test_type_map() {
+        let val1 = mul(Type::Normal(1..=6));
+        let val2 = mul(Type::Normal(3..=6));
+        let res = val1 / val2;
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "(1 * 2)"
+        );
+        assert_eq!(res.resolve(), 2);
+
+        let val1 = mul(Type::Normal(1..=6));
+        let val2 = mul(Type::Normal(3..=6));
+        let res = val1.type_map(|a| a) / val2.type_map(|a| a);
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "((1 * 2 * 3 * 4 * 5 * 6) / (3 * 4 * 5 * 6))"
+        );
+        assert_eq!(res.resolve(), 2);
+
+        let val1 = mul(Type::Normal(1..=6));
+        let val2 = mul(Type::Normal(3..=6));
+        let func = |a| a;
+        let res = val1.type_map(func) / val2.type_map(func);
+        assert_eq!(
+            res.repr().expect("failed to represent math context"),
+            "(1 * 2)"
+        );
+        assert_eq!(res.resolve(), 2);
+    }
+    #[test]
     fn boxed_proxy_cmp() {
         use std::cmp::Ordering;
 
