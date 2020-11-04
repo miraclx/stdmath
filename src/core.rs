@@ -1214,28 +1214,29 @@ impl_ops_with_primitives!(i128, u128);
 impl_ops_with_primitives!(
     reciprocate
     (
-        T: Resolve + Clone + Hash + Debug + PartialOrd + 'static,
+        T: 'static,
         R: One
             + Zero
             + std::ops::Mul
             + std::ops::Add
             + std::ops::Div
             + std::ops::Sub + 'static,
-        F: Fn(T::Result) -> R + Clone + 'static,
+        F: Fn(T) -> R + Clone + 'static
     )
     TransformedValue<T, F>: Context<R>
 );
+
 impl_ops_with_primitives!(
     (
-        T: Resolve + Clone + Hash + Debug + PartialOrd + 'static,
+        T: 'static,
         R: One
             + Zero
             + std::ops::Mul
             + std::ops::Add
             + std::ops::Div
             + std::ops::Sub + 'static,
-        F1: Fn(T::Result) -> R + Clone + 'static,
-        F2: Fn(T::Result) -> R + Clone + 'static,
+        F1: Fn(T) -> R + Clone + 'static,
+        F2: Fn(T) -> R + Clone + 'static,
     )
     TransformedValue<T, F1>: TransformedValue<T, F2>
 );
