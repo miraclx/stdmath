@@ -1213,10 +1213,14 @@ macro_rules! impl_ops_with_primitives {
     };
 }
 
+// T [op] Context<T>
+// Context<T> [op] T
 impl_ops_with_primitives!(i8, i16, i32, i64, isize);
 impl_ops_with_primitives!(u8, u16, u32, u64, usize);
 impl_ops_with_primitives!(f32, f64);
 impl_ops_with_primitives!(i128, u128);
+// TransformedValue => R [op] Context<R>
+// Context<R> [op] TransformedValue => R
 impl_ops_with_primitives!(
     reciprocate
     (
@@ -1231,7 +1235,7 @@ impl_ops_with_primitives!(
     )
     TransformedValue<T, F>: Context<R>
 );
-
+// TransformedValue => R [op] TransformedValue => R
 impl_ops_with_primitives!(
     (
         T: 'static,
