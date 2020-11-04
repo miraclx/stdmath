@@ -1300,28 +1300,31 @@ where
     )
 }
 
-#[derive(Clone)]
-pub struct TransformedValue<T, F>(T, F);
+pub struct TransformedValue<T, F>(Box<dyn Resolve<Result = T>>, F);
 
-impl<T: Resolve + 'static, R, F: Fn(T::Result) -> R> TransformedValue<T, F> {
+impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
     #[inline]
-    pub fn new(val: T, func: F) -> TransformedValue<Box<dyn Resolve<Result = T::Result>>, F> {
-        TransformedValue(Box::new(val), func)
+    pub fn new<V: Resolve<Result = T> + 'static>(val: V, func: F) -> Self {
+        Self(Box::new(val), func)
     }
     #[inline]
     pub fn resolve(self) -> R
     where
-        T: Clone + Hash + Debug + PartialOrd,
-        F: Clone,
-        //
-        R: 'static,
-        F: 'static,
+        F: Clone + 'static,
+        T: 'static,
     {
         Resolve::resolve(Box::new(self))
     }
 }
 
-impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
+impl<T, F: Clone> Clone for TransformedValue<T, F> {
+    #[inline]
+    fn clone(&self) -> Self {
+        TransformedValue(self.0.clone(), self.1.clone())
+    }
+}
+
+impl<T, F: 'static> Hash for TransformedValue<T, F> {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.1.type_id().hash(state);
@@ -1329,7 +1332,7 @@ impl<T: Hash, F: 'static> Hash for TransformedValue<T, F> {
     }
 }
 
-impl<T: Debug, F: 'static> Debug for TransformedValue<T, F> {
+impl<T, F: 'static> Debug for TransformedValue<T, F> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("TransformedValue")
@@ -1339,17 +1342,14 @@ impl<T: Debug, F: 'static> Debug for TransformedValue<T, F> {
     }
 }
 
-impl<T: PartialEq + 'static, F1: 'static, F2: 'static> PartialEq<TransformedValue<T, F2>>
-    for TransformedValue<T, F1>
-{
+impl<T, F1: 'static, F2: 'static> PartialEq<TransformedValue<T, F2>> for TransformedValue<T, F1> {
     #[inline]
     fn eq(&self, other: &TransformedValue<T, F2>) -> bool {
-        self.0 == other.0 && (&other.1 as &dyn Any).is::<F1>()
+        &self.0 == &other.0 && (&other.1 as &dyn Any).is::<F1>()
     }
 }
-impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>>
-    for TransformedValue<T, F1>
-{
+
+impl<T, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>> for TransformedValue<T, F1> {
     #[inline]
     fn partial_cmp(&self, other: &TransformedValue<T, F2>) -> Option<Ordering> {
         if (&other.1 as &dyn Any).is::<F1>() {
@@ -1359,13 +1359,16 @@ impl<T: PartialOrd + 'static, F1: 'static, F2: 'static> PartialOrd<TransformedVa
     }
 }
 
-impl<T: Resolve, R, F: Fn(T::Result) -> R> Resolve for TransformedValue<T, F>
+impl<T, R> Simplify for TransformedValue<T, R> {
+    #[inline]
+    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+        self.0.simplify(file)
+    }
+}
+
+impl<T, R, F: Fn(T) -> R + Clone> Resolve for TransformedValue<T, F>
 where
-    T: Clone + Hash + Debug + PartialOrd,
-    F: Clone,
-    //
     T: 'static,
-    R: 'static,
     F: 'static,
 {
     type Result = R;
@@ -1376,12 +1379,6 @@ where
     }
 }
 
-impl<T: Simplify, R> Simplify for TransformedValue<T, R> {
-    #[inline]
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        self.0.simplify(file)
-    }
-}
 
 type Sigma<R> = Context<R>;
 
