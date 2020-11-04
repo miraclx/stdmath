@@ -2,7 +2,7 @@ use super::{exclude::ExcludedIteratorExt, One, Zero};
 use std::{
     any::Any,
     cmp::{Eq, Ordering, PartialEq},
-    fmt::{self, Debug, Write},
+    fmt::{self, Debug, Display, Write},
     hash::{Hash, Hasher},
 };
 
@@ -1297,7 +1297,7 @@ impl<T, F: 'static> Hash for TransformedValue<T, F> {
     }
 }
 
-impl<T, F: 'static> std::fmt::Display for TransformedValue<T, F> {
+impl<T, F: 'static> Display for TransformedValue<T, F> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("TransformedValue").field(&self.0).finish()
