@@ -832,6 +832,12 @@ impl<R: 'static> Hash for Context<R> {
     }
 }
 
+impl<R: 'static> Display for Context<R> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.simplify(f)
+    }
+}
+
 impl<R> Debug for Context<R> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
