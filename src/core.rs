@@ -304,7 +304,7 @@ pub trait Simplify {
     /// 50_u8.simplify(&mut file).expect("failed to simplify");
     /// assert_eq!(file, "50".to_string());
     /// ```
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result;
+    fn simplify(&self, file: &mut dyn Write) -> fmt::Result;
     /// This helper method serializes `self` into a [`String`].
     ///
     /// # Examples
@@ -317,7 +317,7 @@ pub trait Simplify {
     /// assert_eq!(file, "50".to_string());
     /// ```
     #[inline]
-    fn repr(&self) -> Result<String, std::fmt::Error> {
+    fn repr(&self) -> Result<String, fmt::Error> {
         let mut file = String::new();
         Simplify::simplify(self, &mut file)?;
         Ok(file)
@@ -658,7 +658,7 @@ macro_rules! bulk_impl_traits {
         }
         impl Simplify for $type {
             #[inline]
-            fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+            fn simplify(&self, file: &mut dyn Write) -> fmt::Result {
                 write!(file, "{}", self)
             }
         }
@@ -689,7 +689,7 @@ macro_rules! bulk_impl_traits {
             }
             impl Simplify for $type {
                 #[inline]
-                fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+                fn simplify(&self, file: &mut dyn Write) -> fmt::Result {
                     write!(file, "{}", self)
                 }
             }
@@ -834,7 +834,7 @@ impl<R: 'static> Hash for Context<R> {
 
 impl<R> Debug for Context<R> {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (name, val): (_, &dyn Debug) = match self {
             Context::Add(vec) => ("Add", vec),
             Context::Mul(vec) => ("Mul", vec),
@@ -895,7 +895,7 @@ where
 }
 
 impl<R: 'static> Simplify for Context<R> {
-    fn simplify(&self, mut file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, mut file: &mut dyn Write) -> fmt::Result {
         let (is_additive, vec) = (
             self.is_additive(),
             match self.get_ref() {
@@ -1299,14 +1299,14 @@ impl<T, F: 'static> Hash for TransformedValue<T, F> {
 
 impl<T, F: 'static> std::fmt::Display for TransformedValue<T, F> {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("TransformedValue").field(&self.0).finish()
     }
 }
 
 impl<T, F: 'static> Debug for TransformedValue<T, F> {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("TransformedValue")
             .field(&self.0)
             .field(&self.1.type_id())
