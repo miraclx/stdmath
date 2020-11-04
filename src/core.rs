@@ -1297,6 +1297,13 @@ impl<T, F: 'static> Hash for TransformedValue<T, F> {
     }
 }
 
+impl<T, F: 'static> std::fmt::Display for TransformedValue<T, F> {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TransformedValue").field(&self.0).finish()
+    }
+}
+
 impl<T, F: 'static> Debug for TransformedValue<T, F> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1764,7 +1771,7 @@ mod tests {
     #[test]
     fn transformed_value() {
         let val = TransformedValue::new(50, |val| val + 50);
-        assert_eq!(format!("{:?}", val), "TransformedValue(50)");
+        assert_eq!(format!("{}", val), "TransformedValue(50)");
         assert_eq!(val.repr().expect("failed to represent math context"), "50");
         assert_eq!(val.resolve(), 100);
     }
