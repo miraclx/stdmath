@@ -706,42 +706,6 @@ bulk_impl_traits!(float(f32, f64));
 bulk_impl_traits!(i128, u128);
 bulk_impl_traits!(vars(char, String));
 
-impl<X> Simplify for Box<dyn Resolve<Result = X>> {
-    #[inline]
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
-        (&**self).simplify(file)
-    }
-}
-
-impl<X: 'static> Resolve for Box<dyn Resolve<Result = X>> {
-    type Result = X;
-    #[inline]
-    fn as_any(&self) -> &dyn Any {
-        (**self).as_any()
-    }
-    #[inline]
-    fn _cmp(&self, other: &dyn Resolve<Result = Self::Result>) -> Option<Ordering> {
-        (**self)._cmp(other)
-    }
-    #[inline]
-    fn is_friendly_with(&self, other: &dyn Resolve<Result = Self::Result>) -> bool {
-        (**self).is_friendly_with(other)
-    }
-    #[inline]
-    fn _hash(&self, state: &mut dyn Hasher) {
-        (**self)._hash(state)
-    }
-    #[inline]
-    fn _clone(&self) -> Box<dyn Resolve<Result = Self::Result>> {
-        self.clone()
-    }
-    stage_default_methods!(to_context _debug);
-    #[inline]
-    fn resolve(self: Box<Self>) -> Self::Result {
-        (*self).resolve()
-    }
-}
-
 #[derive(Hash, PartialEq, PartialOrd)]
 pub enum ContextVal<M, S> {
     Multiple(M),
