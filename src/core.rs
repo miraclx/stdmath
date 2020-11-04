@@ -1339,7 +1339,7 @@ impl<T, F1: 'static, F2: 'static> PartialOrd<TransformedValue<T, F2>> for Transf
 
 impl<T, R> Simplify for TransformedValue<T, R> {
     #[inline]
-    fn simplify(&self, file: &mut dyn Write) -> std::fmt::Result {
+    fn simplify(&self, file: &mut dyn Write) -> fmt::Result {
         self.0.simplify(file)
     }
 }
