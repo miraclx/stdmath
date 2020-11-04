@@ -1382,48 +1382,34 @@ where
 
 type Sigma<R> = Context<R>;
 
-pub fn sigma<I: IntoIterator<Item = T>, T, R, F: Fn(T::Result) -> R + Copy>(
+pub fn sigma<I: IntoIterator<Item = T>, T: Resolve, R, F: Fn(T::Result) -> R + Clone>(
     iter: I,
     func: F,
 ) -> Sigma<R>
 where
-    T: Resolve + Clone + Hash + Debug + PartialOrd,
-    //
     T: 'static,
-    R: 'static,
     F: 'static,
 {
     Context::Add(
         iter.into_iter()
-            .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue::new(val, func)) as Box<dyn Resolve<Result = R>>
-                )
-            })
+            .map(|val| Type::Normal(Box::new(TransformedValue::new(val, func.clone())) as Box<_>))
             .collect(),
     )
 }
 
 type Product<R> = Context<R>;
 
-pub fn product<I: IntoIterator<Item = T>, T, R, F: Fn(T::Result) -> R + Copy>(
+pub fn product<I: IntoIterator<Item = T>, T: Resolve, R, F: Fn(T::Result) -> R + Clone>(
     iter: I,
     func: F,
 ) -> Product<R>
 where
-    T: Resolve + Clone + Hash + Debug + PartialOrd,
-    //
     T: 'static,
-    R: 'static,
     F: 'static,
 {
     Context::Mul(
         iter.into_iter()
-            .map(|val| {
-                Type::Normal(
-                    Box::new(TransformedValue::new(val, func)) as Box<dyn Resolve<Result = R>>
-                )
-            })
+            .map(|val| Type::Normal(Box::new(TransformedValue::new(val, func.clone())) as Box<_>))
             .collect(),
     )
 }
