@@ -820,7 +820,7 @@ impl<R: 'static> Context<R> {
         vec.into_iter()
             .map(|item| {
                 item.map(|val| {
-                    Box::new(TransformedValue::new(val, f.clone())) as Box<dyn Resolve<Result = X>>
+                    Box::new(TransformedValue(val, f.clone())) as Box<dyn Resolve<Result = X>>
                 })
             })
             .collect()
@@ -830,7 +830,7 @@ impl<R: 'static> Context<R> {
         match self {
             Context::Add(vec) => Context::Add(Self::typed_map_handle(vec, f)),
             Context::Mul(vec) => Context::Mul(Self::typed_map_handle(vec, f)),
-            Context::Nil(val) => Context::Nil(Box::new(TransformedValue::new(val, f))),
+            Context::Nil(val) => Context::Nil(Box::new(TransformedValue(val, f))),
         }
     }
 }
