@@ -150,20 +150,13 @@ mod tests {
     }
     #[test]
     fn test_op_lt() {
-        let func = |v| v as f32;
-        let val1 = product(1..=3, func);
-        assert_eq!(
-            val1.repr().expect("failed to represent math context"),
-            "(1 * 2 * 3)"
-        );
+        let val1 = Factorial(3);
+        assert_eq!(val1.repr().expect("failed to represent math context"), "3!");
 
-        let val2 = product(1..=5, func);
-        assert_eq!(
-            val2.repr().expect("failed to represent math context"),
-            "(1 * 2 * 3 * 4 * 5)"
-        );
+        let val2 = Factorial(5);
+        assert_eq!(val2.repr().expect("failed to represent math context"), "5!");
 
-        let res = val1 / val2;
+        let res = (val1.to_context() / val2.to_context()).type_map(|val| val as f64);
         assert_eq!(
             res.repr().expect("failed to represent math context"),
             "1/(4 * 5)"
