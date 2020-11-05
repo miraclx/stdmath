@@ -1489,6 +1489,7 @@ mod tests {
             val.repr().expect("failed to represent math context"),
             "(3 + 4 + 5 + 6)"
         );
+        assert_eq!(format!("{}", val), "(3 + 4 + 5 + 6)");
     }
     #[test]
     fn basic_mul_repr() {
@@ -1497,6 +1498,7 @@ mod tests {
             val.repr().expect("failed to represent math context"),
             "(4 * 5 * 6 * 7)"
         );
+        assert_eq!(format!("{}", val), "(4 * 5 * 6 * 7)");
     }
     #[test]
     fn basic_sum_compute() {
