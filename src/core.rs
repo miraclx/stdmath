@@ -996,11 +996,18 @@ macro_rules! ctx {
     ($val: ident = $var: expr) => {
         $crate::ctx!($val = $var,);
     };
+    (($($val: ident),+)) => {
+        $crate::ctx!(($($val),+),);
+    };
     (($($val: ident),+) = $var: expr) => {
         $crate::ctx!(($($val),+) = $var,);
     };
     ($val: ident = $var: expr, $($rest:tt)*) => {
         let $val: $crate::core::Context<_> = $crate::ctx!({$var});
+        $crate::ctx!($($rest)*);
+    };
+    (($($val: ident),+), $($rest:tt)*) => {
+        $(let $val: $crate::core::Context<_> = $crate::ctx!({$val});)+
         $crate::ctx!($($rest)*);
     };
     (($($val: ident),+) = $var: expr, $($rest:tt)*) => {
@@ -2240,6 +2247,35 @@ mod tests {
             "(10 + 20)"
         );
         assert_eq!(c.resolve(), 30);
+
+        // contextify local variables
+        let (a, b) = (10, 20);
+        ctx!((a, b));
+        let c = a + b;
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        // move local variables and privately contextify them
+        let (a, b) = (10, 20);
+        let c = ctx!({ (a, b) } a + b);
+        assert_eq!(
+            c.repr().expect("failed to represent math context"),
+            "(10 + 20)"
+        );
+        assert_eq!(c.resolve(), 30);
+
+        // move locals and privately contextify all variables
+        let (a, b) = (10, 20);
+        ctx!({ (a, b), c = a + b } {
+            assert_eq!(
+                c.repr().expect("failed to represent math context"),
+                "(10 + 20)"
+            );
+            assert_eq!(c.resolve(), 30);
+        });
     }
     #[test]
     fn test_helper_macros() {
