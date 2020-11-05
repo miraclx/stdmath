@@ -127,7 +127,8 @@ mod tests {
         let val2 = Factorial(3);
         assert_eq!(val2.repr().expect("failed to represent math context"), "3!");
 
-        let res = val1.to_context() / val2.to_context();
+        // divide the contextual equivalent of val1 by that of val2
+        let res = ctx!({ (val1, val2) } val1 / val2);
         assert_eq!(
             res.repr().expect("failed to represent math context"),
             "(4 * 5)"
@@ -143,7 +144,8 @@ mod tests {
         let val2 = Factorial(5);
         assert_eq!(val2.repr().expect("failed to represent math context"), "5!");
 
-        let res = val1.to_context() / val2.to_context();
+        // divide the contextual equivalent of val1 by that of val2
+        let res = ctx!({ (val1, val2) } val1 / val2);
         assert_eq!(res.repr().expect("failed to represent math context"), "");
 
         assert_eq!(res.resolve(), 1);
@@ -156,7 +158,9 @@ mod tests {
         let val2 = Factorial(5);
         assert_eq!(val2.repr().expect("failed to represent math context"), "5!");
 
-        let res = (val1.to_context() / val2.to_context()).type_map(|val| val as f64);
+        // divide the contextual equivalent of val1 by that of val2
+        // then cast each item within that result to an f64 to handle overflow
+        let res = ctx!({ (val1, val2) } val1 / val2).type_map(|val| val as f64);
         assert_eq!(
             res.repr().expect("failed to represent math context"),
             "1/(4 * 5)"
