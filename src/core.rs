@@ -1195,7 +1195,7 @@ impl_ops! {
     std::ops::Div[fn div(lhs, rhs) -> Context::Mul] => { default_inverse(*, lhs, rhs) }
 }
 
-macro_rules! impl_ops_with_primitives {
+macro_rules! impl_ops {
     (($($generics:tt)*) $trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty, $rhs:ty)] where $($where:tt)*) => {
         impl<$($generics)*> $trait$(::$trait_path)*<$rhs> for $lhs where $($where)* {
             #[inline]
@@ -1205,35 +1205,35 @@ macro_rules! impl_ops_with_primitives {
         }
     };
     (reciprocate ($($generics:tt)*) $lhs:ty: $rhs:ty) => {
-        impl_ops_with_primitives!(reciprocate ($($generics)*) $lhs: $rhs where);
+        impl_ops!(reciprocate ($($generics)*) $lhs: $rhs where);
     };
     (reciprocate ($($generics:tt)*) $lhs:ty: $rhs:ty where $($where:tt)*) => {
-        impl_ops_with_primitives!(($($generics)*) $lhs: $rhs where $($where)*);
-        impl_ops_with_primitives!(($($generics)*) $rhs: $lhs where $($where)*);
+        impl_ops!(($($generics)*) $lhs: $rhs where $($where)*);
+        impl_ops!(($($generics)*) $rhs: $lhs where $($where)*);
     };
     (($($generics:tt)*) $lhs:ty: $rhs:ty) => {
-        impl_ops_with_primitives!(($($generics)*) $rhs: $lhs where);
+        impl_ops!(($($generics)*) $rhs: $lhs where);
     };
     (($($generics:tt)*) $lhs:ty: $rhs:ty where $($where:tt)*) => {
-        impl_ops_with_primitives!(($($generics)*) std::ops::Add::[add($lhs, $rhs)] where $($where)*);
-        impl_ops_with_primitives!(($($generics)*) std::ops::Sub::[sub($lhs, $rhs)] where $($where)*);
-        impl_ops_with_primitives!(($($generics)*) std::ops::Mul::[mul($lhs, $rhs)] where $($where)*);
-        impl_ops_with_primitives!(($($generics)*) std::ops::Div::[div($lhs, $rhs)] where $($where)*);
+        impl_ops!(($($generics)*) std::ops::Add::[add($lhs, $rhs)] where $($where)*);
+        impl_ops!(($($generics)*) std::ops::Sub::[sub($lhs, $rhs)] where $($where)*);
+        impl_ops!(($($generics)*) std::ops::Mul::[mul($lhs, $rhs)] where $($where)*);
+        impl_ops!(($($generics)*) std::ops::Div::[div($lhs, $rhs)] where $($where)*);
     };
     ($($lhs:ty),+) => {
-        $(impl_ops_with_primitives!(reciprocate () $lhs: Context<<$lhs as Resolve>::Result>);)+
+        $(impl_ops!(reciprocate () $lhs: Context<<$lhs as Resolve>::Result>);)+
     };
 }
 
 // T [op] Context<T>
 // Context<T> [op] T
-impl_ops_with_primitives!(i8, i16, i32, i64, isize);
-impl_ops_with_primitives!(u8, u16, u32, u64, usize);
-impl_ops_with_primitives!(f32, f64);
-impl_ops_with_primitives!(i128, u128);
+impl_ops!(i8, i16, i32, i64, isize);
+impl_ops!(u8, u16, u32, u64, usize);
+impl_ops!(f32, f64);
+impl_ops!(i128, u128);
 // TransformedValue => R [op] Context<R>
 // Context<R> [op] TransformedValue => R
-impl_ops_with_primitives!(
+impl_ops!(
     reciprocate
     (
         T: 'static,
@@ -1248,7 +1248,7 @@ impl_ops_with_primitives!(
     TransformedValue<T, F>: Context<R>
 );
 // TransformedValue => R [op] TransformedValue => R
-impl_ops_with_primitives!(
+impl_ops!(
     (
         T: 'static,
         R: One
