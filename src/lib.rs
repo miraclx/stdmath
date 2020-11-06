@@ -110,6 +110,15 @@ where
     }
 }
 
+impl_ops!(
+    (
+        T: One + Resolve<Result = R> + Clone + std::hash::Hash + PartialOrd + std::fmt::Display + std::fmt::Debug + 'static,
+        R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub + 'static,
+    )
+    Factorial<T>: Context<R> where
+        std::ops::RangeInclusive<T>: Iterator<Item = T>,
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;
