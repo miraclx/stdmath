@@ -989,37 +989,49 @@ impl<R: 'static> Simplify for Context<R> {
 
 #[macro_export]
 macro_rules! ctx {
+    // ctx!(): no-op
     () => {};
+    // ctx!(a): ctx!(a,)
     ($val: ident) => {
         $crate::ctx!($val,);
     };
+    // ctx!(a = 10): ctx!(a = 10,)
     ($val: ident = $var: expr) => {
         $crate::ctx!($val = $var,);
     };
+    // ctx!((a, b)): ctx!((a, b),)
     (($($val: ident),+)) => {
         $crate::ctx!(($($val),+),);
     };
+    // ctx!((a, b) = 20): ctx!((a, b) = 20,)
     (($($val: ident),+) = $var: expr) => {
         $crate::ctx!(($($val),+) = $var,);
     };
+    // ctx!(a = 20,): set a to ctx from 20
     ($val: ident = $var: expr, $($rest:tt)*) => {
         let $val: $crate::core::Context<_> = $crate::ctx!({$var});
         $crate::ctx!($($rest)*);
     };
+    // ctx!((a, b),): set a, b to ctx from local
     (($($val: ident),+), $($rest:tt)*) => {
         $(let $val: $crate::core::Context<_> = $crate::ctx!({$val});)+
         $crate::ctx!($($rest)*);
     };
+    // ctx!((a, b) = 20,): set a, b to ctx of 20
     (($($val: ident),+) = $var: expr, $($rest:tt)*) => {
         $(let $val: $crate::core::Context<_> = $crate::ctx!({$var});)+
         $crate::ctx!($($rest)*);
     };
+    // ctx!(a, b,): define a, b as contexts
     ($val: ident, $($rest:tt)*) => {
         let $val: $crate::core::Context<_>;
         $crate::ctx!($($rest)*);
     };
+    // ctx!({ (a, b) }): return tuple of contexts
     ({( $($val: expr),+ )}) => { ( $( $crate::ctx!({ $val }) ),+ ) };
+    // ctx!({ 6 }): return ctx of 6
     ({$val: expr}) => { $crate::core::Resolve::to_context($val) };
+    // ctx!({ a, b = 5, .. } {}): privately recurse this macro
     ({$($vars:tt)*} $expr:expr) => {
         {
             $crate::ctx!($($vars)*);
