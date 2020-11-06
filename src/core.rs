@@ -1195,33 +1195,38 @@ impl_ops! {
     std::ops::Div[fn div(lhs, rhs) -> Context::Mul] => { default_inverse(*, lhs, rhs) }
 }
 
+#[macro_export]
 macro_rules! impl_ops {
     (($($generics:tt)*) $trait:ident $(:: $trait_path:ident)* ::[$method:ident($lhs:ty, $rhs:ty)] where $($where:tt)*) => {
         impl<$($generics)*> $trait$(::$trait_path)*<$rhs> for $lhs where $($where)* {
+            type Output = $crate::core::Context<<$rhs as $crate::core::Resolve>::Result>;
             #[inline]
             fn $method(self, rhs: $rhs) -> Self::Output {
-                $trait$(::$trait_path)*::$method(self.to_context(), rhs.to_context())
+                $trait$(::$trait_path)*::$method(
+                    $crate::core::Resolve::to_context(self),
+                    $crate::core::Resolve::to_context(rhs)
+                )
             }
         }
     };
     (reciprocate ($($generics:tt)*) $lhs:ty: $rhs:ty) => {
-        impl_ops!(reciprocate ($($generics)*) $lhs: $rhs where);
+        $crate::impl_ops!(reciprocate ($($generics)*) $lhs: $rhs where);
     };
     (reciprocate ($($generics:tt)*) $lhs:ty: $rhs:ty where $($where:tt)*) => {
-        impl_ops!(($($generics)*) $lhs: $rhs where $($where)*);
-        impl_ops!(($($generics)*) $rhs: $lhs where $($where)*);
+        $crate::impl_ops!(($($generics)*) $lhs: $rhs where $($where)*);
+        $crate::impl_ops!(($($generics)*) $rhs: $lhs where $($where)*);
     };
     (($($generics:tt)*) $lhs:ty: $rhs:ty) => {
-        impl_ops!(($($generics)*) $rhs: $lhs where);
+        $crate::impl_ops!(($($generics)*) $rhs: $lhs where);
     };
     (($($generics:tt)*) $lhs:ty: $rhs:ty where $($where:tt)*) => {
-        impl_ops!(($($generics)*) std::ops::Add::[add($lhs, $rhs)] where $($where)*);
-        impl_ops!(($($generics)*) std::ops::Sub::[sub($lhs, $rhs)] where $($where)*);
-        impl_ops!(($($generics)*) std::ops::Mul::[mul($lhs, $rhs)] where $($where)*);
-        impl_ops!(($($generics)*) std::ops::Div::[div($lhs, $rhs)] where $($where)*);
+        $crate::impl_ops!(($($generics)*) std::ops::Add::[add($lhs, $rhs)] where $($where)*);
+        $crate::impl_ops!(($($generics)*) std::ops::Sub::[sub($lhs, $rhs)] where $($where)*);
+        $crate::impl_ops!(($($generics)*) std::ops::Mul::[mul($lhs, $rhs)] where $($where)*);
+        $crate::impl_ops!(($($generics)*) std::ops::Div::[div($lhs, $rhs)] where $($where)*);
     };
     ($($lhs:ty),+) => {
-        $(impl_ops!(reciprocate () $lhs: Context<<$lhs as Resolve>::Result>);)+
+        $($crate::impl_ops!(reciprocate () $lhs: $crate::core::Context<<$lhs as $crate::core::Resolve>::Result>);)+
     };
 }
 
