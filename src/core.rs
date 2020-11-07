@@ -882,7 +882,11 @@ where
     R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
 {
     type Result = R;
-    stage_default_methods!(is_friendly_with_all to_context ALL);
+    stage_default_methods!(is_friendly_with_all ALL);
+    #[inline]
+    fn to_context(self: Box<Self>) -> Context<Self::Result> {
+        self.transpose()
+    }
     #[inline]
     fn as_context(self: Box<Self>) -> Context<Self::Result> {
         *self
