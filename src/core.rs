@@ -786,10 +786,11 @@ impl<R: 'static> Context<R> {
     }
     #[inline]
     pub fn to_valid_or(self, f: fn(Box<dyn Resolve<Result = R>>) -> Self) -> Self {
-        if let Context::Nil(val) = self {
+        let me = self.transpose();
+        if let Context::Nil(val) = me {
             return f(val);
         }
-        self
+        me
     }
     #[inline]
     fn typed_map_handle<X: 'static, F: Fn(R) -> X + Clone + 'static>(
