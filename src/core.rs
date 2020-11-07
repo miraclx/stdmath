@@ -534,7 +534,8 @@ pub trait Resolve: Simplify {
     /// ```
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
-    fn to_context(self) -> Context<Self::Result>;
+    fn to_context(self: Box<Self>) -> Context<Self::Result>;
+    fn as_context(self: Box<Self>) -> Context<Self::Result>;
 }
 
 impl<X> PartialEq for dyn Resolve<Result = X> {
@@ -637,8 +638,15 @@ macro_rules! stage_default_methods {
     };
     (to_context $($rest:tt)*) => {
         #[inline]
-        fn to_context(self) -> $crate::core::Context<Self::Result> {
-            $crate::core::Context::Nil(::std::prelude::v1::Box::new(self))
+        fn to_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
+            self.as_context()
+        }
+        $crate::stage_default_methods!($($rest)*);
+    };
+    (as_context $($rest:tt)*) => {
+        #[inline]
+        fn as_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
+            $crate::core::Context::Nil(self)
         }
         $crate::stage_default_methods!($($rest)*);
     };
@@ -649,7 +657,7 @@ macro_rules! bulk_impl_traits {
         impl Resolve for $type {
             type Result = $type;
             stage_default_methods!($($methods)+);
-            stage_default_methods!(is_friendly_with_all to_context);
+            stage_default_methods!(is_friendly_with_all to_context as_context);
             $($items)*
             #[inline]
             fn resolve(self: Box<Self>) -> Self::Result {
@@ -681,7 +689,7 @@ macro_rules! bulk_impl_traits {
                 // fixme: maybe creating a custom struct wrapping
                 // fixme: strings would be a better alternative
                 type Result = usize;
-                stage_default_methods!(is_friendly_with_all to_context ALL);
+                stage_default_methods!(is_friendly_with_all to_context as_context ALL);
                 #[inline]
                 fn resolve(self: Box<Self>) -> Self::Result {
                     unimplemented!("cannot resolve strings")
@@ -866,10 +874,10 @@ where
     R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
 {
     type Result = R;
-    stage_default_methods!(is_friendly_with_all ALL);
+    stage_default_methods!(is_friendly_with_all to_context ALL);
     #[inline]
-    fn to_context(self) -> Context<Self::Result> {
-        self
+    fn as_context(self: Box<Self>) -> Context<Self::Result> {
+        *self
     }
     fn resolve(self: Box<Self>) -> Self::Result {
         #[allow(clippy::type_complexity)]
@@ -1030,7 +1038,7 @@ macro_rules! ctx {
     // ctx!({ (a, b) }): return tuple of contexts
     ({( $($val: expr),+ )}) => { ( $( $crate::ctx!({ $val }) ),+ ) };
     // ctx!({ 6 }): return ctx of 6
-    ({$val: expr}) => { $crate::core::Resolve::to_context($val) };
+    ({$val: expr}) => { $crate::core::Resolve::as_context(Box::new($val)) };
     // ctx!({ a, b = 5, .. } {}): privately recurse this macro
     ({$($vars:tt)*} $expr:expr) => {
         {
@@ -1221,8 +1229,8 @@ macro_rules! impl_ops {
             #[inline]
             fn $method(self, rhs: $rhs) -> Self::Output {
                 $trait$(::$trait_path)*::$method(
-                    $crate::core::Resolve::to_context(self),
-                    $crate::core::Resolve::to_context(rhs)
+                    $crate::core::Resolve::to_context(::std::prelude::v1::Box::new(self)),
+                    $crate::core::Resolve::to_context(::std::prelude::v1::Box::new(rhs))
                 )
             }
         }
@@ -1462,7 +1470,7 @@ where
     F: 'static,
 {
     type Result = R;
-    stage_default_methods!(is_friendly_with to_context ALL);
+    stage_default_methods!(is_friendly_with to_context as_context ALL);
     #[inline]
     fn resolve(self: Box<Self>) -> Self::Result {
         (self.1)(Box::new(self.0).resolve())

@@ -101,8 +101,8 @@ where
     std::ops::RangeInclusive<T>: Iterator<Item = T>,
 {
     type Result = T::Result;
-    stage_default_methods!(is_friendly_with_all ALL);
-    fn to_context(self) -> Context<Self::Result> {
+    stage_default_methods!(is_friendly_with_all as_context ALL);
+    fn to_context(self: Box<Self>) -> Context<Self::Result> {
         mul(Type::Normal(T::one()..=self.0))
     }
     fn resolve(self: Box<Self>) -> Self::Result {
