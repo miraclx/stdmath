@@ -778,6 +778,13 @@ impl<R: 'static> Context<R> {
         false
     }
     #[inline]
+    pub fn transpose(self) -> Self {
+        if let Context::Nil(val) = self {
+            return val.to_context();
+        }
+        self
+    }
+    #[inline]
     pub fn to_valid_or(self, f: fn(Box<dyn Resolve<Result = R>>) -> Self) -> Self {
         if let Context::Nil(val) = self {
             return f(val);
