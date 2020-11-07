@@ -1147,13 +1147,19 @@ macro_rules! impl_ops {
               incl => impl_ops!(incl_default);
         )
     };
-    (ctx + $side:ident) => {$side.is_additive()};
-    (ctx * $side:ident) => {!$side.is_additive()};
-    (dump_items $side:ident) => {$side.dump().multiple().expect("expected a defined context, please transpose this Nil context").into_iter()};
+    (ctx + $side:ident) => { $side.is_additive() };
+    (ctx * $side:ident) => { !$side.is_additive() };
+    (dump_items $side:ident) => {
+        $side
+            .dump()
+            .multiple()
+            .expect("expected a defined context, please transpose this Nil context")
+            .into_iter()
+    };
     (dump_raw $side:ident) => {
         std::iter::once(Type::Normal(Box::new($side) as Box<dyn Resolve<Result = R>>))
     };
-    (incl_default) => {|item| item.flip()}
+    (incl_default) => { |item| item.flip() }
 }
 
 impl_ops! {
