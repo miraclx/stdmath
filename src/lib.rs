@@ -76,18 +76,6 @@ where
 #[derive(Debug, Hash, Clone, PartialEq, PartialOrd)]
 pub struct Factorial<T>(pub T);
 
-impl<T: One + Resolve + 'static> Factorial<T> {
-    #[inline]
-    pub fn resolve(self) -> T::Result
-    where
-        T: Clone + std::hash::Hash + PartialOrd + std::fmt::Display + std::fmt::Debug,
-        T::Result: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
-        std::ops::RangeInclusive<T>: Iterator<Item = T>,
-    {
-        Resolve::resolve(Box::new(self))
-    }
-}
-
 impl<T: std::fmt::Display> Simplify for Factorial<T> {
     fn simplify(&self, file: &mut dyn std::fmt::Write) -> std::fmt::Result {
         write!(file, "{}!", self.0)
@@ -101,11 +89,11 @@ where
     std::ops::RangeInclusive<T>: Iterator<Item = T>,
 {
     type Result = T::Result;
-    stage_default_methods!(is_friendly_with_all as_context ALL);
-    fn to_context(self: Box<Self>) -> Context<Self::Result> {
+    stage_default_methods!(is_friendly_with_all _as_context ALL);
+    fn _to_context(self: Box<Self>) -> Context<Self::Result> {
         mul(Type::Normal(T::one()..=self.0))
     }
-    fn resolve(self: Box<Self>) -> Self::Result {
+    fn _resolve(self: Box<Self>) -> Self::Result {
         self.to_context().resolve()
     }
 }

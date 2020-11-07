@@ -364,7 +364,13 @@ pub trait Resolve: Simplify {
     /// The result of the object resolution.
     type Result;
     /// This method resolves `self` into it's equivalent [`Result`][Self::Result] type.
-    fn resolve(self: Box<Self>) -> Self::Result;
+    fn _resolve(self: Box<Self>) -> Self::Result;
+    fn resolve(self) -> Self::Result
+    where
+        Self: Sized,
+    {
+        Box::new(self).resolve()
+    }
 
     // methods needed for dynamicism
 
@@ -534,8 +540,20 @@ pub trait Resolve: Simplify {
     /// ```
     ///
     /// This is required for dynamicism between varied types that impl `Resolve`.
-    fn to_context(self: Box<Self>) -> Context<Self::Result>;
-    fn as_context(self: Box<Self>) -> Context<Self::Result>;
+    fn _to_context(self: Box<Self>) -> Context<Self::Result>;
+    fn to_context(self) -> Context<Self::Result>
+    where
+        Self: Sized,
+    {
+        Box::new(self)._to_context()
+    }
+    fn _as_context(self: Box<Self>) -> Context<Self::Result>;
+    fn as_context(self) -> Context<Self::Result>
+    where
+        Self: Sized,
+    {
+        Box::new(self)._as_context()
+    }
 }
 
 impl<X> PartialEq for dyn Resolve<Result = X> {
@@ -636,16 +654,16 @@ macro_rules! stage_default_methods {
         }
         $crate::stage_default_methods!($($rest)*);
     };
-    (to_context $($rest:tt)*) => {
+    (_to_context $($rest:tt)*) => {
         #[inline]
-        fn to_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
-            self.as_context()
+        fn _to_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
+            self._as_context()
         }
         $crate::stage_default_methods!($($rest)*);
     };
-    (as_context $($rest:tt)*) => {
+    (_as_context $($rest:tt)*) => {
         #[inline]
-        fn as_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
+        fn _as_context(self: ::std::prelude::v1::Box<Self>) -> $crate::core::Context<Self::Result> {
             $crate::core::Context::Nil(self)
         }
         $crate::stage_default_methods!($($rest)*);
@@ -657,10 +675,10 @@ macro_rules! bulk_impl_traits {
         impl Resolve for $type {
             type Result = $type;
             stage_default_methods!($($methods)+);
-            stage_default_methods!(is_friendly_with_all to_context as_context);
+            stage_default_methods!(is_friendly_with_all _to_context _as_context);
             $($items)*
             #[inline]
-            fn resolve(self: Box<Self>) -> Self::Result {
+            fn _resolve(self: Box<Self>) -> Self::Result {
                 *self
             }
         }
@@ -689,9 +707,9 @@ macro_rules! bulk_impl_traits {
                 // fixme: maybe creating a custom struct wrapping
                 // fixme: strings would be a better alternative
                 type Result = usize;
-                stage_default_methods!(is_friendly_with_all to_context as_context ALL);
+                stage_default_methods!(is_friendly_with_all _to_context _as_context ALL);
                 #[inline]
-                fn resolve(self: Box<Self>) -> Self::Result {
+                fn _resolve(self: Box<Self>) -> Self::Result {
                     unimplemented!("cannot resolve strings")
                 }
             }
@@ -745,13 +763,6 @@ pub enum Context<R> {
 
 impl<R: 'static> Context<R> {
     #[inline]
-    pub fn resolve(self) -> R
-    where
-        R: One + Zero + std::ops::Mul + std::ops::Add + std::ops::Div + std::ops::Sub,
-    {
-        Box::new(self).resolve()
-    }
-    #[inline]
     pub fn dump(
         self,
     ) -> ContextVal<Vec<Type<Box<dyn Resolve<Result = R>>>>, Box<dyn Resolve<Result = R>>> {
@@ -780,7 +791,7 @@ impl<R: 'static> Context<R> {
     #[inline]
     pub fn transpose(self) -> Self {
         if let Context::Nil(val) = self {
-            return val.to_context();
+            return val._to_context();
         }
         self
     }
@@ -884,20 +895,20 @@ where
     type Result = R;
     stage_default_methods!(is_friendly_with_all ALL);
     #[inline]
-    fn to_context(self: Box<Self>) -> Context<Self::Result> {
+    fn _to_context(self: Box<Self>) -> Context<Self::Result> {
         self.transpose()
     }
     #[inline]
-    fn as_context(self: Box<Self>) -> Context<Self::Result> {
+    fn _as_context(self: Box<Self>) -> Context<Self::Result> {
         *self
     }
-    fn resolve(self: Box<Self>) -> Self::Result {
+    fn _resolve(self: Box<Self>) -> Self::Result {
         #[allow(clippy::type_complexity)]
         let (vec, default, [normal_op, inverse_op]): (_, fn() -> R, [fn(R, R) -> R; 2]) =
             match *self {
                 Context::Add(vec) => (vec, || R::zero(), [std::ops::Add::add, std::ops::Sub::sub]),
                 Context::Mul(vec) => (vec, || R::one(), [std::ops::Mul::mul, std::ops::Div::div]),
-                Context::Nil(val) => return val.resolve(),
+                Context::Nil(val) => return val._resolve(),
             };
         let (mut normal, mut inverse) = (None, None);
         for item in vec {
@@ -907,7 +918,7 @@ where
             } else {
                 &mut inverse
             };
-            let val = item.unwrap().resolve();
+            let val = item.unwrap()._resolve();
             *this = Some(match this.take() {
                 Some(prev) => normal_op(prev, val),
                 None => val,
@@ -1050,7 +1061,7 @@ macro_rules! ctx {
     // ctx!({ (a, b) }): return tuple of contexts
     ({( $($val: expr),+ )}) => { ( $( $crate::ctx!({ $val }) ),+ ) };
     // ctx!({ 6 }): return ctx of 6
-    ({$val: expr}) => { $crate::core::Resolve::as_context(Box::new($val)) };
+    ({$val: expr}) => { $crate::core::Resolve::_as_context(Box::new($val)) };
     // ctx!({ a, b = 5, .. } {}): privately recurse this macro
     ({$($vars:tt)*} $expr:expr) => {
         {
@@ -1241,8 +1252,8 @@ macro_rules! impl_ops {
             #[inline]
             fn $method(self, rhs: $rhs) -> Self::Output {
                 $trait$(::$trait_path)*::$method(
-                    $crate::core::Resolve::to_context(::std::prelude::v1::Box::new(self)),
-                    $crate::core::Resolve::to_context(::std::prelude::v1::Box::new(rhs))
+                    $crate::core::Resolve::_to_context(::std::prelude::v1::Box::new(self)),
+                    $crate::core::Resolve::_to_context(::std::prelude::v1::Box::new(rhs))
                 )
             }
         }
@@ -1410,14 +1421,6 @@ impl<T, R, F: Fn(T) -> R> TransformedValue<T, F> {
     pub fn new<V: Resolve<Result = T> + 'static>(val: V, func: F) -> Self {
         Self(Box::new(val), func)
     }
-    #[inline]
-    pub fn resolve(self) -> R
-    where
-        F: Clone + 'static,
-        T: 'static,
-    {
-        Resolve::resolve(Box::new(self))
-    }
 }
 
 impl<T, F: Clone> Clone for TransformedValue<T, F> {
@@ -1482,13 +1485,12 @@ where
     F: 'static,
 {
     type Result = R;
-    stage_default_methods!(is_friendly_with to_context as_context ALL);
+    stage_default_methods!(is_friendly_with _to_context _as_context ALL);
     #[inline]
-    fn resolve(self: Box<Self>) -> Self::Result {
-        (self.1)(Box::new(self.0).resolve())
+    fn _resolve(self: Box<Self>) -> Self::Result {
+        (self.1)(Box::new(self.0)._resolve())
     }
 }
-
 
 type Sigma<R> = Context<R>;
 
