@@ -3,6 +3,7 @@
 A collection of useful mathematical methods implemented in Rust
 
 ![CI](https://github.com/miraclx/stdmath/workflows/CI/badge.svg) ![Apache 2.0](https://img.shields.io/github/license/miraclx/stdmath)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmiraclx%2Fstdmath.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmiraclx%2Fstdmath?ref=badge_shield)
 
 > STDMATH HAS MORPHED. It's no longer just a "collection of useful mathematical methods implemented in Rust" but now a math expression optimization library. Documentation hasn't been updated to reflect this but if you can, please see the tests [here](https://github.com/miraclx/stdmath/blob/master/src/core.rs). There's still a lot of work to do, so this is heavily WIP.
 
@@ -78,3 +79,6 @@ See ([LICENSE](LICENSE) or <http://www.apache.org/licenses/LICENSE-2.0>) for mor
 [product]: https://miraclx.github.io/stdmath/math/fn.product.html
 [ramanujansPI]: https://miraclx.github.io/stdmath/math/fn.ramanujansPI.html
 [sigma]: https://miraclx.github.io/stdmath/math/fn.sigma.html
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmiraclx%2Fstdmath.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmiraclx%2Fstdmath?ref=badge_large)
