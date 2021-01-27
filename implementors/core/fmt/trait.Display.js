@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["stdmath"] = [{"text":"impl&lt;R:&nbsp;'static&gt; Display for Context&lt;R&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, F:&nbsp;'static&gt; Display for TransformedValue&lt;T, F&gt;","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

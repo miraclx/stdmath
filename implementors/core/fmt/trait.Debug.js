@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["stdmath"] = [{"text":"impl&lt;T:&nbsp;Debug&gt; Debug for Type&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;X&gt; Debug for dyn Resolve&lt;Result = X&gt;","synthetic":false,"types":[]},{"text":"impl&lt;R&gt; Debug for Context&lt;R&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, F:&nbsp;'static&gt; Debug for TransformedValue&lt;T, F&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;Debug&gt; Debug for Factorial&lt;T&gt;","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
